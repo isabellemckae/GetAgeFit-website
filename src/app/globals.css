@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  body {
+    @apply bg-sand-50 text-ink-800 antialiased;
+  }
+
+  ::selection {
+    @apply bg-sage-200 text-ink-900;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-sage-600 ring-offset-2 ring-offset-sand-50;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display text-ink-900 tracking-tight;
+  }
+}
+
+@layer components {
+  /* Elegant placeholder used in place of unverified/uncaptured photography.
+     Deliberately abstract and premium rather than a stock-photo stand-in —
+     swap for a <Image> once real photography is approved. */
+  .photo-placeholder {
+    @apply relative flex items-center justify-center overflow-hidden rounded-xl2 bg-gradient-to-br from-sage-100 via-sand-200 to-plum-100;
+  }
+
+  .photo-placeholder::before {
+    content: "";
+    @apply absolute inset-0 opacity-40;
+    background-image: radial-gradient(
+        circle at 20% 20%,
+        rgba(88, 122, 79, 0.25),
+        transparent 45%
+      ),
+      radial-gradient(
+        circle at 80% 75%,
+        rgba(127, 85, 128, 0.22),
+        transparent 45%
+      );
+  }
+
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-ink-900 focus:px-5 focus:py-3 focus:text-sand-50 focus:shadow-soft;
+  }
+}
