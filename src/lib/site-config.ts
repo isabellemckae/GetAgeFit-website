@@ -3,9 +3,10 @@
  * CTA hierarchy used throughout the site. Keeping this in one place makes it
  * easy for the GetAgeFit team to review and correct before launch.
  *
- * ⚠️ VERIFICATION NEEDED: address, phone, and email below are placeholders.
- * See docs/CONTENT-STATUS.md for the full list of items that require
- * verified facts before launch.
+ * NAP below is sourced from the current live site
+ * (docs/CONTENT-STATUS.md → "Legacy Site Baseline"), captured August 2026.
+ * It's operational fact (address/phone/hours), not a performance claim, so
+ * it's used directly — but reconfirm it's still current before launch.
  */
 
 export const siteConfig = {
@@ -15,16 +16,15 @@ export const siteConfig = {
     "GetAgeFit is a boutique healthy-aging personal training studio in Georgetown, Texas, helping adults 40+ build strength, capability, and independence through personalized coaching.",
   url: process.env.NEXT_PUBLIC_SITE_URL || "https://www.getagefit.com",
 
-  // ⚠️ VERIFICATION NEEDED — confirm exact studio address, phone, and hours.
   nap: {
     legalName: "GetAgeFit",
-    streetAddress: "[CONFIRM STREET ADDRESS]",
+    streetAddress: "3626 Williams Drive, Suite 200",
     addressLocality: "Georgetown",
     addressRegion: "TX",
-    postalCode: "[CONFIRM ZIP]",
-    phone: "[CONFIRM PHONE NUMBER]",
-    email: "[CONFIRM CONTACT EMAIL]",
-    hours: "[CONFIRM STUDIO HOURS]",
+    postalCode: "78628",
+    phone: "(512) 591-7923",
+    email: "info@getagefit.com",
+    hours: "Mon–Fri 5:00am–8:00pm · Sat 7:00am–4:00pm · Sun by appointment",
   },
 
   social: {

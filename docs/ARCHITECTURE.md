@@ -6,19 +6,60 @@ Phases 3–7.
 
 ## Phase 1 — Audit
 
-The repository this site was built in had **zero commits and zero existing
-site content** at the start of this build (confirmed via `git log`,
-`git branch -a`, and a fresh `git fetch` against `origin` — nothing came
-back). There was no existing GetAgeFit website, CMS export, testimonial
-file, or brand asset supplied in the project materials available to this
-session.
+**Update:** the repository this site was built in had zero commits at the
+start of this build (confirmed via `git log`, `git branch -a`, and a fresh
+`git fetch` against `origin`) — there was no existing GetAgeFit *codebase*
+to migrate. However, three project reference documents were supplied
+partway through the build and **do** contain a real audit of the live
+getagefit.com site:
 
-Practical effect: there was nothing to preserve, migrate, or reconcile.
-This is a from-scratch build against the master prompt as the sole source
-of truth. If a legacy site or brand assets exist outside this repository
-(e.g. a separate Squarespace/WordPress export, a Google Drive of
-photography, existing testimonials with signed releases), they should be
-handed to the team so real content can replace the placeholders cataloged
+- *Get Age Fit — Current Website Master Reference* (Aug 8, 2026) — a
+  page-by-page capture of the live site's positioning, offers, proof
+  points, team roster, testimonials, and claims.
+- *Get Age Fit — Digital Growth & Website Strategy* (Aug 8, 2026) — the
+  strategic source document the master build prompt itself was derived
+  from (confirms the sitemap, qualification logic, KPIs, and brand
+  direction used in this build match the approved strategy).
+- *Straight4ward Marketing Website Recommendations* — the agency email
+  that prompted the refresh, recommending AI-visibility work, resource
+  content, and Microsoft Clarity tracking (all already reflected in this
+  build).
+
+This audit's findings — what was preserved, what changed, and what's
+flagged for re-verification — are now incorporated:
+
+- **Preserved and reused directly:** studio NAP (address/phone/hours/email)
+  now live in `src/lib/site-config.ts`; the full current trainer roster
+  (16 people, names + real credentials) now lives in
+  `src/content/trainers.ts`; founder Theo Thurston's qualitative
+  story/motto/founding year on `/about`.
+- **Preserved as reference, not republished as fact:** specific
+  superlative statistics from the old site (35,000+ sessions, 98%
+  retention, 8,000 sq ft, 18 trainers, etc.) are called out as
+  **unverified legacy claims** — see "Legacy Site Baseline" in
+  `docs/CONTENT-STATUS.md`. The old reference document itself flags these
+  as claims to confirm before reuse, not confirmed facts.
+- **Preserved as candidates pending approval, not republished:** the six
+  named testimonials on the legacy site (Ben P., Carol D., Janine C.,
+  Brad H., Veronica M., Sandy H.) and three named couple testimonials.
+  The strategy document explicitly lists "testimonials/case studies
+  approved for names, ages, photos, and metrics" as an **open decision**
+  — so these are cataloged as reuse candidates in
+  `docs/CONTENT-STATUS.md`, not inserted into `/transformations` without
+  that sign-off.
+- **Deliberately not carried forward:** the legacy site's specific program
+  architecture (36-session package, 24-session alt package, $99/mo couples
+  add-on, "Free Session" as the primary CTA). The approved strategy
+  explicitly replaces "free session" conversion with a
+  qualify-then-consult model, and the strategy doc lists "exact program
+  names and offer architecture" as an **open decision** for Theo — so
+  `/programs` describes the coaching *formats* (1:1, 1:2) and the
+  complete-experience inclusions without inventing package sizes or
+  pricing structure that hasn't been decided for the new site.
+
+If additional legacy assets exist outside these three documents (real
+photography, signed testimonial releases, a CRM/Airtable export), hand
+them to the team so they can replace the remaining placeholders cataloged
 in `docs/CONTENT-STATUS.md`.
 
 ## Phase 2 — Sitemap & User Flows

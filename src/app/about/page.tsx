@@ -47,15 +47,33 @@ export default function AboutPage() {
           <PhotoPlaceholder label="Founder photo needed" />
           <div>
             <Eyebrow tone="plum">Founder</Eyebrow>
-            <h2 className="mb-4 text-3xl">Meet Theo</h2>
+            <h2 className="mb-4 text-3xl">Meet Theo Thurston</h2>
             <p className="mb-4 leading-relaxed text-ink-600">
-              [INSERT VERIFIED FOUNDER STORY — Theo&rsquo;s background, why
-              GetAgeFit was started, and the experience that shaped its
-              approach to healthy aging and strength coaching.]
+              Theo&rsquo;s own fitness journey began later in life — starting
+              a first structured transformation in his late 40s and
+              discovering, firsthand, how differently training needs to be
+              approached as the body changes with age. That experience became
+              the reason GetAgeFit exists: a studio built specifically around
+              the needs of adults who want to stay strong, capable, and
+              independent, not a scaled-down version of a young person&rsquo;s
+              gym.
             </p>
-            <p className="leading-relaxed text-ink-600">
-              [CONFIRM YEARS IN BUSINESS / RELEVANT CREDENTIALS FOR PUBLIC
-              BIO]
+            <p className="mb-4 leading-relaxed text-ink-600">
+              GetAgeFit opened in Georgetown in 2016 as a dedicated,
+              supportive environment for that mission. Theo is a Cooper
+              Institute Certified Personal Trainer, and his guiding motto sums
+              up the approach he coaches by:{" "}
+              <span className="italic">
+                &ldquo;Change your mind. Change your body. Change your
+                life.&rdquo;
+              </span>
+            </p>
+            <p className="text-sm text-ink-400">
+              [CONFIRM before publishing — sourced from the previous
+              getagefit.com site and not yet independently verified: 35,000+
+              personal training sessions delivered; competed in drug-free
+              bodybuilding, Masters 50 &amp; 60 divisions, 2009–2019. See
+              docs/CONTENT-STATUS.md.]
             </p>
           </div>
         </div>
@@ -86,10 +104,16 @@ export default function AboutPage() {
           <h2 className="mb-6 text-3xl md:text-4xl">
             A boutique space built for coaching, not crowds.
           </h2>
-          <p className="text-lg leading-relaxed text-ink-600">
-            [INSERT VERIFIED FACILITY DESCRIPTION — layout, equipment
-            highlights, and what makes the space feel different from a
-            typical gym floor.]
+          <p className="mb-3 text-lg leading-relaxed text-ink-600">
+            GetAgeFit trains out of a flagship Georgetown studio designed
+            around one-on-one and small-group coaching rather than open gym
+            floor access.
+          </p>
+          <p className="text-sm text-ink-400">
+            [CONFIRM before publishing — the previous site described an
+            8,000 sq. ft. flagship location with 150+ dedicated clients and
+            18 certified trainers. Confirm current figures and facility
+            description with Theo/management.]
           </p>
         </div>
       </Section>

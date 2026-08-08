@@ -10,7 +10,7 @@ import { TransformationCard } from "@/components/content/TransformationCard";
 import { ArticleCard } from "@/components/content/ArticleCard";
 import { CTASection } from "@/components/content/CTASection";
 import { pillars } from "@/content/pillars";
-import { trainers } from "@/content/trainers";
+import { trainers, featuredTrainerSlugs } from "@/content/trainers";
 import { transformations } from "@/content/transformations";
 import { articles } from "@/content/articles";
 import { cta } from "@/lib/site-config";
@@ -272,9 +272,11 @@ export default function HomePage() {
           </Button>
         </div>
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {trainers.map((trainer) => (
-            <TrainerCard key={trainer.slug} trainer={trainer} />
-          ))}
+          {trainers
+            .filter((trainer) => featuredTrainerSlugs.includes(trainer.slug))
+            .map((trainer) => (
+              <TrainerCard key={trainer.slug} trainer={trainer} />
+            ))}
         </div>
       </Section>
 
