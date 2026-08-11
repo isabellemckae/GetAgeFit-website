@@ -9,6 +9,16 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // ⚠️ Demo #1 palette — NOT the approved Get Age Fit brand colors.
+        // The governing New Website Master Reference calls for Get Age
+        // Fit's established blue + lime/green + purple accent, but does
+        // not supply hex values. Do not treat sand/ink/sage/plum below as
+        // final; they remain in place only so the existing app keeps
+        // rendering while the redesign proceeds incrementally. See
+        // docs/CONTENT-STATUS.md for status. Real values, once supplied,
+        // should land in the `brand` group below rather than by editing
+        // these in place, so call sites can migrate deliberately.
+
         // Warm neutral foundation — the "spa lobby" backdrop
         sand: {
           50: "#FDFBF8",
@@ -53,25 +63,51 @@ const config: Config = {
           800: "#3E2941",
           900: "#2C1D2F",
         },
+
+        // Placeholder brand-color architecture — PROMPT (New Website
+        // Master Reference §16, §22) requires Get Age Fit's established
+        // blue + lime/green + purple accent, values not yet supplied.
+        // Every slot below intentionally reuses the same generic,
+        // undesigned gray scale — not a color choice, a filing cabinet.
+        // Nothing in the app consumes `brand.*` yet; components adopt it
+        // deliberately, section by section, once real hex values arrive.
+        // Do NOT assign a "nice" color here — that would be inventing a
+        // palette, which is explicitly out of scope until the real brand
+        // values are supplied. See docs/CONTENT-STATUS.md.
+        brand: {
+          blue: {
+            100: "#E5E7EB",
+            300: "#9CA3AF",
+            500: "#6B7280",
+            700: "#374151",
+            900: "#111827",
+          },
+          lime: {
+            100: "#E5E7EB",
+            300: "#9CA3AF",
+            500: "#6B7280",
+            700: "#374151",
+            900: "#111827",
+          },
+          purple: {
+            100: "#E5E7EB",
+            300: "#9CA3AF",
+            500: "#6B7280",
+            700: "#374151",
+            900: "#111827",
+          },
+        },
       },
       fontFamily: {
-        display: [
-          "ui-serif",
-          "Georgia",
-          "Iowan Old Style",
-          "Palatino Linotype",
-          "serif",
-        ],
-        sans: [
-          "ui-sans-serif",
-          "-apple-system",
-          "BlinkMacSystemFont",
-          "Segoe UI",
-          "Roboto",
-          "Helvetica Neue",
-          "Arial",
-          "sans-serif",
-        ],
+        // Values resolve via CSS custom properties defined in
+        // globals.css (--font-display / --font-sans), currently pointing
+        // at system font stacks. This indirection is the "clean
+        // insertion" seam for Demo #2 decision #4: once a real typeface
+        // is approved, it's wired in globals.css (e.g. a next/font
+        // variable) in one place — nothing here or at any component call
+        // site needs to change. No font is installed yet.
+        display: ["var(--font-display)"],
+        sans: ["var(--font-sans)"],
       },
       maxWidth: {
         content: "1200px",

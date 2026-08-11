@@ -5,10 +5,33 @@
 @layer base {
   :root {
     color-scheme: light;
+
+    /* Typography architecture (Demo #2 decision #4): system font stacks
+       for now — no font installed. Once a typeface is approved, redefine
+       these two variables (e.g. to a next/font-generated variable) and
+       every `font-display`/`font-sans` utility across the app picks it
+       up automatically. Do not hand-edit font stacks at call sites. */
+    --font-display: ui-serif, Georgia, "Iowan Old Style", "Palatino Linotype",
+      serif;
+    --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont,
+      "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
 
   html {
     scroll-behavior: smooth;
+
+    /* Mobile-first base type scale. The Master Reference targets ~17–19px
+       body copy on desktop; rather than hand-tuning every text-size
+       utility, bump the rem root at the md breakpoint so Tailwind's whole
+       rem-based type (and spacing) scale grows proportionally — mobile
+       stays at the accessible 16px default. */
+    font-size: 100%;
+  }
+
+  @media (min-width: 768px) {
+    html {
+      font-size: 112.5%; /* ~18px effective body size on desktop */
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
