@@ -15,7 +15,7 @@ export function TestimonialQuote({ testimonial }: { testimonial: Testimonial }) 
         alt={testimonial.context}
         placeholderLabel={testimonial.photoLabel}
         aspect="aspect-square"
-        className="mb-5 w-20"
+        className="mb-5 w-28"
       />
       <blockquote className="mb-3 font-display text-xl leading-snug text-ink-900 sm:text-2xl">
         “{testimonial.quote}”

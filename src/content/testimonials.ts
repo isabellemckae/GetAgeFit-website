@@ -23,18 +23,18 @@ export const testimonials: Testimonial[] = [
     slug: "client-one",
     quote: "[VERIFIED CLIENT TESTIMONIAL NEEDED]",
     context: "[CONFIRM CLIENT NAME/CONTEXT, WITH PERMISSION]",
-    photoLabel: "Client photo needed (with permission)",
+    photoLabel: "Client photo needed",
   },
   {
     slug: "client-two",
     quote: "[VERIFIED CLIENT TESTIMONIAL NEEDED]",
     context: "[CONFIRM CLIENT NAME/CONTEXT, WITH PERMISSION]",
-    photoLabel: "Client photo needed (with permission)",
+    photoLabel: "Client photo needed",
   },
   {
     slug: "client-three",
     quote: "[VERIFIED CLIENT TESTIMONIAL NEEDED]",
     context: "[CONFIRM CLIENT NAME/CONTEXT, WITH PERMISSION]",
-    photoLabel: "Client photo needed (with permission)",
+    photoLabel: "Client photo needed",
   },
 ];
