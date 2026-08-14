@@ -25,7 +25,7 @@ export type Objection = {
 export const objections: Objection[] = [
   {
     question: "What if I’m out of shape?",
-    answer: "You don’t need to be ready — you just need to be willing.",
+    answer: "You don’t need to be ready, you just need to be willing.",
   },
   {
     question: "What if I have an old injury?",
@@ -42,7 +42,7 @@ export const objections: Objection[] = [
   },
   {
     question: "What if I’m not sure it’s right for me?",
-    answer: "No pressure, no commitment — just a conversation.",
+    answer: "No pressure, no commitment, just a conversation.",
   },
 ];
 

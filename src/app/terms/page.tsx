@@ -19,7 +19,7 @@ export default function TermsPage() {
         <p className="mb-6 leading-relaxed text-ink-600">
           [BUSINESS DECISION REQUIRED / CONTENT REQUIRED: This page is a
           placeholder. GetAgeFit&rsquo;s counsel should supply final terms of
-          service, including website use terms and — separately — the
+          service, including website use terms and (separately) the
           membership/coaching agreement terms clients sign, which are out of
           scope for this public page.]
         </p>

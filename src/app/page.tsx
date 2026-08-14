@@ -62,7 +62,7 @@ export default function HomePage() {
           </div>
           <ResponsiveImage
             alt="A warm Get Age Fit trainer and client working together"
-            placeholderLabel="Hero photo needed — warm trainer/client interaction"
+            placeholderLabel="Hero photo needed: warm trainer/client interaction"
             aspect="aspect-[4/5]"
             className="lg:aspect-[5/6]"
             priority
@@ -79,7 +79,7 @@ export default function HomePage() {
         </div>
         <ResponsiveImage
           alt="A real Get Age Fit client working with a trainer"
-          placeholderLabel="Recognition photo needed — real client working with trainer"
+          placeholderLabel="Recognition photo needed: real client working with trainer"
           aspect="aspect-[16/9]"
           className="mx-auto mb-12 max-w-2xl"
         />
@@ -100,7 +100,7 @@ export default function HomePage() {
             </p>
             <p>
               Your training is built around your body, your goals, and
-              where you are today—and it changes as you get stronger.
+              where you are today, and it changes as you get stronger.
             </p>
           </div>
         </div>
@@ -120,7 +120,7 @@ export default function HomePage() {
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <ResponsiveImage
             alt="Get Age Fit trainers and clients together at the studio"
-            placeholderLabel="Team photo needed — real Get Age Fit trainer/group photograph"
+            placeholderLabel="Team photo needed: real Get Age Fit trainer/group photograph"
             aspect="aspect-[4/5]"
           />
           <div>
@@ -201,7 +201,7 @@ export default function HomePage() {
       <Section tone="sand">
         <div className="mx-auto mb-12 max-w-2xl text-center">
           <h2 className="text-3xl md:text-4xl">
-            Why I Created Get Age Fit — Theo
+            Why I Created Get Age Fit (Theo)
           </h2>
         </div>
         <FounderHomeSection />
@@ -233,7 +233,7 @@ export default function HomePage() {
           </div>
           <ResponsiveImage
             alt="A happy Get Age Fit client and trainer"
-            placeholderLabel="Final CTA photo needed — real client/trainer interaction showing genuine happiness"
+            placeholderLabel="Final CTA photo needed: real client/trainer interaction showing genuine happiness"
             aspect="aspect-[4/5]"
           />
         </div>

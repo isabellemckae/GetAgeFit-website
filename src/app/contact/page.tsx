@@ -21,7 +21,7 @@ export default function ContactPage() {
           </h1>
           <p className="mx-auto max-w-xl text-lg leading-relaxed text-ink-600">
             If you&rsquo;re ready to talk fit and next steps, we&rsquo;d
-            recommend starting with a consultation instead — but for anything
+            recommend starting with a consultation instead, but for anything
             else, reach out below.
           </p>
         </div>

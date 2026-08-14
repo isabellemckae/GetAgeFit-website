@@ -17,7 +17,7 @@ const values = [
   },
   {
     name: "Joy",
-    body: "Training should feel good — challenging, but never grim.",
+    body: "Training should feel good: challenging, but never grim.",
   },
   {
     name: "Gratitude",
@@ -25,7 +25,7 @@ const values = [
   },
   {
     name: "Service",
-    body: "Especially service to our clients — their success is the point.",
+    body: "Especially service to our clients: their success is the point.",
   },
 ];
 
@@ -49,7 +49,7 @@ export default function AboutPage() {
             <Eyebrow tone="plum">Founder</Eyebrow>
             <h2 className="mb-4 text-3xl">Meet Theo Thurston</h2>
             <p className="mb-4 leading-relaxed text-ink-600">
-              Theo&rsquo;s own fitness journey began later in life — starting
+              Theo&rsquo;s own fitness journey began later in life, starting
               a first structured transformation in his late 40s and
               discovering, firsthand, how differently training needs to be
               approached as the body changes with age. That experience became
@@ -69,7 +69,7 @@ export default function AboutPage() {
               </span>
             </p>
             <p className="text-sm text-ink-400">
-              [CONFIRM before publishing — sourced from the previous
+              [CONFIRM before publishing, sourced from the previous
               getagefit.com site and not yet independently verified: 35,000+
               personal training sessions delivered; competed in drug-free
               bodybuilding, Masters 50 &amp; 60 divisions, 2009–2019. See
@@ -110,7 +110,7 @@ export default function AboutPage() {
             floor access.
           </p>
           <p className="text-sm text-ink-400">
-            [CONFIRM before publishing — the previous site described an
+            [CONFIRM before publishing, the previous site described an
             8,000 sq. ft. flagship location with 150+ dedicated clients and
             18 certified trainers. Confirm current figures and facility
             description with Theo/management.]

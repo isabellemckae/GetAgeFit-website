@@ -6,7 +6,7 @@ import { CTASection } from "@/components/content/CTASection";
 export const metadata: Metadata = {
   title: "Why GetAgeFit | Boutique Healthy-Aging Coaching",
   description:
-    "See what sets GetAgeFit apart from traditional gyms and generic personal training — personalized coaching built for adults 40+ in Georgetown, Texas.",
+    "See what sets GetAgeFit apart from traditional gyms and generic personal training: personalized coaching built for adults 40+ in Georgetown, Texas.",
   alternates: { canonical: "/why-getagefit" },
 };
 
@@ -22,11 +22,11 @@ const notList = [
 const isList = [
   {
     title: "Personalized, not generic",
-    body: "Your program is built around your body, your goals, and your history — reviewed and adjusted by your coach as you progress.",
+    body: "Your program is built around your body, your goals, and your history, reviewed and adjusted by your coach as you progress.",
   },
   {
     title: "High-touch, not hands-off",
-    body: "One-on-one and 1:2 coaching means your trainer knows your name, your goals, and your progress — every session.",
+    body: "One-on-one and 1:2 coaching means your trainer knows your name, your goals, and your progress, every session.",
   },
   {
     title: "Boutique, not big-box",
@@ -59,7 +59,7 @@ export default function WhyGetAgeFitPage() {
             </h1>
             <p className="text-lg leading-relaxed text-ink-600">
               GetAgeFit sits at the intersection of premium hospitality,
-              expert coaching, and genuine community — built specifically for
+              expert coaching, and genuine community, built specifically for
               adults who want to stay strong, capable, and independent.
             </p>
           </div>
@@ -74,14 +74,14 @@ export default function WhyGetAgeFitPage() {
               {notList.map((item) => (
                 <li key={item} className="flex items-start gap-3 text-ink-600">
                   <span aria-hidden="true" className="mt-1 text-ink-300">
-                    —
+                    •
                   </span>
                   <span>{item}</span>
                 </li>
               ))}
             </ul>
             <p className="mt-6 text-sm text-ink-400">
-              We say this not to put down other options — different people
+              We say this not to put down other options. Different people
               need different things. We say it so you know exactly what
               you&rsquo;re walking into here.
             </p>
@@ -110,16 +110,16 @@ export default function WhyGetAgeFitPage() {
           <div>
             <Eyebrow tone="plum">The Feeling</Eyebrow>
             <h2 className="mb-6 text-3xl md:text-4xl">
-              Premium because it&rsquo;s thoughtful — not because it&rsquo;s
+              Premium because it&rsquo;s thoughtful, not because it&rsquo;s
               intimidating.
             </h2>
             <p className="mb-4 text-lg leading-relaxed text-ink-600">
-              Think Four Seasons hospitality meets expert personal training —
+              Think Four Seasons hospitality meets expert personal training:
               warm, human, and sophisticated, without ever feeling exclusive
               or out of reach.
             </p>
             <p className="text-lg leading-relaxed text-ink-600">
-              Our culture is built on love, joy, gratitude, and service —
+              Our culture is built on love, joy, gratitude, and service,
               especially service to the people who trust us with their
               health.
             </p>

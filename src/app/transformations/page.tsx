@@ -7,7 +7,7 @@ import { transformations } from "@/content/transformations";
 export const metadata: Metadata = {
   title: "Transformations | Real GetAgeFit Client Stories",
   description:
-    "Strength, independence, and confidence — real client stories from GetAgeFit's boutique healthy-aging coaching program in Georgetown, Texas.",
+    "Strength, independence, and confidence: real client stories from GetAgeFit's boutique healthy-aging coaching program in Georgetown, Texas.",
   alternates: { canonical: "/transformations" },
 };
 

@@ -8,7 +8,7 @@ import { cta } from "@/lib/site-config";
 export const metadata: Metadata = {
   title: "Programs | Personalized Coaching Formats",
   description:
-    "Explore GetAgeFit's personalized coaching formats — one-on-one and 1:2 training built around your goals, history, and pace. Investment discussed during your consultation.",
+    "Explore GetAgeFit's personalized coaching formats: one-on-one and 1:2 training built around your goals, history, and pace. Investment discussed during your consultation.",
   alternates: { canonical: "/programs" },
 };
 
@@ -16,7 +16,7 @@ const programs = [
   {
     name: "One-on-One Coaching",
     subtitle: "Fully personalized, one coach, every session",
-    body: "The most individualized coaching experience GetAgeFit offers. Your program, your pace, your coach's full attention — every session built around where you are that day.",
+    body: "The most individualized coaching experience GetAgeFit offers. Your program, your pace, your coach's full attention, every session built around where you are that day.",
     bullets: [
       "Programming built entirely around your goals and history",
       "Real-time coaching cues and form correction",
@@ -26,7 +26,7 @@ const programs = [
   {
     name: "1:2 Coaching",
     subtitle: "Personalized programming, shared energy",
-    body: "Train alongside one other client with a shared coach — still fully personalized programming, with the added motivation of training alongside someone else on their own journey.",
+    body: "Train alongside one other client with a shared coach, still fully personalized programming, with the added motivation of training alongside someone else on their own journey.",
     bullets: [
       "Individualized programming within a shared session",
       "A natural accountability partner",
@@ -55,7 +55,7 @@ export default function ProgramsPage() {
             Coaching formats built around how you want to train.
           </h1>
           <p className="mx-auto max-w-2xl text-lg leading-relaxed text-ink-600">
-            Every GetAgeFit program includes the full coaching experience —
+            Every GetAgeFit program includes the full coaching experience:
             training, nutrition, movement, and measurement. The format is
             what changes: how much of your coach&rsquo;s attention is yours
             alone, session by session.
@@ -133,7 +133,7 @@ export default function ProgramsPage() {
             Curious about the investment?
           </h2>
           <p className="mb-8 text-lg leading-relaxed text-ink-600">
-            GetAgeFit is a premium, personalized coaching experience — and we
+            GetAgeFit is a premium, personalized coaching experience, and we
             believe the right investment conversation happens after we
             understand your goals, not before. Your coach will walk through
             program details and investment openly during your consultation.

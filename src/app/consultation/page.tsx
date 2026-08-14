@@ -6,7 +6,7 @@ import { siteConfig } from "@/lib/site-config";
 export const metadata: Metadata = {
   title: "Schedule a Consultation",
   description:
-    "Schedule your GetAgeFit consultation — a conversation about your goals, your history, and whether personalized coaching is the right fit for you.",
+    "Schedule your GetAgeFit consultation: a conversation about your goals, your history, and whether personalized coaching is the right fit for you.",
   alternates: { canonical: "/consultation" },
 };
 
@@ -16,7 +16,7 @@ const covers = [
   "Evaluate your current starting point",
   "Discuss the right coaching format for you",
   "Explain the investment clearly and honestly",
-  "Determine — together — whether it's the right fit",
+  "Determine (together) whether it's the right fit",
 ];
 
 export default function ConsultationPage() {
@@ -34,7 +34,7 @@ export default function ConsultationPage() {
             it&rsquo;s the right fit.
           </h1>
           <p className="mx-auto max-w-xl text-lg leading-relaxed text-ink-600">
-            No pressure, no scripted sales pitch — just an honest
+            No pressure, no scripted sales pitch, just an honest
             conversation about your goals and whether GetAgeFit is the right
             coaching partner for you.
           </p>

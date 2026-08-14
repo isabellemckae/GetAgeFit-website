@@ -14,7 +14,7 @@ export const pillars: Pillar[] = [
     name: "Train",
     headline: "Personalized strength coaching",
     description:
-      "One-on-one and 1:2 strength training, programmed around your body, your history, and your goals — not a generic class plan.",
+      "One-on-one and 1:2 strength training, programmed around your body, your history, and your goals, not a generic class plan.",
   },
   {
     key: "fuel",
@@ -28,7 +28,7 @@ export const pillars: Pillar[] = [
     name: "Move",
     headline: "Cardio and movement, guided",
     description:
-      "Customized cardio and movement strategies that build endurance and mobility alongside strength — set up and adjusted with your coach.",
+      "Customized cardio and movement strategies that build endurance and mobility alongside strength, set up and adjusted with your coach.",
   },
   {
     key: "measure",
@@ -42,7 +42,7 @@ export const pillars: Pillar[] = [
     name: "Adapt",
     headline: "Built around your history",
     description:
-      "Programming that adapts to injuries, limitations, and ability — your training respects where your body has been.",
+      "Programming that adapts to injuries, limitations, and ability: your training respects where your body has been.",
   },
   {
     key: "belong",
@@ -56,6 +56,6 @@ export const pillars: Pillar[] = [
     name: "Progress",
     headline: "A structured path forward",
     description:
-      "A clear, ongoing approach designed to help you get stronger and feel better — month after month, not just for a season.",
+      "A clear, ongoing approach designed to help you get stronger and feel better, month after month, not just for a season.",
   },
 ];

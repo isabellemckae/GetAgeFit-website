@@ -310,7 +310,7 @@ export function QualifyQuiz() {
               and fitness?
             </legend>
             <p className="mb-6 text-sm text-ink-500">
-              There&rsquo;s no wrong answer — this just helps us point you in the
+              There&rsquo;s no wrong answer: this just helps us point you in the
               right direction.
             </p>
             <div className="space-y-3">
@@ -347,7 +347,7 @@ export function QualifyQuiz() {
             {submitStatus === "error" && (
               <p role="alert" className="mb-4 text-sm text-red-700">
                 We saved your answers locally, but couldn&rsquo;t reach our server.
-                Please continue — a team member can follow up manually.
+                Please continue: a team member can follow up manually.
               </p>
             )}
             <Button

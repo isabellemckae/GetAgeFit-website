@@ -19,7 +19,7 @@ export function FounderHomeSection() {
       <div>
         <p className="mb-4 text-lg leading-relaxed text-ink-700 sm:text-xl">
           Because I believe getting older should be something we
-          embrace—not something we apologize for.
+          embrace, not something we apologize for.
         </p>
         <p className="mb-6 text-lg leading-relaxed text-ink-700 sm:text-xl">
           Get Age Fit was created around a simple idea: You should be able
@@ -27,7 +27,7 @@ export function FounderHomeSection() {
           intimidated, embarrassed, or out of place to do it.
         </p>
         <p className="mb-6 font-semibold text-ink-900">
-          — Theo Thurston, Founder
+          Theo Thurston, Founder
         </p>
         <Button
           href="/about"

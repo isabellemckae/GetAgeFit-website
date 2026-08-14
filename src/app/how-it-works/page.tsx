@@ -11,7 +11,7 @@ import { cta } from "@/lib/site-config";
 export const metadata: Metadata = {
   title: "How It Works | The GetAgeFit Process",
   description:
-    "From consultation to personalized programming — see exactly how GetAgeFit's coaching process works, step by step.",
+    "From consultation to personalized programming: see exactly how GetAgeFit's coaching process works, step by step.",
   alternates: { canonical: "/how-it-works" },
 };
 
@@ -24,12 +24,12 @@ const steps = [
   {
     step: "02",
     title: "Evaluation & starting point",
-    body: "Your coach evaluates your current strength, mobility, and any limitations — including an InBody assessment where appropriate.",
+    body: "Your coach evaluates your current strength, mobility, and any limitations, including an InBody assessment where appropriate.",
   },
   {
     step: "03",
     title: "A plan built around you",
-    body: "We design a personalized program — training, nutrition guidance, and cardio strategy — built around your specific goals and history.",
+    body: "We design a personalized program (training, nutrition guidance, and cardio strategy) built around your specific goals and history.",
   },
   {
     step: "04",
@@ -39,7 +39,7 @@ const steps = [
   {
     step: "05",
     title: "Track real progress",
-    body: "Ongoing measurement — from InBody scans to strength benchmarks — so you always know what's working.",
+    body: "Ongoing measurement (from InBody scans to strength benchmarks) so you always know what's working.",
   },
   {
     step: "06",
@@ -52,7 +52,7 @@ const faqs = [
   {
     question: "Do I need to be in good shape to start?",
     answer:
-      "No. Your coach meets you at your current starting point — whatever that is — and builds from there.",
+      "No. Your coach meets you at your current starting point (whatever that is) and builds from there.",
   },
   {
     question: "What if I have an injury or health condition?",
@@ -62,7 +62,7 @@ const faqs = [
   {
     question: "Is this one-on-one, or a class?",
     answer:
-      "GetAgeFit is built around one-on-one and 1:2 coaching — not large group classes — so your program stays personalized.",
+      "GetAgeFit is built around one-on-one and 1:2 coaching (not large group classes) so your program stays personalized.",
   },
   {
     question: "How do I know if it's the right investment for me?",
@@ -82,7 +82,7 @@ export default function HowItWorksPage() {
             A clear path from first conversation to real progress.
           </h1>
           <p className="mx-auto max-w-2xl text-lg leading-relaxed text-ink-600">
-            No guesswork, no confusing sign-up process — just a straightforward
+            No guesswork, no confusing sign-up process, just a straightforward
             path built around you.
           </p>
         </div>

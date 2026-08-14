@@ -45,7 +45,7 @@ export function ContactForm() {
           Message sent.
         </p>
         <p className="text-ink-600">
-          Thank you for reaching out — a member of the GetAgeFit team will
+          Thank you for reaching out. A member of the GetAgeFit team will
           respond soon.
         </p>
       </div>

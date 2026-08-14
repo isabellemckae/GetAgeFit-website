@@ -19,7 +19,7 @@ export default function PrivacyPage() {
         <p className="mb-6 leading-relaxed text-ink-600">
           [BUSINESS DECISION REQUIRED / CONTENT REQUIRED: This page is a
           placeholder. GetAgeFit&rsquo;s counsel or a qualified privacy resource
-          should supply the final privacy policy, covering — at minimum —
+          should supply the final privacy policy, covering (at minimum)
           what information is collected through the contact, consultation,
           and qualification forms; how it is used and shared (including with
           any CRM or analytics providers such as Google Analytics and

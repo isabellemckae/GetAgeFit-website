@@ -10,7 +10,7 @@ import { cta } from "@/lib/site-config";
 export const metadata: Metadata = {
   title: "Trainers | Meet the GetAgeFit Coaching Team",
   description:
-    "Meet the coaches behind GetAgeFit's personalized healthy-aging training in Georgetown, Texas — expert, human, and invested in your independence.",
+    "Meet the coaches behind GetAgeFit's personalized healthy-aging training in Georgetown, Texas: expert, human, and invested in your independence.",
   alternates: { canonical: "/trainers" },
 };
 
@@ -25,7 +25,7 @@ export default function TrainersPage() {
           </h1>
           <p className="mx-auto max-w-2xl text-lg leading-relaxed text-ink-600">
             Every coach at GetAgeFit brings real, credentialed expertise in
-            coaching adult bodies — and just as importantly, a genuine
+            coaching adult bodies, and just as importantly, a genuine
             investment in your progress. Led by founder Theo Thurston (see{" "}
             <a href="/about" className="font-medium text-sage-700 hover:text-sage-900">
               his story
@@ -69,8 +69,8 @@ export default function TrainersPage() {
           ))}
         </div>
         <p className="mt-10 text-center text-sm text-ink-400">
-          Roster and credentials sourced from the current GetAgeFit team page
-          — please confirm this list is still accurate before publishing.
+          Roster and credentials sourced from the current GetAgeFit team page.
+          Please confirm this list is still accurate before publishing.
           Coaching philosophies and personal stories are being collected
           directly from each trainer.
         </p>

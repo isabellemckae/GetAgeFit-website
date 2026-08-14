@@ -23,8 +23,8 @@ export type Trainer = {
 };
 
 const needsPhilosophy =
-  "[INSERT COACHING PHILOSOPHY — IN THIS TRAINER'S OWN WORDS]";
-const needsStory = "[INSERT PERSONAL STORY / WHY THEY COACH — VERIFIED]";
+  "[INSERT COACHING PHILOSOPHY, IN THIS TRAINER'S OWN WORDS]";
+const needsStory = "[INSERT PERSONAL STORY / WHY THEY COACH (VERIFIED)]";
 
 export const trainers: Trainer[] = [
   {
@@ -51,7 +51,7 @@ export const trainers: Trainer[] = [
     slug: "robert-dolan",
     name: "Robert Dolan, MD",
     role: "Personal Trainer & Physician",
-    credentials: ["MD — NYU School of Medicine", "NASM CPT", "NASM Nutrition Coach"],
+    credentials: ["MD, NYU School of Medicine", "NASM CPT", "NASM Nutrition Coach"],
     specialties: [
       "Strength & cardiovascular health",
       "Clients returning from deconditioning, injury, or illness",

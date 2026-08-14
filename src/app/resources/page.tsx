@@ -21,7 +21,7 @@ export default function ResourcesPage() {
             Expertise on strength, aging, and independence.
           </h1>
           <p className="mx-auto max-w-2xl text-lg leading-relaxed text-ink-600">
-            Written by the GetAgeFit coaching team to answer real questions —
+            Written by the GetAgeFit coaching team to answer real questions,
             useful whether or not you ever become a client.
           </p>
         </div>
