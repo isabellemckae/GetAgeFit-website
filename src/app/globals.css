@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+
+    /* Typography architecture (Demo #2 decision #4): system font stacks
+       for now — no font installed. Once a typeface is approved, redefine
+       these two variables (e.g. to a next/font-generated variable) and
+       every `font-display`/`font-sans` utility across the app picks it
+       up automatically. Do not hand-edit font stacks at call sites. */
+    --font-display: ui-serif, Georgia, "Iowan Old Style", "Palatino Linotype",
+      serif;
+    --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont,
+      "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  html {
+    scroll-behavior: smooth;
+
+    /* Mobile-first base type scale. The Master Reference targets ~17–19px
+       body copy on desktop; rather than hand-tuning every text-size
+       utility, bump the rem root at the md breakpoint so Tailwind's whole
+       rem-based type (and spacing) scale grows proportionally — mobile
+       stays at the accessible 16px default. */
+    font-size: 100%;
+  }
+
+  @media (min-width: 768px) {
+    html {
+      font-size: 112.5%; /* ~18px effective body size on desktop */
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  body {
+    @apply bg-sand-50 text-ink-800 antialiased;
+  }
+
+  ::selection {
+    @apply bg-sage-200 text-ink-900;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-sage-600 ring-offset-2 ring-offset-sand-50;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display text-ink-900 tracking-tight;
+  }
+}
+
+@layer components {
+  /* Elegant placeholder used in place of unverified/uncaptured photography.
+     Deliberately abstract and premium rather than a stock-photo stand-in —
+     swap for a <Image> once real photography is approved. */
+  .photo-placeholder {
+    @apply relative flex items-center justify-center overflow-hidden rounded-xl2 bg-gradient-to-br from-sage-100 via-sand-200 to-plum-100;
+  }
+
+  .photo-placeholder::before {
+    content: "";
+    @apply absolute inset-0 opacity-40;
+    background-image: radial-gradient(
+        circle at 20% 20%,
+        rgba(88, 122, 79, 0.25),
+        transparent 45%
+      ),
+      radial-gradient(
+        circle at 80% 75%,
+        rgba(127, 85, 128, 0.22),
+        transparent 45%
+      );
+  }
+
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-ink-900 focus:px-5 focus:py-3 focus:text-sand-50 focus:shadow-soft;
+  }
+}
