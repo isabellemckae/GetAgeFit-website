@@ -46,9 +46,7 @@ export default function HomePage() {
               you&rsquo;re strong enough to enjoy it.
             </p>
             <p className="mb-9 max-w-xl text-lg leading-relaxed text-ink-600">
-              Personal training for adults 40+ who want to feel stronger,
-              healthier, steadier, and more confident about the years
-              ahead.
+              Personal training for adults 40+.
             </p>
             <Button
               href="/consultation"
@@ -96,19 +94,13 @@ export default function HomePage() {
           </h2>
           <div className="space-y-5 text-lg leading-relaxed text-ink-700">
             <p>
-              And that&rsquo;s exactly the point. At Get Age Fit, you
-              don&rsquo;t walk in and wonder what you&rsquo;re supposed to
-              do. You have a trainer. You have a plan. And you have people
-              who know you.
+              At Get Age Fit, you don&rsquo;t walk in and wonder what
+              you&rsquo;re supposed to do. You have a trainer. You have a
+              plan. And you have people who know you.
             </p>
             <p>
               Your training is built around your body, your goals, and
               where you are today—and it changes as you get stronger.
-            </p>
-            <p>
-              No intimidating gym. No cookie-cutter workouts. No trying to
-              figure it all out yourself. Just good people helping good
-              people get stronger.
             </p>
           </div>
         </div>
@@ -136,9 +128,8 @@ export default function HomePage() {
               People Make the Difference.
             </h2>
             <p className="mb-8 text-lg leading-relaxed text-ink-700">
-              Our trainers aren&rsquo;t here to put you through a workout
-              and send you on your way. They&rsquo;re here to get to know
-              you, encourage you, challenge you, and celebrate your
+              Our trainers aren&rsquo;t here to put you through a workout.
+              They&rsquo;re here to get to know you, and celebrate your
               progress.
             </p>
             <Button
@@ -158,15 +149,16 @@ export default function HomePage() {
         <div className="mx-auto mb-14 max-w-2xl text-center">
           <h2 className="text-3xl md:text-4xl">Real Client Stories</h2>
         </div>
+        {/* Permission/results disclaimer intentionally cut in the Phase 4
+            editorial reduction pass — it wasn't approved-source copy, and
+            all three testimonials are still placeholders, so there's no
+            live claim to caveat yet. Reinstate once real, permitted
+            testimonials replace the placeholders below. */}
         <div className="grid gap-12 sm:grid-cols-3">
           {testimonials.map((testimonial) => (
             <TestimonialQuote key={testimonial.slug} testimonial={testimonial} />
           ))}
         </div>
-        <p className="mt-12 text-center text-sm text-ink-400">
-          Client stories are shared with permission. Individual results
-          vary and are not guaranteed.
-        </p>
       </Section>
 
       {/* 7. THINKING ABOUT GETTING STARTED? */}
@@ -190,7 +182,7 @@ export default function HomePage() {
             {PRIMARY_CTA_LABEL}
           </Button>
           <p className="mt-4 text-sm text-ink-500">
-            {PRIMARY_CTA_SUPPORT_FULL}
+            {PRIMARY_CTA_SUPPORT_SHORT}
           </p>
         </div>
       </Section>
@@ -224,9 +216,8 @@ export default function HomePage() {
             </h2>
             <p className="mb-8 text-lg leading-relaxed text-ink-700">
               You don&rsquo;t have to know exactly what you need. You
-              don&rsquo;t have to be in shape. And you certainly
-              don&rsquo;t have to commit to anything today. Let&rsquo;s
-              just have a conversation.
+              certainly don&rsquo;t have to commit to anything today.
+              Let&rsquo;s just have a conversation.
             </p>
             <Button
               href="/consultation"

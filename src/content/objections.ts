@@ -7,6 +7,12 @@
 // review/approval before publishing. No facts, stats, or credentials are
 // asserted in any answer below. See docs/CONTENT-STATUS.md.
 //
+// Answers were tightened in the Phase 4 editorial reduction pass (cuts
+// only — no new claims added; since these were always mine, not
+// verbatim-approved text, they carried the most editorial latitude on
+// the page). Original wording is in git history (Phase 3 commit) if a
+// reviewer wants to compare.
+//
 // The closing line and CTA support text ARE approved verbatim (§11) and
 // are exported separately so the CTA itself (button + support line) can
 // be composed from the shared CTA copy wired up in site-config.ts.
@@ -19,28 +25,24 @@ export type Objection = {
 export const objections: Objection[] = [
   {
     question: "What if I’m out of shape?",
-    answer:
-      "That’s exactly why people start. You don’t need to be ready — you just need to be willing.",
+    answer: "You don’t need to be ready — you just need to be willing.",
   },
   {
     question: "What if I have an old injury?",
-    answer:
-      "Tell your trainer about it. Your plan gets built around it, not around ignoring it.",
+    answer: "Tell your trainer about it. Your plan gets built around it.",
   },
   {
     question: "What if I’ve never lifted weights?",
     answer:
-      "Most of our clients hadn’t either. You’ll be shown exactly what to do, one step at a time.",
+      "Most of our clients hadn’t either. You’ll be shown exactly what to do.",
   },
   {
     question: "What if I’m nervous about walking into a gym?",
-    answer:
-      "That’s normal. You won’t be handed a room full of equipment and left on your own — you’ll be greeted by a person.",
+    answer: "That’s normal. You’ll be greeted by a person.",
   },
   {
     question: "What if I’m not sure it’s right for me?",
-    answer:
-      "That’s what the evaluation is for. No pressure, no commitment — just a conversation.",
+    answer: "No pressure, no commitment — just a conversation.",
   },
 ];
 
