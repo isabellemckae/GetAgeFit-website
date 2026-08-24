@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { forwardToCrm } from "@/lib/crm";
-import { routeQualification } from "@/lib/qualification";
+import { upsertQualificationLead } from "@/lib/airtableClient";
+import { PrimaryGoal, primaryGoalValues, routeQualification } from "@/lib/qualification";
 
 export async function POST(req: NextRequest) {
   let body: Record<string, unknown>;
@@ -32,20 +33,27 @@ export async function POST(req: NextRequest) {
 
   // Recompute server-side rather than trusting the client-supplied result,
   // so the CRM record is authoritative even if the client is stale/tampered.
+  // primaryGoal never participates in this — routing is unchanged.
   const result = routeQualification({
     investmentMindset,
     personalizedImportance,
     readiness,
   });
 
+  const primaryGoal = asPrimaryGoalArray(body.primaryGoal);
+  const firstName = asString(body.firstName);
+  const lastName = asString(body.lastName);
+  const phone = asString(body.phone);
+  const submittedAt = new Date().toISOString();
+
   const { forwarded } = await forwardToCrm({
     leadSource: typeof body.source === "string" ? body.source : "qualify_page",
-    firstName: asString(body.firstName),
-    lastName: asString(body.lastName),
+    firstName,
+    lastName,
     email,
-    phone: asString(body.phone),
+    phone,
     ageRange: asString(body.ageRange),
-    primaryGoal: asString(body.primaryGoal),
+    primaryGoal: primaryGoal.length > 0 ? primaryGoal : undefined,
     trainingFrequency: asString(body.trainingFrequency),
     personalizedImportance,
     investmentMindset,
@@ -53,10 +61,26 @@ export async function POST(req: NextRequest) {
     injuryDetail: asString(body.injuryDetail),
     readiness,
     qualificationStatus: result,
-    submittedAt: new Date().toISOString(),
+    submittedAt,
   });
 
-  return NextResponse.json({ ok: true, result, forwarded });
+  // Direct Airtable (Coaching OS) Lead upsert — additive alongside the
+  // generic CRM forward above. Never allowed to throw or block the
+  // response: qualification results must reach the user even if Airtable
+  // is unreachable or unconfigured. See src/lib/airtableClient.ts.
+  const airtableResult = await upsertQualificationLead({
+    firstName,
+    lastName,
+    email,
+    phone,
+    qualificationOutcome: result,
+    primaryGoal,
+    submittedAt,
+  });
+  const airtableWrite =
+    airtableResult.status === "created" || airtableResult.status === "updated";
+
+  return NextResponse.json({ ok: true, result, forwarded, airtableWrite });
 }
 
 function asString(v: unknown): string | undefined {
@@ -65,4 +89,13 @@ function asString(v: unknown): string | undefined {
 
 function isOneOf<T extends string>(v: unknown, options: readonly T[]): v is T {
   return typeof v === "string" && (options as readonly string[]).includes(v);
+}
+
+// Accepts only a real array of known PrimaryGoal values; anything else
+// (missing, wrong type, unknown strings mixed in) degrades to an empty
+// array rather than rejecting the whole submission — primaryGoal has never
+// been required for qualification to proceed.
+function asPrimaryGoalArray(v: unknown): PrimaryGoal[] {
+  if (!Array.isArray(v)) return [];
+  return v.filter((item): item is PrimaryGoal => isOneOf(item, primaryGoalValues));
 }

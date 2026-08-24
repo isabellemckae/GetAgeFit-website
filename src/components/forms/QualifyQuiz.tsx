@@ -6,8 +6,11 @@ import { Button } from "@/components/ui/Button";
 import { trackEvent } from "@/lib/analytics";
 import {
   InvestmentMindset,
+  PrimaryGoal,
   QualificationAnswers,
   investmentMindsetOptions,
+  primaryGoalLabels,
+  primaryGoalValues,
   resultCopy,
   routeQualification,
 } from "@/lib/qualification";
@@ -23,14 +26,9 @@ const steps = [
   "Your Results",
 ] as const;
 
-const goalOptions: { value: string; label: string }[] = [
-  { value: "build_strength", label: "Build strength" },
-  { value: "mobility_balance", label: "Improve mobility & balance" },
-  { value: "injury_limitation", label: "Train around an injury or limitation" },
-  { value: "weight_management", label: "Manage my weight" },
-  { value: "longevity", label: "Overall health & longevity" },
-  { value: "other", label: "Something else" },
-];
+const goalOptions: { value: PrimaryGoal; label: string }[] = primaryGoalValues.map(
+  (value) => ({ value, label: primaryGoalLabels[value] }),
+);
 
 const frequencyOptions = [
   { value: "1x", label: "1x per week" },
@@ -120,7 +118,7 @@ export function QualifyQuiz() {
       case 0:
         return !!(form.firstName && form.lastName && form.email && form.ageRange);
       case 1:
-        return !!(form.primaryGoal && form.trainingFrequency);
+        return !!(form.primaryGoal && form.primaryGoal.length > 0 && form.trainingFrequency);
       case 2:
         return !!form.hasInjuryOrLimitation;
       case 3:
@@ -208,14 +206,12 @@ export function QualifyQuiz() {
             <legend className="mb-2 text-xl font-display text-ink-900">
               What are you hoping to achieve?
             </legend>
-            <RadioGroup
+            <CheckboxGroup
               name="primaryGoal"
-              label="Your primary goal"
+              label="Your primary goal (select all that apply)"
               options={goalOptions}
-              value={form.primaryGoal}
-              onChange={(v) =>
-                setForm((f) => ({ ...f, primaryGoal: v as FormState["primaryGoal"] }))
-              }
+              value={form.primaryGoal || []}
+              onChange={(v) => setForm((f) => ({ ...f, primaryGoal: v }))}
             />
             <RadioGroup
               name="trainingFrequency"
@@ -490,6 +486,59 @@ function RadioGroup({
             {opt.label}
           </label>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function CheckboxGroup({
+  name,
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  name: string;
+  label: string;
+  options: { value: PrimaryGoal; label: string }[];
+  value: PrimaryGoal[];
+  onChange: (v: PrimaryGoal[]) => void;
+}) {
+  function toggle(optValue: PrimaryGoal) {
+    if (value.includes(optValue)) {
+      onChange(value.filter((v) => v !== optValue));
+    } else {
+      onChange([...value, optValue]);
+    }
+  }
+
+  return (
+    <div role="group" aria-label={label}>
+      <p className="mb-3 text-sm font-semibold text-ink-700">{label}</p>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {options.map((opt) => {
+          const checked = value.includes(opt.value);
+          return (
+            <label
+              key={opt.value}
+              className={`flex cursor-pointer items-center gap-3 rounded-xl2 border px-4 py-3 text-sm transition-colors ${
+                checked
+                  ? "border-sage-600 bg-sage-50 text-sage-900"
+                  : "border-ink-100 text-ink-600 hover:border-sage-300"
+              }`}
+            >
+              <input
+                type="checkbox"
+                name={name}
+                value={opt.value}
+                checked={checked}
+                onChange={() => toggle(opt.value)}
+                className="h-4 w-4 accent-sage-700"
+              />
+              {opt.label}
+            </label>
+          );
+        })}
       </div>
     </div>
   );

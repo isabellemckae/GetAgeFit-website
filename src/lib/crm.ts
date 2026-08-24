@@ -16,7 +16,12 @@ export type CrmLeadPayload = {
   email?: string;
   phone?: string;
   ageRange?: string;
-  primaryGoal?: string;
+  /**
+   * Multi-select as of Demo #3 Phase 1 (was a single string). Optional and
+   * unused by /api/lead and /api/consultation, so this stays
+   * backward-compatible with both — they simply never set it.
+   */
+  primaryGoal?: string[];
   trainingFrequency?: string;
   personalizedImportance?: string;
   investmentMindset?: string;

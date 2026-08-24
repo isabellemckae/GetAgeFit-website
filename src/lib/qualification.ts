@@ -10,13 +10,32 @@
  * well-qualified prospect.
  */
 
-export type PrimaryGoal =
-  | "build_strength"
-  | "mobility_balance"
-  | "injury_limitation"
-  | "weight_management"
-  | "longevity"
-  | "other";
+// Single source of truth for valid primary-goal values, so client-side
+// options and server-side validation (src/app/api/qualify/route.ts) can't
+// drift apart. Demo #3 Phase 1: primaryGoal became multi-select (an array),
+// but the individual internal values are unchanged from Demo #2.
+export const primaryGoalValues = [
+  "build_strength",
+  "mobility_balance",
+  "injury_limitation",
+  "weight_management",
+  "longevity",
+  "other",
+] as const;
+
+export type PrimaryGoal = (typeof primaryGoalValues)[number];
+
+// Human-readable labels, shared between the quiz UI and any server-side
+// summary text (e.g. the Airtable Notes field) so the wording only lives
+// in one place.
+export const primaryGoalLabels: Record<PrimaryGoal, string> = {
+  build_strength: "Build strength",
+  mobility_balance: "Improve mobility & balance",
+  injury_limitation: "Train around an injury or limitation",
+  weight_management: "Manage my weight",
+  longevity: "Overall health & longevity",
+  other: "Something else",
+};
 
 export type TrainingFrequency = "1x" | "2x" | "3x_plus" | "not_sure";
 
@@ -32,7 +51,11 @@ export type QualificationAnswers = {
   email: string;
   phone: string;
   ageRange: string;
-  primaryGoal: PrimaryGoal;
+  /**
+   * Multi-select as of Demo #3 Phase 1 (was a single PrimaryGoal). Does NOT
+   * participate in routeQualification() scoring — see the function below.
+   */
+  primaryGoal: PrimaryGoal[];
   trainingFrequency: TrainingFrequency;
   hasInjuryOrLimitation: "yes" | "no";
   injuryDetail?: string;
