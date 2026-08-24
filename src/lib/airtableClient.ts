@@ -173,6 +173,15 @@ function appendNote(existing: unknown, addition: string): string {
   return existingText ? `${existingText}\n${addition}` : addition;
 }
 
+// True for an Airtable field that's missing, null, or an empty/whitespace
+// string — used to decide whether it's safe to fill Lead Name/Phone on an
+// existing Lead without clobbering a populated value.
+function isBlank(value: unknown): boolean {
+  if (value === undefined || value === null) return true;
+  if (typeof value === "string") return value.trim() === "";
+  return false;
+}
+
 export type QualificationLeadInput = {
   firstName?: string;
   lastName?: string;
@@ -196,11 +205,17 @@ export type UpsertLeadResult =
  * matched by normalized email.
  *
  * - No existing Lead found  → create one, Pipeline Stage = "New".
- * - Exactly one existing Lead found → update it. Pipeline Stage is
- *   deliberately NOT included in the update payload, so whatever stage the
- *   Lead is already in (e.g. further along than "New") is left untouched —
- *   qualification submissions must never regress or overwrite pipeline
- *   progress. See Part G below for the "multiple matches" case.
+ * - Exactly one existing Lead found → update it, writing ONLY
+ *   "Qualification Outcome" and "Submitted At", plus an appended (never
+ *   overwritten) "Notes" entry. Every other CRM attribution/progression
+ *   field — Source, Source Detail, Pipeline Stage, Consultation Date,
+ *   Consultation Showed, Converted To Client, Lost Reason, Acquisition
+ *   Cost, and Email itself — is deliberately left out of the update
+ *   payload, so a qualification resubmission can never regress or
+ *   overwrite a Lead's existing history. "Lead Name" and "Phone" are the
+ *   one exception: they're filled in ONLY if the existing Airtable field
+ *   is currently blank AND the submission supplies a value — a populated
+ *   existing value is never overwritten.
  * - More than one existing Lead matches the same email → do NOT update any
  *   of them and do NOT create a new one (would-be duplicate). This is
  *   logged as a data-quality issue for manual review and reported back to
@@ -246,17 +261,24 @@ export async function upsertQualificationLead(
     const noteAddition = buildQualificationNote(input);
 
     if (lookup.status === "found") {
+      // Existing Lead: preserve CRM attribution/progression. Only write
+      // Qualification Outcome, Submitted At, and an appended Notes entry.
+      // Source, Source Detail, Pipeline Stage, and Email are intentionally
+      // never included here — see function doc comment.
       const fields: Record<string, unknown> = {
-        ...(leadName ? { "Lead Name": leadName } : {}),
-        Email: normalizedEmail,
-        ...(input.phone ? { Phone: input.phone } : {}),
-        Source: "Website",
-        "Source Detail": "Qualification Funnel",
         "Qualification Outcome": outcomeLabel,
         "Submitted At": input.submittedAt,
         Notes: appendNote(lookup.record.fields["Notes"], noteAddition),
-        // Pipeline Stage intentionally omitted — see function doc comment.
       };
+
+      // Lead Name / Phone: fill only if the existing field is blank and we
+      // have a value to offer — never overwrite a populated value.
+      if (leadName && isBlank(lookup.record.fields["Lead Name"])) {
+        fields["Lead Name"] = leadName;
+      }
+      if (input.phone && isBlank(lookup.record.fields["Phone"])) {
+        fields["Phone"] = input.phone;
+      }
 
       const res = await airtablePatch(lookup.record.id, fields, config);
       if (!res.ok) {
