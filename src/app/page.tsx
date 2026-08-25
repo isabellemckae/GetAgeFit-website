@@ -70,7 +70,8 @@ export default function HomePage() {
             </p>
           </div>
           <ResponsiveImage
-            alt="A warm Get Age Fit trainer and client working together"
+            src="/images/training/coaching-session-leg-press.webp"
+            alt="A GetAgeFit trainer coaching a client through a leg-press machine at the studio"
             placeholderLabel="Hero photo needed: warm trainer/client interaction"
             aspect="aspect-[4/5]"
             className="lg:aspect-[5/6]"
@@ -128,12 +129,32 @@ export default function HomePage() {
 
       {/* 5. PEOPLE MAKE THE DIFFERENCE. */}
       <Section tone="sand">
-        <div className="grid items-center gap-12 lg:grid-cols-2">
-          <ResponsiveImage
-            alt="Get Age Fit trainers and clients together at the studio"
-            placeholderLabel="Team photo needed: real Get Age Fit trainer/group photograph"
-            aspect="aspect-[4/5]"
-          />
+        <div className="grid items-center gap-16 lg:grid-cols-2">
+          <div className="relative mx-auto w-full max-w-md">
+            <ResponsiveImage
+              src="/images/trainers/james-petersen.webp"
+              alt="James Petersen, GetAgeFit personal trainer"
+              placeholderLabel="Team photo needed: real Get Age Fit trainer/group photograph"
+              aspect="aspect-[4/5]"
+              className="shadow-soft"
+            />
+            <div className="absolute -bottom-10 -left-10 w-2/5 -rotate-6 overflow-hidden rounded-xl2 border-4 border-sand-50 shadow-soft">
+              <ResponsiveImage
+                src="/images/trainers/isa-lozano.webp"
+                alt="Isa Lozano, GetAgeFit personal trainer"
+                placeholderLabel="Trainer photo"
+                aspect="aspect-[4/5]"
+              />
+            </div>
+            <div className="absolute -top-8 -right-8 w-2/5 rotate-6 overflow-hidden rounded-xl2 border-4 border-sand-50 shadow-soft">
+              <ResponsiveImage
+                src="/images/trainers/robert-dolan.webp"
+                alt="Dr. Robert Dolan, GetAgeFit personal trainer"
+                placeholderLabel="Trainer photo"
+                aspect="aspect-[4/5]"
+              />
+            </div>
+          </div>
           <div>
             <h2 className="mb-6 text-3xl md:text-4xl">
               People Make the Difference.

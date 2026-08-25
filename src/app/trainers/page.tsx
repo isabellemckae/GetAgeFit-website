@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Section } from "@/components/ui/Section";
-import { PhotoPlaceholder } from "@/components/ui/PhotoPlaceholder";
+import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { CTASection } from "@/components/content/CTASection";
@@ -38,13 +38,25 @@ export default function TrainersPage() {
 
       <Section tone="white">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {trainers.map((trainer) => (
+          {trainers.map((trainer, index) => (
             <article
               key={trainer.slug}
               id={trainer.slug}
-              className="scroll-mt-28 overflow-hidden rounded-xl2 border border-ink-100 bg-sand-50 shadow-card"
+              className="group scroll-mt-28 overflow-hidden rounded-xl2 border border-ink-100 bg-sand-50 shadow-card transition-all duration-300 ease-soft hover:-translate-y-1 hover:shadow-soft"
             >
-              <PhotoPlaceholder label={trainer.photoLabel} aspect="aspect-[4/5]" />
+              <div className="overflow-hidden">
+                <ResponsiveImage
+                  src={`/images/trainers/${trainer.slug}.webp`}
+                  alt={`${trainer.name}, ${trainer.role} at GetAgeFit`}
+                  placeholderLabel={trainer.photoLabel}
+                  aspect="aspect-[4/5]"
+                  sizes="(min-width: 1280px) 25vw, (min-width: 640px) 50vw, 100vw"
+                  className="transition-transform duration-500 ease-soft group-hover:scale-105"
+                />
+              </div>
+              <div
+                className={`h-1 ${index % 2 === 0 ? "bg-sage-600" : "bg-plum-600"}`}
+              />
               <div className="p-6">
                 <h2 className="mb-1 text-lg font-display text-ink-900">
                   {trainer.name}
