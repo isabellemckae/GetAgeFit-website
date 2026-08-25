@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Section, Eyebrow } from "@/components/ui/Section";
 import { ConsultationForm } from "@/components/forms/ConsultationForm";
+import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
 import { siteConfig } from "@/lib/site-config";
 
 export const metadata: Metadata = {
@@ -35,11 +36,32 @@ export default function ConsultationPage() {
             Based on what you share, we&rsquo;ll help you see if
             it&rsquo;s the right fit.
           </h1>
-          <p className="mx-auto max-w-xl text-lg leading-relaxed text-ink-600">
+          <p className="mx-auto mb-6 max-w-xl text-lg leading-relaxed text-ink-600">
             No pressure, no scripted sales pitch, just an honest
             conversation about your goals and whether GetAgeFit is the right
             coaching partner for you.
           </p>
+          <div className="flex items-center justify-center gap-3">
+            <div className="flex -space-x-3">
+              {[
+                "/images/trainers/maria-arellano.webp",
+                "/images/trainers/jeff-venditte.webp",
+                "/images/trainers/christy-wall.webp",
+              ].map((photo) => (
+                <ResponsiveImage
+                  key={photo}
+                  src={photo}
+                  alt="A GetAgeFit trainer"
+                  placeholderLabel="Trainer photo"
+                  aspect="aspect-square"
+                  className="w-10 !rounded-full ring-2 ring-sand-50"
+                />
+              ))}
+            </div>
+            <p className="text-xs font-medium uppercase tracking-wide text-ink-400">
+              You&rsquo;ll talk to a real coach, not a script
+            </p>
+          </div>
         </div>
       </section>
 

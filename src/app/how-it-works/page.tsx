@@ -3,7 +3,7 @@ import { Section, Eyebrow } from "@/components/ui/Section";
 import { PillarCard } from "@/components/content/PillarCard";
 import { FAQAccordion } from "@/components/content/FAQAccordion";
 import { CTASection } from "@/components/content/CTASection";
-import { PageHero } from "@/components/layout/PageHero";
+import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
 import { JsonLd, faqJsonLd } from "@/components/JsonLd";
 import { pillars } from "@/content/pillars";
 import { Button } from "@/components/ui/Button";
@@ -21,6 +21,8 @@ const steps = [
     step: "01",
     title: "Schedule a consultation",
     body: "A conversation, not a workout. We learn about your goals, your history, and what you're hoping to change, and introduce the 12-week transformation experience if you're new to GetAgeFit.",
+    photo: "/images/trainers/neon-luong.webp",
+    photoAlt: "Neon Luong, GetAgeFit personal trainer",
   },
   {
     step: "02",
@@ -31,6 +33,8 @@ const steps = [
     step: "03",
     title: "Your 12-week transformation begins",
     body: "New clients start with a focused 12-week arc: personalized training, nutrition guidance, and cardio strategy built around your specific goals and history.",
+    photo: "/images/trainers/maria-arellano.webp",
+    photoAlt: "Maria Arellano, GetAgeFit personal trainer",
   },
   {
     step: "04",
@@ -41,6 +45,8 @@ const steps = [
     step: "05",
     title: "Track real progress",
     body: "Ongoing measurement (from InBody scans to strength benchmarks) so you always know what's working, week over week.",
+    photo: "/images/trainers/jeff-venditte.webp",
+    photoAlt: "Jeff Venditte, GetAgeFit personal trainer",
   },
   {
     step: "06",
@@ -76,31 +82,69 @@ export default function HowItWorksPage() {
   return (
     <>
       <JsonLd data={faqJsonLd(faqs)} />
-      <PageHero
-        eyebrow="How It Works"
-        heading="A clear path from first conversation to your 12-week transformation."
-        body={
-          <>
+
+      {/* Cinematic full-bleed photo hero — distinct from why-getagefit's
+          split-panel hero and the homepage's mesh-gradient hero. */}
+      <section className="relative flex h-[420px] items-center overflow-hidden md:h-[480px]">
+        <ResponsiveImage
+          src="/images/training/coaching-session-leg-press.webp"
+          alt="A GetAgeFit trainer coaching a client through a strength machine"
+          placeholderLabel="How it works hero photo"
+          aspect="aspect-auto"
+          imageClassName="object-center"
+          className="!absolute !inset-0 !h-full !w-full !rounded-none"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-ink-900/90 via-ink-900/70 to-plum-900/60" />
+        </ResponsiveImage>
+        <div className="relative z-10 mx-auto max-w-content px-6 md:px-10">
+          <Eyebrow tone="light">How It Works</Eyebrow>
+          <h1 className="mb-6 max-w-2xl text-4xl text-sand-50 md:text-5xl">
+            A clear path from first conversation to your 12-week
+            transformation.
+          </h1>
+          <p className="max-w-xl text-lg leading-relaxed text-sand-200/90">
             No guesswork, no confusing sign-up process: a straightforward
             path built for brand-new clients, and just as relevant whether
             you&rsquo;re 40 or 80 and beyond.
-          </>
-        }
-      />
+          </p>
+        </div>
+      </section>
 
+      {/* Alternating photo/text timeline instead of a uniform 3-col grid. */}
       <Section tone="white">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
-          {steps.map((s) => (
-            <div key={s.step}>
-              <p className="mb-3 font-display text-4xl text-sage-200">
-                {s.step}
-              </p>
-              <h2 className="mb-2 text-xl">{s.title}</h2>
-              <p className="text-[0.95rem] leading-relaxed text-ink-500">
-                {s.body}
-              </p>
-            </div>
-          ))}
+        <div className="mx-auto max-w-3xl space-y-14">
+          {steps.map((s, i) => {
+            const reverse = i % 2 === 1;
+            return (
+              <div
+                key={s.step}
+                className={`flex flex-col items-start gap-6 sm:flex-row ${reverse ? "sm:flex-row-reverse" : ""}`}
+              >
+                <div className="flex shrink-0 flex-col items-center gap-4 sm:w-32">
+                  <p
+                    className={`font-display text-5xl ${i % 2 === 0 ? "text-sage-300" : "text-plum-300"}`}
+                  >
+                    {s.step}
+                  </p>
+                  {s.photo && (
+                    <ResponsiveImage
+                      src={s.photo}
+                      alt={s.photoAlt ?? ""}
+                      placeholderLabel="Trainer photo"
+                      aspect="aspect-square"
+                      className="w-20 !rounded-full ring-4 ring-sand-100 sm:w-24"
+                    />
+                  )}
+                </div>
+                <div className="pt-2">
+                  <h2 className="mb-2 text-xl">{s.title}</h2>
+                  <p className="text-[0.95rem] leading-relaxed text-ink-500">
+                    {s.body}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
         </div>
         <div className="mt-14 text-center">
           <Button
@@ -114,27 +158,43 @@ export default function HowItWorksPage() {
         </div>
       </Section>
 
-      <Section tone="sand">
-        <div className="mx-auto mb-14 max-w-2xl text-center">
-          <Eyebrow tone="plum">The Complete Experience</Eyebrow>
-          <h2 className="text-3xl md:text-4xl">
-            Seven pillars, working as one experience.
-          </h2>
+      {/* Bold color band behind the pillar cards for stronger contrast
+          than the previous flat "sand" tone. */}
+      <section className="bg-plum-900 py-20 md:py-28">
+        <div className="mx-auto max-w-content px-6 md:px-10">
+          <div className="mx-auto mb-14 max-w-2xl text-center">
+            <Eyebrow tone="light">The Complete Experience</Eyebrow>
+            <h2 className="text-3xl text-sand-50 md:text-4xl">
+              Seven pillars, working as one experience.
+            </h2>
+          </div>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {pillars.map((pillar, index) => (
+              <PillarCard key={pillar.key} pillar={pillar} index={index} />
+            ))}
+          </div>
         </div>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {pillars.map((pillar, index) => (
-            <PillarCard key={pillar.key} pillar={pillar} index={index} />
-          ))}
-        </div>
-      </Section>
+      </section>
 
       <Section tone="white">
-        <div className="mx-auto max-w-3xl">
-          <div className="mb-10 text-center">
-            <Eyebrow>Common Questions</Eyebrow>
-            <h2 className="text-3xl md:text-4xl">Good to know</h2>
+        <div className="grid gap-12 lg:grid-cols-[1fr_1.4fr] lg:items-center">
+          <ResponsiveImage
+            src="/images/trainers/isa-lozano.webp"
+            alt="Isa Lozano, GetAgeFit personal trainer"
+            placeholderLabel="Coach portrait"
+            aspect="aspect-[4/5]"
+            imageClassName="object-top"
+            className="hidden shadow-soft lg:block"
+          >
+            <div className="photo-tint-sage" />
+          </ResponsiveImage>
+          <div>
+            <div className="mb-10">
+              <Eyebrow>Common Questions</Eyebrow>
+              <h2 className="text-3xl md:text-4xl">Good to know</h2>
+            </div>
+            <FAQAccordion items={faqs} />
           </div>
-          <FAQAccordion items={faqs} />
         </div>
       </Section>
 

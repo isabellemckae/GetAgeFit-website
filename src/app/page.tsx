@@ -37,8 +37,6 @@ export default function HomePage() {
     <>
       {/* 1. HERO */}
       <section className="bg-mesh-hero">
-        <div className="blob -left-24 -top-16 h-72 w-72 bg-sage-400/25" />
-        <div className="blob -right-20 bottom-0 h-80 w-80 bg-plum-400/20" />
         <div className="relative mx-auto grid w-full max-w-content items-center gap-12 px-6 py-16 md:px-10 md:py-24 lg:grid-cols-2 lg:py-28">
           <div>
             <Badge tone="plum">The 12-Week Transformation Experience</Badge>
@@ -88,18 +86,21 @@ export default function HomePage() {
           </h2>
         </div>
         <ResponsiveImage
+          src="/images/training/coaching-session-leg-press.webp"
           alt="A real Get Age Fit client working with a trainer"
           placeholderLabel="Recognition photo needed: real client working with trainer"
           aspect="aspect-[16/9]"
-          className="mx-auto mb-12 max-w-2xl"
-        />
+          imageClassName="object-[35%_35%]"
+          className="mx-auto mb-12 max-w-2xl shadow-soft"
+        >
+          <div className="photo-tint-sage" />
+        </ResponsiveImage>
         <RecognitionList />
       </Section>
 
-      {/* 3. THIS ISN'T YOUR TYPICAL GYM. */}
-      <section className="bg-mesh-dark py-20 md:py-28">
-        <div className="blob -left-16 -top-16 h-64 w-64 bg-sage-500/25" />
-        <div className="blob -right-20 -bottom-20 h-72 w-72 bg-plum-400/20" />
+      {/* 3. THIS ISN'T YOUR TYPICAL GYM. — solid color block, no mesh/blob,
+          for a bolder, flatter contrast moment. */}
+      <section className="bg-sage-950 py-20 md:py-28">
         <div className="relative mx-auto max-w-2xl px-6 text-center md:px-10">
           <h2 className="mb-8 text-3xl text-sand-50 md:text-4xl">
             This Isn&rsquo;t Your Typical Gym.
@@ -264,10 +265,14 @@ export default function HomePage() {
             </p>
           </div>
           <ResponsiveImage
-            alt="A happy Get Age Fit client and trainer"
+            src="/images/trainers/travis-strawser.webp"
+            alt="Travis Strawser, GetAgeFit personal trainer"
             placeholderLabel="Final CTA photo needed: real client/trainer interaction showing genuine happiness"
             aspect="aspect-[4/5]"
-          />
+            className="shadow-soft"
+          >
+            <div className="photo-tint-plum-diagonal" />
+          </ResponsiveImage>
         </div>
       </Section>
 

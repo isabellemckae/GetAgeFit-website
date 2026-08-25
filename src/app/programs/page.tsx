@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { Section, Eyebrow } from "@/components/ui/Section";
-import { PhotoPlaceholder } from "@/components/ui/PhotoPlaceholder";
+import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { CTASection } from "@/components/content/CTASection";
-import { PageHero } from "@/components/layout/PageHero";
 import { cta } from "@/lib/site-config";
 
 export const metadata: Metadata = {
@@ -30,6 +29,7 @@ const programs = [
       "Real-time coaching cues and form correction",
       "Session-by-session adjustments as you progress",
     ],
+    photos: ["/images/trainers/james-petersen.webp"],
   },
   {
     name: "1:2 Coaching",
@@ -39,6 +39,10 @@ const programs = [
       "Individualized programming within a shared session",
       "A natural accountability partner",
       "The same expert coaching, a shared rhythm",
+    ],
+    photos: [
+      "/images/trainers/chip-collerain.webp",
+      "/images/trainers/paula-jones.webp",
     ],
   },
 ];
@@ -56,18 +60,23 @@ const included = [
 export default function ProgramsPage() {
   return (
     <>
-      <PageHero
-        eyebrow="Programs"
-        heading="Start with a 12-week transformation. Stay for the long run."
-        body={
-          <>
+      {/* Bold solid-color typographic hero — no photo, deliberately
+          distinct from why-getagefit's split panel and how-it-works'
+          full-bleed photo. */}
+      <section className="bg-plum-900 py-20 md:py-28">
+        <div className="mx-auto max-w-3xl px-6 text-center md:px-10">
+          <Eyebrow tone="light">Programs</Eyebrow>
+          <h1 className="mb-6 text-4xl text-sand-50 md:text-5xl">
+            Start with a 12-week transformation. Stay for the long run.
+          </h1>
+          <p className="mx-auto max-w-2xl text-lg leading-relaxed text-plum-100">
             Every GetAgeFit program includes the full coaching experience:
             training, nutrition, movement, and measurement. Brand-new
             clients begin with a focused 12-week transformation, then choose
             the ongoing coaching format that&rsquo;s right for them.
-          </>
-        }
-      />
+          </p>
+        </div>
+      </section>
 
       <Section tone="white">
         <div className="mb-14 overflow-hidden rounded-xl2 bg-mesh-dark p-9 md:p-12">
@@ -107,7 +116,21 @@ export default function ProgramsPage() {
                 {cta.primary.label}
               </Button>
             </div>
-            <PhotoPlaceholder label="12-week transformation photo needed" aspect="aspect-[4/5]" />
+            <div>
+              <ResponsiveImage
+                src="/images/trainers/keith-stolle.webp"
+                alt="Keith Stolle, a GetAgeFit transformation graduate turned trainer"
+                placeholderLabel="12-week transformation photo needed"
+                aspect="aspect-[4/5]"
+                imageClassName="object-top"
+              >
+                <div className="photo-tint-plum-diagonal" />
+              </ResponsiveImage>
+              <p className="mt-3 text-center text-xs text-sand-200/70">
+                Keith Stolle — GetAgeFit transformation graduate, now a
+                trainer
+              </p>
+            </div>
           </div>
         </div>
 
@@ -121,6 +144,18 @@ export default function ProgramsPage() {
               key={program.name}
               className="flex flex-col rounded-xl2 border border-ink-100 bg-sand-50 p-9 shadow-card"
             >
+              <div className="mb-6 flex -space-x-4">
+                {program.photos.map((photo) => (
+                  <ResponsiveImage
+                    key={photo}
+                    src={photo}
+                    alt="GetAgeFit trainer"
+                    placeholderLabel="Trainer photo"
+                    aspect="aspect-square"
+                    className="w-16 !rounded-full ring-4 ring-sand-50"
+                  />
+                ))}
+              </div>
               <h2 className="mb-1 text-2xl">{program.name}</h2>
               <p className="mb-5 text-sm font-semibold uppercase tracking-wide text-sage-700">
                 {program.subtitle}
@@ -174,7 +209,15 @@ export default function ProgramsPage() {
               ))}
             </ul>
           </div>
-          <PhotoPlaceholder label="Training session photo needed" />
+          <ResponsiveImage
+            src="/images/trainers/robin-winkles.webp"
+            alt="Robin Winkles, GetAgeFit personal trainer"
+            placeholderLabel="Training session photo needed"
+            aspect="aspect-[4/3]"
+            className="shadow-soft"
+          >
+            <div className="photo-tint-plum" />
+          </ResponsiveImage>
         </div>
       </Section>
 

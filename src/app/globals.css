@@ -189,6 +189,37 @@
     @apply pointer-events-none absolute rounded-full blur-3xl;
   }
 
+  /* Demo #3 editorial pass: angled section edges — a lightweight way to
+     break the "hard rectangle stacked on hard rectangle" rhythm without
+     leaning on mesh gradients. Apply to a full-bleed color-block section;
+     pair with negative margin or extra padding on the clipped side so
+     content doesn't sit under the cut corner. */
+  .clip-diagonal-down {
+    clip-path: polygon(0 0, 100% 0, 100% 92%, 0 100%);
+  }
+  .clip-diagonal-up {
+    clip-path: polygon(0 8%, 100% 0, 100% 100%, 0 100%);
+  }
+  .clip-diagonal-both {
+    clip-path: polygon(0 5%, 100% 0, 100% 95%, 0 100%);
+  }
+
+  /* Photo tint overlays — absolutely-positioned scrims meant as children of
+     ResponsiveImage, so the same source photo reads differently (color,
+     mood, legibility for overlaid text) in each place it's reused. */
+  .photo-tint-sage {
+    @apply pointer-events-none absolute inset-0 bg-gradient-to-t from-sage-950/80 via-sage-900/20 to-transparent mix-blend-multiply;
+  }
+  .photo-tint-plum {
+    @apply pointer-events-none absolute inset-0 bg-gradient-to-t from-plum-950/80 via-plum-900/20 to-transparent mix-blend-multiply;
+  }
+  .photo-tint-sage-diagonal {
+    @apply pointer-events-none absolute inset-0 bg-gradient-to-br from-sage-900/70 via-transparent to-transparent mix-blend-multiply;
+  }
+  .photo-tint-plum-diagonal {
+    @apply pointer-events-none absolute inset-0 bg-gradient-to-tl from-plum-900/70 via-transparent to-transparent mix-blend-multiply;
+  }
+
   .skip-link {
     @apply sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-ink-900 focus:px-5 focus:py-3 focus:text-sand-50 focus:shadow-soft;
   }

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { Section } from "@/components/ui/Section";
+import { Section, Eyebrow } from "@/components/ui/Section";
 import { ArticleCard } from "@/components/content/ArticleCard";
 import { CTASection } from "@/components/content/CTASection";
-import { PageHero } from "@/components/layout/PageHero";
+import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
 import { articles, articleCategories } from "@/content/articles";
 
 export const metadata: Metadata = {
@@ -15,11 +15,32 @@ export const metadata: Metadata = {
 export default function ResourcesPage() {
   return (
     <>
-      <PageHero
-        eyebrow="Resources"
-        heading="Expertise on strength, healthy aging, and independence."
-        body="Written by the GetAgeFit coaching team to answer real questions, useful whether or not you ever become a client."
-      />
+      {/* Asymmetric hero — text + accent photo, rather than the centered
+          block used elsewhere. */}
+      <section className="bg-mesh-hero py-16 md:py-24">
+        <div className="relative mx-auto grid max-w-content items-center gap-10 px-6 md:px-10 lg:grid-cols-[1.3fr_0.7fr]">
+          <div>
+            <Eyebrow>Resources</Eyebrow>
+            <h1 className="mb-5 max-w-xl text-4xl md:text-5xl">
+              Expertise on strength, healthy aging, and independence.
+            </h1>
+            <p className="max-w-lg text-lg leading-relaxed text-ink-600">
+              Written by the GetAgeFit coaching team to answer real
+              questions, useful whether or not you ever become a client.
+            </p>
+          </div>
+          <ResponsiveImage
+            src="/images/trainers/tish-strandboge.webp"
+            alt="Tish Strandboge, GetAgeFit personal trainer"
+            placeholderLabel="Coach portrait"
+            aspect="aspect-[3/4]"
+            imageClassName="object-top"
+            className="hidden shadow-soft md:block"
+          >
+            <div className="photo-tint-sage-diagonal" />
+          </ResponsiveImage>
+        </div>
+      </section>
 
       <Section tone="white">
         <div className="mb-10 flex flex-wrap gap-2">

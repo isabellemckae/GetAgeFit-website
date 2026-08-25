@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Section, Eyebrow } from "@/components/ui/Section";
-import { PhotoPlaceholder } from "@/components/ui/PhotoPlaceholder";
-import { PageHero } from "@/components/layout/PageHero";
+import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
 import { CTASection } from "@/components/content/CTASection";
 
 export const metadata: Metadata = {
@@ -50,28 +49,60 @@ const isList = [
 export default function WhyGetAgeFitPage() {
   return (
     <>
-      <PageHero
-        eyebrow="Why GetAgeFit"
-        heading={
-          <>
-            This is different. This might be exactly what you&rsquo;ve been
-            looking for.
-          </>
-        }
-        body={
-          <>
-            GetAgeFit sits at the intersection of premium hospitality,
-            expert healthy-aging coaching, and genuine community, built
-            specifically for adults who want to stay strong, capable, and
-            independent.
-          </>
-        }
-      />
+      {/* Split hero: solid color block + real photo, diagonal seam —
+          distinct from the homepage's mesh-gradient hero. */}
+      <section className="relative overflow-hidden bg-sage-900">
+        <div className="grid lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="relative z-10 px-6 py-20 md:px-10 md:py-28 lg:py-32">
+            <Eyebrow tone="light">Why GetAgeFit</Eyebrow>
+            <h1 className="mb-6 max-w-xl text-4xl text-sand-50 md:text-5xl">
+              This is different. This might be exactly what you&rsquo;ve
+              been looking for.
+            </h1>
+            <p className="max-w-lg text-lg leading-relaxed text-sage-100">
+              GetAgeFit sits at the intersection of premium hospitality,
+              expert healthy-aging coaching, and genuine community, built
+              specifically for adults who want to stay strong, capable, and
+              independent.
+            </p>
+          </div>
+          <div
+            className="relative h-64 overflow-hidden md:h-80 lg:h-auto lg:min-h-[520px]"
+            style={{
+              clipPath:
+                "polygon(0 8%, 100% 0, 100% 100%, 0 92%)",
+            }}
+          >
+            <ResponsiveImage
+              src="/images/trainers/will-roberts.webp"
+              alt="Will Roberts, GetAgeFit coach"
+              placeholderLabel="Studio hospitality photo needed"
+              aspect="aspect-auto"
+              imageClassName="object-top"
+              className="!absolute !inset-0 !h-full !w-full !rounded-none"
+            >
+              <div className="photo-tint-sage-diagonal" />
+            </ResponsiveImage>
+          </div>
+        </div>
+      </section>
 
+      {/* Asymmetric 3-column: photo + not-list + is-list, instead of a
+          plain symmetric 2-column text grid. */}
       <Section tone="white">
-        <div className="grid gap-12 lg:grid-cols-2">
+        <div className="grid gap-10 lg:grid-cols-[0.7fr_1fr_1fr] lg:items-start">
+          <ResponsiveImage
+            src="/images/trainers/christy-wall.webp"
+            alt="Christy Wall, GetAgeFit personal trainer"
+            placeholderLabel="Coach portrait"
+            aspect="aspect-[3/4]"
+            imageClassName="object-top"
+            className="hidden shadow-soft lg:block"
+          >
+            <div className="photo-tint-plum-diagonal" />
+          </ResponsiveImage>
           <div>
-            <h2 className="mb-6 text-2xl">GetAgeFit is not…</h2>
+            <h2 className="mb-6 text-2xl">GetAgeFit is not&hellip;</h2>
             <ul className="space-y-4">
               {notList.map((item) => (
                 <li key={item} className="flex items-start gap-3 text-ink-600">
@@ -89,11 +120,14 @@ export default function WhyGetAgeFitPage() {
             </p>
           </div>
           <div>
-            <h2 className="mb-6 text-2xl">GetAgeFit is…</h2>
+            <h2 className="mb-6 text-2xl">GetAgeFit is&hellip;</h2>
             <div className="space-y-6">
-              {isList.map((item) => (
-                <div key={item.title}>
-                  <h3 className="mb-1 font-semibold text-sage-800">
+              {isList.map((item, i) => (
+                <div
+                  key={item.title}
+                  className={`border-l-2 pl-4 ${i % 2 === 0 ? "border-sage-500" : "border-plum-500"}`}
+                >
+                  <h3 className="mb-1 font-semibold text-ink-900">
                     {item.title}
                   </h3>
                   <p className="text-sm leading-relaxed text-ink-600">
@@ -106,9 +140,28 @@ export default function WhyGetAgeFitPage() {
         </div>
       </Section>
 
+      {/* Bold color band — a single punchy statement, no photo, no card:
+          pure section-to-section contrast. */}
+      <section className="clip-diagonal-both -my-10 bg-plum-800 py-16 md:py-20">
+        <div className="mx-auto max-w-2xl px-6 text-center md:px-10">
+          <p className="font-display text-2xl italic leading-snug text-sand-50 md:text-3xl">
+            &ldquo;Premium doesn&rsquo;t mean unwelcoming. It means
+            thoughtful.&rdquo;
+          </p>
+        </div>
+      </section>
+
       <Section tone="sand">
         <div className="grid items-center gap-12 lg:grid-cols-2">
-          <PhotoPlaceholder label="Studio hospitality photo needed" />
+          <ResponsiveImage
+            src="/images/training/coaching-session-leg-press.webp"
+            alt="A GetAgeFit trainer coaching a client at the studio"
+            placeholderLabel="Studio hospitality photo needed"
+            aspect="aspect-[4/3]"
+            className="shadow-soft"
+          >
+            <div className="photo-tint-sage" />
+          </ResponsiveImage>
           <div>
             <Eyebrow tone="plum">The Feeling</Eyebrow>
             <h2 className="mb-6 text-3xl md:text-4xl">
