@@ -24,23 +24,17 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-ink-100/60 bg-sand-50/90 backdrop-blur">
       <div className="h-[3px] w-full bg-gradient-to-r from-sage-600 via-plum-500 to-sage-600" />
-      <div className="mx-auto flex h-20 w-full max-w-content items-center justify-between px-6 md:px-10">
+      <div className="mx-auto flex h-20 w-full max-w-[1400px] items-center justify-between gap-6 px-6 md:px-10">
         <Link
           href="/"
-          className="flex items-center gap-2.5 font-display text-xl font-semibold tracking-tight text-ink-900"
+          className="shrink-0 whitespace-nowrap font-display text-xl font-semibold tracking-tight text-ink-900"
         >
-          <span
-            aria-hidden="true"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-sage-600 to-plum-700 text-sm font-bold text-sand-50 shadow-glow-sage"
-          >
-            GA
-          </span>
           {siteConfig.name}
         </Link>
 
         <nav
           aria-label="Primary"
-          className="hidden items-center gap-7 lg:flex"
+          className="hidden items-center gap-6 xl:flex"
         >
           {primaryNav.map((link) => {
             const active = pathname === link.href;
@@ -49,7 +43,7 @@ export function Header() {
                 key={link.href}
                 href={link.href}
                 aria-current={active ? "page" : undefined}
-                className={`relative py-1 text-sm font-medium transition-colors after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:rounded-full after:bg-gradient-to-r after:from-sage-600 after:to-plum-500 after:transition-all after:duration-300 after:ease-soft ${
+                className={`relative shrink-0 whitespace-nowrap py-1 text-sm font-medium transition-colors after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:rounded-full after:bg-gradient-to-r after:from-sage-600 after:to-plum-500 after:transition-all after:duration-300 after:ease-soft ${
                   active
                     ? "text-sage-800 after:w-full"
                     : "text-ink-600 hover:text-sage-800 after:w-0 hover:after:w-full"
@@ -61,10 +55,11 @@ export function Header() {
           })}
         </nav>
 
-        <div className="hidden lg:block">
+        <div className="hidden shrink-0 xl:block">
           <Button
             href={cta.primary.href}
             size="md"
+            className="whitespace-nowrap"
             trackCta={cta.primary.label}
             trackLocation="header"
           >
@@ -74,7 +69,7 @@ export function Header() {
 
         <button
           type="button"
-          className="flex h-11 w-11 items-center justify-center rounded-full text-ink-800 lg:hidden"
+          className="flex h-11 w-11 items-center justify-center rounded-full text-ink-800 xl:hidden"
           aria-expanded={open}
           aria-controls="mobile-nav"
           aria-label={open ? "Close menu" : "Open menu"}
@@ -94,7 +89,7 @@ export function Header() {
 
       <div
         id="mobile-nav"
-        className={`lg:hidden ${open ? "block" : "hidden"} border-t border-ink-100 bg-sand-50`}
+        className={`xl:hidden ${open ? "block" : "hidden"} border-t border-ink-100 bg-sand-50`}
       >
         <nav aria-label="Mobile" className="flex flex-col gap-1 px-6 py-4">
           {primaryNav.map((link) => (

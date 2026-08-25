@@ -11,13 +11,7 @@ export function Footer() {
       <Container className="relative py-16 md:py-20">
         <div className="grid gap-12 md:grid-cols-[1.3fr_1fr_1fr_1fr]">
           <div>
-            <p className="mb-3 flex items-center gap-2.5 font-display text-xl font-semibold text-sand-50">
-              <span
-                aria-hidden="true"
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-sage-500 to-plum-500 text-sm font-bold text-sand-50"
-              >
-                GA
-              </span>
+            <p className="mb-3 font-display text-xl font-semibold text-sand-50">
               {siteConfig.name}
             </p>
             <p className="mb-6 max-w-xs text-sm leading-relaxed text-sand-200/80">
