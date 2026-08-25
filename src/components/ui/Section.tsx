@@ -2,7 +2,7 @@ import { HTMLAttributes } from "react";
 import { Container } from "./Container";
 
 type SectionProps = HTMLAttributes<HTMLElement> & {
-  tone?: "sand" | "white" | "sage" | "ink";
+  tone?: "sand" | "white" | "sage" | "ink" | "plum" | "dark" | "meshPlum" | "mesh";
   containerClassName?: string;
 };
 
@@ -11,6 +11,12 @@ const toneClasses: Record<NonNullable<SectionProps["tone"]>, string> = {
   white: "bg-white",
   sage: "bg-sage-800 text-sand-50",
   ink: "bg-ink-900 text-sand-50",
+  // Demo #3 visual sprint — additive tones for section-to-section rhythm,
+  // so pages can alternate beyond sand/white without one-off markup.
+  plum: "bg-plum-800 text-sand-50",
+  dark: "bg-mesh-dark",
+  meshPlum: "bg-mesh-plum",
+  mesh: "bg-mesh-hero",
 };
 
 export function Section({

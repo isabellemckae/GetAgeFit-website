@@ -49,7 +49,7 @@ export const pillars: Pillar[] = [
     name: "Belong",
     headline: "A community that shows up",
     description:
-      "A boutique studio built on relationships and service, where trainers and fellow members know your name and your goals.",
+      "An intimate studio built on relationships and service, where trainers and fellow members know your name and your goals.",
   },
   {
     key: "progress",

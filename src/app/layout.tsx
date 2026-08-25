@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     "personal training Georgetown TX",
     "healthy aging fitness",
     "strength training after 40",
-    "boutique personal training",
+    "12-week transformation program",
     "senior strength coaching Georgetown Texas",
   ],
   openGraph: {

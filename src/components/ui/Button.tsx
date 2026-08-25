@@ -8,13 +8,13 @@ type Variant = "primary" | "secondary" | "ghost" | "light";
 type Size = "md" | "lg";
 
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all duration-300 ease-soft focus-visible:outline-none disabled:opacity-50 disabled:pointer-events-none";
+  "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-all duration-300 ease-soft focus-visible:outline-none disabled:opacity-50 disabled:pointer-events-none hover:-translate-y-0.5 active:translate-y-0";
 
 const variants: Record<Variant, string> = {
   primary:
-    "bg-sage-700 text-sand-50 hover:bg-sage-800 shadow-card hover:shadow-soft",
+    "bg-gradient-to-br from-sage-600 to-sage-800 text-sand-50 shadow-glow-sage hover:from-sage-700 hover:to-sage-900",
   secondary:
-    "bg-transparent text-sage-800 border border-sage-700/40 hover:border-sage-700 hover:bg-sage-50",
+    "bg-transparent text-sage-800 border-[1.5px] border-sage-700/50 hover:border-sage-700 hover:bg-sage-50",
   ghost: "bg-transparent text-ink-800 hover:bg-ink-100",
   light:
     "bg-sand-50 text-ink-900 hover:bg-white shadow-card hover:shadow-soft",

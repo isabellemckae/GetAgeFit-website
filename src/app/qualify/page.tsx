@@ -13,8 +13,10 @@ export const metadata: Metadata = {
 
 export default function QualifyPage() {
   return (
-    <section className="bg-sand-100 py-16 md:py-24">
-      <Container className="max-w-3xl">
+    <section className="bg-mesh-hero py-16 md:py-24">
+      <div className="blob -left-20 top-0 h-64 w-64 bg-sage-400/20" />
+      <div className="blob -right-16 bottom-0 h-72 w-72 bg-plum-400/15" />
+      <Container className="relative max-w-3xl">
         <div className="mb-12 text-center">
           <Eyebrow>Qualification Experience</Eyebrow>
           <h1 className="mb-5 text-4xl md:text-5xl">

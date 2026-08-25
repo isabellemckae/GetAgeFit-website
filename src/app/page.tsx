@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
 import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
 import { RecognitionList } from "@/components/home/RecognitionList";
 import { OutcomeAnchor } from "@/components/home/OutcomeAnchor";
@@ -22,7 +23,7 @@ import { objectionsClosing } from "@/content/objections";
 export const metadata: Metadata = {
   title: "Personal Training for Adults 40+ in Georgetown, TX",
   description:
-    "Get Age Fit is personal training for adults 40+ who want to feel stronger, healthier, steadier, and more confident about the years ahead. Schedule your free evaluation and consultation.",
+    "Get Age Fit's 12-week transformation experience is healthy-aging personal training for brand-new clients 40 to 80+, built around strength, independence, and confidence for the years ahead.",
   alternates: { canonical: "/" },
 };
 
@@ -35,18 +36,26 @@ export default function HomePage() {
   return (
     <>
       {/* 1. HERO */}
-      <section className="bg-sand-100">
-        <div className="mx-auto grid w-full max-w-content items-center gap-12 px-6 py-16 md:px-10 md:py-24 lg:grid-cols-2 lg:py-28">
+      <section className="bg-mesh-hero">
+        <div className="blob -left-24 -top-16 h-72 w-72 bg-sage-400/25" />
+        <div className="blob -right-20 bottom-0 h-80 w-80 bg-plum-400/20" />
+        <div className="relative mx-auto grid w-full max-w-content items-center gap-12 px-6 py-16 md:px-10 md:py-24 lg:grid-cols-2 lg:py-28">
           <div>
-            <h1 className="mb-6 text-4xl leading-[1.08] sm:text-5xl lg:text-[3.4rem]">
-              GET STRONG. LIVE STRONG.
+            <Badge tone="plum">The 12-Week Transformation Experience</Badge>
+            <h1 className="mb-6 mt-5 text-4xl leading-[1.08] sm:text-5xl lg:text-[3.4rem]">
+              GET STRONG.{" "}
+              <span className="bg-gradient-to-r from-sage-700 to-sage-500 bg-clip-text text-transparent">
+                LIVE STRONG.
+              </span>
             </h1>
             <p className="mb-4 max-w-xl text-lg leading-relaxed text-ink-700 sm:text-xl">
               You have a lot of life ahead of you. Let&rsquo;s make sure
               you&rsquo;re strong enough to enjoy it.
             </p>
             <p className="mb-9 max-w-xl text-lg leading-relaxed text-ink-600">
-              Personal training for adults 40+.
+              A guided 12-week transformation built especially for brand-new
+              clients, ages 40 to 80 and beyond: real strength, healthy
+              aging, and independence you can feel in daily life.
             </p>
             <Button
               href="/consultation"
@@ -87,12 +96,14 @@ export default function HomePage() {
       </Section>
 
       {/* 3. THIS ISN'T YOUR TYPICAL GYM. */}
-      <Section tone="sand">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="mb-8 text-3xl md:text-4xl">
+      <section className="bg-mesh-dark py-20 md:py-28">
+        <div className="blob -left-16 -top-16 h-64 w-64 bg-sage-500/25" />
+        <div className="blob -right-20 -bottom-20 h-72 w-72 bg-plum-400/20" />
+        <div className="relative mx-auto max-w-2xl px-6 text-center md:px-10">
+          <h2 className="mb-8 text-3xl text-sand-50 md:text-4xl">
             This Isn&rsquo;t Your Typical Gym.
           </h2>
-          <div className="space-y-5 text-lg leading-relaxed text-ink-700">
+          <div className="space-y-5 text-lg leading-relaxed text-sand-200/90">
             <p>
               At Get Age Fit, you don&rsquo;t walk in and wonder what
               you&rsquo;re supposed to do. You have a trainer. You have a
@@ -104,13 +115,13 @@ export default function HomePage() {
             </p>
           </div>
         </div>
-      </Section>
+      </section>
 
       {/* 4. GET STRONG / GET HEART HEALTHY / GET STEADY / GET YOUR LIFE BACK */}
       <Section tone="white">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-          {outcomes.map((outcome) => (
-            <OutcomeAnchor key={outcome.anchor} outcome={outcome} />
+          {outcomes.map((outcome, index) => (
+            <OutcomeAnchor key={outcome.anchor} outcome={outcome} index={index} />
           ))}
         </div>
       </Section>

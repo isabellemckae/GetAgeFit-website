@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { Section, Eyebrow } from "@/components/ui/Section";
+import { Section } from "@/components/ui/Section";
 import { PhotoPlaceholder } from "@/components/ui/PhotoPlaceholder";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { CTASection } from "@/components/content/CTASection";
+import { PageHero } from "@/components/layout/PageHero";
 import { trainers } from "@/content/trainers";
 import { cta } from "@/lib/site-config";
 
@@ -17,24 +18,23 @@ export const metadata: Metadata = {
 export default function TrainersPage() {
   return (
     <>
-      <section className="bg-sand-100 py-20 md:py-28">
-        <div className="mx-auto max-w-content px-6 md:px-10 text-center">
-          <Eyebrow>Trainers</Eyebrow>
-          <h1 className="mx-auto mb-6 max-w-3xl text-4xl md:text-5xl">
-            Experts. And people you can trust.
-          </h1>
-          <p className="mx-auto max-w-2xl text-lg leading-relaxed text-ink-600">
+      <PageHero
+        eyebrow="Trainers"
+        heading="Experts. And people you can trust."
+        body={
+          <>
             Every coach at GetAgeFit brings real, credentialed expertise in
-            coaching adult bodies, and just as importantly, a genuine
+            healthy-aging coaching, and just as importantly, a genuine
             investment in your progress. Led by founder Theo Thurston (see{" "}
             <a href="/about" className="font-medium text-sage-700 hover:text-sage-900">
               his story
             </a>
-            ), the team below trains clients across every stage of the
-            GetAgeFit experience.
-          </p>
-        </div>
-      </section>
+            ), the team below guides clients through every stage of the
+            GetAgeFit experience, from your first 12-week transformation
+            onward.
+          </>
+        }
+      />
 
       <Section tone="white">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

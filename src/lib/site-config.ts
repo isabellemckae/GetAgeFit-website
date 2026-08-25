@@ -13,7 +13,7 @@ export const siteConfig = {
   name: "GetAgeFit",
   tagline: "Strength for every stage of life.",
   description:
-    "GetAgeFit is a boutique healthy-aging personal training studio in Georgetown, Texas, helping adults 40+ build strength, capability, and independence through personalized coaching.",
+    "GetAgeFit is a healthy-aging personal training studio in Georgetown, Texas, helping adults 40+ build strength, capability, and independence through a personalized 12-week transformation experience.",
   url: process.env.NEXT_PUBLIC_SITE_URL || "https://www.getagefit.com",
 
   nap: {

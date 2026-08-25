@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { Section, Eyebrow } from "@/components/ui/Section";
+import { Section } from "@/components/ui/Section";
 import { ArticleCard } from "@/components/content/ArticleCard";
 import { CTASection } from "@/components/content/CTASection";
+import { PageHero } from "@/components/layout/PageHero";
 import { articles, articleCategories } from "@/content/articles";
 
 export const metadata: Metadata = {
@@ -14,18 +15,11 @@ export const metadata: Metadata = {
 export default function ResourcesPage() {
   return (
     <>
-      <section className="bg-sand-100 py-20 md:py-28">
-        <div className="mx-auto max-w-content px-6 md:px-10 text-center">
-          <Eyebrow>Resources</Eyebrow>
-          <h1 className="mx-auto mb-6 max-w-3xl text-4xl md:text-5xl">
-            Expertise on strength, aging, and independence.
-          </h1>
-          <p className="mx-auto max-w-2xl text-lg leading-relaxed text-ink-600">
-            Written by the GetAgeFit coaching team to answer real questions,
-            useful whether or not you ever become a client.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="Resources"
+        heading="Expertise on strength, healthy aging, and independence."
+        body="Written by the GetAgeFit coaching team to answer real questions, useful whether or not you ever become a client."
+      />
 
       <Section tone="white">
         <div className="mb-10 flex flex-wrap gap-2">

@@ -7,7 +7,7 @@ export function ArticleCard({ article }: { article: Article }) {
   return (
     <Link
       href={`/resources/${article.slug}`}
-      className="group block overflow-hidden rounded-xl2 border border-ink-100 bg-white shadow-card transition-shadow duration-300 ease-soft hover:shadow-soft"
+      className="group block overflow-hidden rounded-xl2 border border-ink-100 bg-white shadow-card transition-all duration-300 ease-soft hover:-translate-y-1 hover:shadow-soft"
     >
       <PhotoPlaceholder label="Article image needed" aspect="aspect-[16/9]" />
       <div className="p-6">

@@ -70,25 +70,123 @@
 
 @layer components {
   /* Elegant placeholder used in place of unverified/uncaptured photography.
-     Deliberately abstract and premium rather than a stock-photo stand-in —
-     swap for a <Image> once real photography is approved. */
+     Demo #3 visual sprint: richer multi-stop gradient, a soft inner ring,
+     and a subtle abstract mark so this reads as an intentional editorial
+     compositions rather than a gray box — since this repo has zero real
+     photography, this component appears everywhere an image would, so its
+     visual quality carries a large share of the site's overall feel. */
   .photo-placeholder {
-    @apply relative flex items-center justify-center overflow-hidden rounded-xl2 bg-gradient-to-br from-sage-100 via-sand-200 to-plum-100;
+    @apply relative flex items-center justify-center overflow-hidden rounded-xl2 bg-gradient-to-br from-sage-800 via-plum-800 to-sage-900;
   }
 
   .photo-placeholder::before {
     content: "";
-    @apply absolute inset-0 opacity-40;
+    @apply absolute inset-0;
     background-image: radial-gradient(
-        circle at 20% 20%,
-        rgba(88, 122, 79, 0.25),
+        circle at 15% 15%,
+        rgba(157, 181, 150, 0.55),
         transparent 45%
       ),
       radial-gradient(
-        circle at 80% 75%,
-        rgba(127, 85, 128, 0.22),
+        circle at 85% 20%,
+        rgba(184, 150, 180, 0.45),
+        transparent 40%
+      ),
+      radial-gradient(
+        circle at 50% 90%,
+        rgba(194, 168, 124, 0.3),
+        transparent 50%
+      );
+  }
+
+  .photo-placeholder::after {
+    content: "";
+    @apply absolute inset-3 rounded-xl2 border border-sand-50/25;
+  }
+
+  .photo-placeholder-mark {
+    @apply relative z-10 mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-sand-50/40 bg-sand-50/10 backdrop-blur-sm;
+  }
+
+  /* Rich gradient mesh for hero/dark sections — sage → plum, deep and
+     premium rather than a flat brand-color block. */
+  .bg-mesh-hero {
+    @apply relative overflow-hidden bg-sand-100;
+  }
+  .bg-mesh-hero::before {
+    content: "";
+    @apply absolute inset-0 opacity-70;
+    background-image: radial-gradient(
+        circle at 8% 10%,
+        rgba(88, 122, 79, 0.16),
+        transparent 40%
+      ),
+      radial-gradient(
+        circle at 92% 0%,
+        rgba(127, 85, 128, 0.14),
+        transparent 38%
+      ),
+      radial-gradient(
+        circle at 50% 100%,
+        rgba(194, 168, 124, 0.14),
         transparent 45%
       );
+  }
+
+  .bg-mesh-dark {
+    @apply relative overflow-hidden bg-gradient-to-br from-sage-950 via-ink-900 to-plum-950 text-sand-50;
+  }
+  .bg-mesh-dark::before {
+    content: "";
+    @apply absolute inset-0 opacity-80;
+    background-image: radial-gradient(
+        circle at 10% 15%,
+        rgba(119, 153, 110, 0.35),
+        transparent 42%
+      ),
+      radial-gradient(
+        circle at 90% 85%,
+        rgba(156, 112, 152, 0.32),
+        transparent 45%
+      );
+  }
+
+  .bg-mesh-plum {
+    @apply relative overflow-hidden bg-gradient-to-br from-plum-800 via-plum-900 to-sage-950 text-sand-50;
+  }
+  .bg-mesh-plum::before {
+    content: "";
+    @apply absolute inset-0 opacity-70;
+    background-image: radial-gradient(
+        circle at 12% 20%,
+        rgba(184, 150, 180, 0.35),
+        transparent 42%
+      ),
+      radial-gradient(
+        circle at 88% 80%,
+        rgba(119, 153, 110, 0.25),
+        transparent 45%
+      );
+  }
+
+  /* Soft dot-grid texture — a tasteful, non-photographic decorative layer
+     for otherwise-empty light backgrounds. */
+  .dot-grid::after {
+    content: "";
+    @apply pointer-events-none absolute inset-0 opacity-[0.35];
+    background-image: radial-gradient(
+      rgba(41, 45, 38, 0.12) 1px,
+      transparent 1px
+    );
+    background-size: 20px 20px;
+  }
+
+  /* Freeform blurred color blobs used as absolutely-positioned decoration
+     inside a `relative overflow-hidden` container (hero sections, CTA
+     bands). Sized/positioned per use via utility classes at the call
+     site; this just supplies the blur + shape + color. */
+  .blob {
+    @apply pointer-events-none absolute rounded-full blur-3xl;
   }
 
   .skip-link {

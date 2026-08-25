@@ -23,11 +23,18 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-ink-100/60 bg-sand-50/90 backdrop-blur">
+      <div className="h-[3px] w-full bg-gradient-to-r from-sage-600 via-plum-500 to-sage-600" />
       <div className="mx-auto flex h-20 w-full max-w-content items-center justify-between px-6 md:px-10">
         <Link
           href="/"
-          className="font-display text-xl font-semibold tracking-tight text-ink-900"
+          className="flex items-center gap-2.5 font-display text-xl font-semibold tracking-tight text-ink-900"
         >
+          <span
+            aria-hidden="true"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-sage-600 to-plum-700 text-sm font-bold text-sand-50 shadow-glow-sage"
+          >
+            GA
+          </span>
           {siteConfig.name}
         </Link>
 
@@ -42,10 +49,10 @@ export function Header() {
                 key={link.href}
                 href={link.href}
                 aria-current={active ? "page" : undefined}
-                className={`text-sm font-medium transition-colors ${
+                className={`relative py-1 text-sm font-medium transition-colors after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:rounded-full after:bg-gradient-to-r after:from-sage-600 after:to-plum-500 after:transition-all after:duration-300 after:ease-soft ${
                   active
-                    ? "text-sage-800"
-                    : "text-ink-600 hover:text-sage-800"
+                    ? "text-sage-800 after:w-full"
+                    : "text-ink-600 hover:text-sage-800 after:w-0 hover:after:w-full"
                 }`}
               >
                 {link.label}

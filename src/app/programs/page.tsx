@@ -2,15 +2,23 @@ import type { Metadata } from "next";
 import { Section, Eyebrow } from "@/components/ui/Section";
 import { PhotoPlaceholder } from "@/components/ui/PhotoPlaceholder";
 import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
 import { CTASection } from "@/components/content/CTASection";
+import { PageHero } from "@/components/layout/PageHero";
 import { cta } from "@/lib/site-config";
 
 export const metadata: Metadata = {
-  title: "Programs | Personalized Coaching Formats",
+  title: "Programs | The 12-Week Transformation Experience",
   description:
-    "Explore GetAgeFit's personalized coaching formats: one-on-one and 1:2 training built around your goals, history, and pace. Investment discussed during your consultation.",
+    "GetAgeFit specializes in the 12-week transformation experience for brand-new clients 40 to 80+, plus ongoing one-on-one and 1:2 healthy-aging coaching. Investment discussed during your consultation.",
   alternates: { canonical: "/programs" },
 };
+
+const transformationBullets = [
+  "A clear, structured 12-week starting point, not an open-ended guess",
+  "Personalized training, nutrition guidance, and cardio strategy from day one",
+  "Built for brand-new clients, and just as effective at 40, 60, or 80+",
+];
 
 const programs = [
   {
@@ -48,22 +56,65 @@ const included = [
 export default function ProgramsPage() {
   return (
     <>
-      <section className="bg-sand-100 py-20 md:py-28">
-        <div className="mx-auto max-w-content px-6 md:px-10 text-center">
-          <Eyebrow>Programs</Eyebrow>
-          <h1 className="mx-auto mb-6 max-w-3xl text-4xl md:text-5xl">
-            Coaching formats built around how you want to train.
-          </h1>
-          <p className="mx-auto max-w-2xl text-lg leading-relaxed text-ink-600">
+      <PageHero
+        eyebrow="Programs"
+        heading="Start with a 12-week transformation. Stay for the long run."
+        body={
+          <>
             Every GetAgeFit program includes the full coaching experience:
-            training, nutrition, movement, and measurement. The format is
-            what changes: how much of your coach&rsquo;s attention is yours
-            alone, session by session.
-          </p>
-        </div>
-      </section>
+            training, nutrition, movement, and measurement. Brand-new
+            clients begin with a focused 12-week transformation, then choose
+            the ongoing coaching format that&rsquo;s right for them.
+          </>
+        }
+      />
 
       <Section tone="white">
+        <div className="mb-14 overflow-hidden rounded-xl2 bg-mesh-dark p-9 md:p-12">
+          <div className="blob -right-16 -top-16 h-64 w-64 bg-sage-500/25" />
+          <div className="blob -bottom-20 -left-10 h-56 w-56 bg-plum-400/20" />
+          <div className="relative grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+            <div>
+              <Badge tone="plum">Start Here</Badge>
+              <h2 className="mb-4 mt-4 text-2xl text-sand-50 md:text-3xl">
+                The 12-Week Transformation Experience
+              </h2>
+              <p className="mb-6 leading-relaxed text-sand-200/90">
+                Our flagship experience for brand-new clients: a focused,
+                12-week arc that builds real strength, mobility, and
+                confidence, whatever your starting point. Just as relevant
+                at 40 as it is at 80 and beyond.
+              </p>
+              <ul className="mb-8 space-y-3 text-sm text-sand-100">
+                {transformationBullets.map((b) => (
+                  <li key={b} className="flex items-start gap-3">
+                    <span
+                      aria-hidden="true"
+                      className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-sand-50/15 text-xs font-bold text-sand-50"
+                    >
+                      ✓
+                    </span>
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+              <Button
+                href={cta.primary.href}
+                variant="light"
+                trackCta={cta.primary.label}
+                trackLocation="programs-12-week"
+              >
+                {cta.primary.label}
+              </Button>
+            </div>
+            <PhotoPlaceholder label="12-week transformation photo needed" aspect="aspect-[4/5]" />
+          </div>
+        </div>
+
+        <div className="mb-10 text-center">
+          <Eyebrow tone="sage">After Your 12 Weeks</Eyebrow>
+          <h2 className="text-2xl md:text-3xl">Ongoing coaching formats</h2>
+        </div>
         <div className="grid gap-10 lg:grid-cols-2">
           {programs.map((program) => (
             <div

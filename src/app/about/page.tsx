@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Section, Eyebrow } from "@/components/ui/Section";
 import { PhotoPlaceholder } from "@/components/ui/PhotoPlaceholder";
+import { PageHero } from "@/components/layout/PageHero";
 import { CTASection } from "@/components/content/CTASection";
 
 export const metadata: Metadata = {
@@ -32,15 +33,10 @@ const values = [
 export default function AboutPage() {
   return (
     <>
-      <section className="bg-sand-100 py-20 md:py-28">
-        <div className="mx-auto max-w-content px-6 md:px-10 text-center">
-          <Eyebrow>Our Mission</Eyebrow>
-          <h1 className="mx-auto mb-6 max-w-3xl text-4xl md:text-5xl">
-            Giving people independence through fitness and strength in every
-            stage of life.
-          </h1>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="Our Mission"
+        heading="Giving people independence through fitness and strength in every stage of life."
+      />
 
       <Section tone="white">
         <div className="grid items-center gap-12 lg:grid-cols-2">
@@ -102,7 +98,7 @@ export default function AboutPage() {
         <div className="mx-auto max-w-3xl text-center">
           <Eyebrow>The Studio</Eyebrow>
           <h2 className="mb-6 text-3xl md:text-4xl">
-            A boutique space built for coaching, not crowds.
+            An intimate space built for coaching, not crowds.
           </h2>
           <p className="mb-3 text-lg leading-relaxed text-ink-600">
             GetAgeFit trains out of a flagship Georgetown studio designed

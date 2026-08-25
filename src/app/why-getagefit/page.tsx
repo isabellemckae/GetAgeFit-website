@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { Section, Eyebrow } from "@/components/ui/Section";
 import { PhotoPlaceholder } from "@/components/ui/PhotoPlaceholder";
+import { PageHero } from "@/components/layout/PageHero";
 import { CTASection } from "@/components/content/CTASection";
 
 export const metadata: Metadata = {
-  title: "Why GetAgeFit | Boutique Healthy-Aging Coaching",
+  title: "Why GetAgeFit | Healthy-Aging Coaching Built Around You",
   description:
-    "See what sets GetAgeFit apart from traditional gyms and generic personal training: personalized coaching built for adults 40+ in Georgetown, Texas.",
+    "See what sets GetAgeFit apart from traditional gyms and generic personal training: personalized, healthy-aging coaching built for adults 40+ in Georgetown, Texas.",
   alternates: { canonical: "/why-getagefit" },
 };
 
@@ -29,7 +30,7 @@ const isList = [
     body: "One-on-one and 1:2 coaching means your trainer knows your name, your goals, and your progress, every session.",
   },
   {
-    title: "Boutique, not big-box",
+    title: "Personal, not big-box",
     body: "A smaller, intentional environment designed for real coaching relationships, not a warehouse of equipment.",
   },
   {
@@ -42,29 +43,30 @@ const isList = [
   },
   {
     title: "A long-term partner, not a quick fix",
-    body: "We're focused on your capability and independence over years, not a 12-week transformation photo.",
+    body: "Your 12-week transformation is the start. We stay focused on your capability and independence for years beyond it, not a single before-and-after photo.",
   },
 ];
 
 export default function WhyGetAgeFitPage() {
   return (
     <>
-      <section className="bg-sand-100 py-20 md:py-28">
-        <div className="mx-auto max-w-content px-6 md:px-10">
-          <div className="mx-auto max-w-2xl text-center">
-            <Eyebrow>Why GetAgeFit</Eyebrow>
-            <h1 className="mb-6 text-4xl md:text-5xl">
-              This is different. This might be exactly what you&rsquo;ve been
-              looking for.
-            </h1>
-            <p className="text-lg leading-relaxed text-ink-600">
-              GetAgeFit sits at the intersection of premium hospitality,
-              expert coaching, and genuine community, built specifically for
-              adults who want to stay strong, capable, and independent.
-            </p>
-          </div>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="Why GetAgeFit"
+        heading={
+          <>
+            This is different. This might be exactly what you&rsquo;ve been
+            looking for.
+          </>
+        }
+        body={
+          <>
+            GetAgeFit sits at the intersection of premium hospitality,
+            expert healthy-aging coaching, and genuine community, built
+            specifically for adults who want to stay strong, capable, and
+            independent.
+          </>
+        }
+      />
 
       <Section tone="white">
         <div className="grid gap-12 lg:grid-cols-2">

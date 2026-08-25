@@ -3,7 +3,7 @@ import { PhotoPlaceholder } from "@/components/ui/PhotoPlaceholder";
 
 export function TransformationCard({ story }: { story: Transformation }) {
   return (
-    <article className="overflow-hidden rounded-xl2 border border-ink-100 bg-white shadow-card">
+    <article className="overflow-hidden rounded-xl2 border border-ink-100 bg-white shadow-card transition-all duration-300 ease-soft hover:-translate-y-1 hover:shadow-soft">
       <PhotoPlaceholder label={story.photoLabel} aspect="aspect-[16/10]" />
       <div className="p-7">
         <p className="mb-1 text-sm font-semibold uppercase tracking-wide text-sage-700">

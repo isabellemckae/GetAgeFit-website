@@ -26,8 +26,10 @@ export default function ConsultationPage() {
 
   return (
     <>
-      <section className="bg-sand-100 py-20 md:py-28">
-        <div className="mx-auto max-w-content px-6 md:px-10 text-center">
+      <section className="bg-mesh-hero py-20 md:py-28">
+        <div className="blob -left-20 -top-16 h-64 w-64 bg-sage-400/20" />
+        <div className="blob -right-16 bottom-0 h-72 w-72 bg-plum-400/15" />
+        <div className="relative mx-auto max-w-content px-6 md:px-10 text-center">
           <Eyebrow>Consultation</Eyebrow>
           <h1 className="mx-auto mb-6 max-w-2xl text-4xl md:text-5xl">
             Based on what you share, we&rsquo;ll help you see if

@@ -49,6 +49,10 @@ const config: Config = {
           700: "#374F31",
           800: "#2C3F28",
           900: "#233220",
+          // Demo #3 visual sprint: deep, near-black green for rich
+          // gradient/hero/footer backgrounds — additive, nothing existing
+          // changes shade.
+          950: "#141F13",
         },
         // Dusty plum — warmth, sophistication, humanity
         plum: {
@@ -62,6 +66,7 @@ const config: Config = {
           700: "#523553",
           800: "#3E2941",
           900: "#2C1D2F",
+          950: "#1A121C",
         },
 
         // Placeholder brand-color architecture — PROMPT (New Website
@@ -116,6 +121,10 @@ const config: Config = {
       boxShadow: {
         soft: "0 10px 40px -12px rgba(41, 45, 38, 0.18)",
         card: "0 4px 24px -8px rgba(41, 45, 38, 0.12)",
+        // Demo #3 visual sprint: colored glows for a more premium, less
+        // "flat card" feel on primary CTAs and featured elements.
+        "glow-sage": "0 20px 45px -18px rgba(68, 98, 61, 0.55)",
+        "glow-plum": "0 20px 45px -18px rgba(104, 67, 105, 0.5)",
       },
       borderRadius: {
         xl2: "1.25rem",

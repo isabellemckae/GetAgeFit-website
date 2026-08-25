@@ -3,6 +3,7 @@ import { Section, Eyebrow } from "@/components/ui/Section";
 import { PillarCard } from "@/components/content/PillarCard";
 import { FAQAccordion } from "@/components/content/FAQAccordion";
 import { CTASection } from "@/components/content/CTASection";
+import { PageHero } from "@/components/layout/PageHero";
 import { JsonLd, faqJsonLd } from "@/components/JsonLd";
 import { pillars } from "@/content/pillars";
 import { Button } from "@/components/ui/Button";
@@ -11,7 +12,7 @@ import { cta } from "@/lib/site-config";
 export const metadata: Metadata = {
   title: "How It Works | The GetAgeFit Process",
   description:
-    "From consultation to personalized programming: see exactly how GetAgeFit's coaching process works, step by step.",
+    "From consultation to your 12-week transformation: see exactly how GetAgeFit's healthy-aging coaching process works for brand-new clients, step by step.",
   alternates: { canonical: "/how-it-works" },
 };
 
@@ -19,7 +20,7 @@ const steps = [
   {
     step: "01",
     title: "Schedule a consultation",
-    body: "A conversation, not a workout. We learn about your goals, your history, and what you're hoping to change.",
+    body: "A conversation, not a workout. We learn about your goals, your history, and what you're hoping to change, and introduce the 12-week transformation experience if you're new to GetAgeFit.",
   },
   {
     step: "02",
@@ -28,8 +29,8 @@ const steps = [
   },
   {
     step: "03",
-    title: "A plan built around you",
-    body: "We design a personalized program (training, nutrition guidance, and cardio strategy) built around your specific goals and history.",
+    title: "Your 12-week transformation begins",
+    body: "New clients start with a focused 12-week arc: personalized training, nutrition guidance, and cardio strategy built around your specific goals and history.",
   },
   {
     step: "04",
@@ -39,12 +40,12 @@ const steps = [
   {
     step: "05",
     title: "Track real progress",
-    body: "Ongoing measurement (from InBody scans to strength benchmarks) so you always know what's working.",
+    body: "Ongoing measurement (from InBody scans to strength benchmarks) so you always know what's working, week over week.",
   },
   {
     step: "06",
-    title: "Belong to something",
-    body: "You become part of a community built on relationships, encouragement, and mutual accountability.",
+    title: "Keep going, for the long run",
+    body: "After your 12 weeks, you become part of a lasting community built on relationships, encouragement, and mutual accountability.",
   },
 ];
 
@@ -75,18 +76,17 @@ export default function HowItWorksPage() {
   return (
     <>
       <JsonLd data={faqJsonLd(faqs)} />
-      <section className="bg-sand-100 py-20 md:py-28">
-        <div className="mx-auto max-w-content px-6 md:px-10 text-center">
-          <Eyebrow>How It Works</Eyebrow>
-          <h1 className="mx-auto mb-6 max-w-3xl text-4xl md:text-5xl">
-            A clear path from first conversation to real progress.
-          </h1>
-          <p className="mx-auto max-w-2xl text-lg leading-relaxed text-ink-600">
-            No guesswork, no confusing sign-up process, just a straightforward
-            path built around you.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="How It Works"
+        heading="A clear path from first conversation to your 12-week transformation."
+        body={
+          <>
+            No guesswork, no confusing sign-up process: a straightforward
+            path built for brand-new clients, and just as relevant whether
+            you&rsquo;re 40 or 80 and beyond.
+          </>
+        }
+      />
 
       <Section tone="white">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
