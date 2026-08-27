@@ -182,10 +182,14 @@ export default function HomePage() {
         </div>
       </Section>
 
-      {/* 6. FIVE-STAR REVIEWS (was "Real Client Stories") */}
+      {/* 6. REAL CLIENT STORIES (Demo #4 follow-up: heading reverted from
+          "Five-Star Reviews" — these are real client reviews, and "Real
+          Client Stories" better fits the brand voice. Everything below
+          the heading — the three reviews, star presentation, and the
+          "Explore 150+ Five-Star Reviews" link — is unchanged.) */}
       <Section tone="white">
         <div className="mx-auto mb-14 max-w-2xl text-center">
-          <h2 className="text-3xl md:text-4xl">Five-Star Reviews</h2>
+          <h2 className="text-3xl md:text-4xl">Real Client Stories</h2>
         </div>
         {/* Permission/results disclaimer intentionally cut in the Phase 4
             editorial reduction pass — it wasn't approved-source copy, and
