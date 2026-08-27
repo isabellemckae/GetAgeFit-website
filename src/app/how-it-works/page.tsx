@@ -20,7 +20,7 @@ const steps = [
   {
     step: "01",
     title: "Schedule a consultation",
-    body: "A conversation, not a workout. We learn about your goals, your history, and what you're hoping to change, and introduce the 12-week transformation experience if you're new to GetAgeFit.",
+    body: "We learn about your goals, your history, and what you're hoping to change, and you get to learn exactly what we offer and if it's a good fit for you.",
     photo: "/images/trainers/neon-luong.webp",
     photoAlt: "Neon Luong, GetAgeFit personal trainer",
   },
@@ -32,26 +32,26 @@ const steps = [
   {
     step: "03",
     title: "Your 12-week transformation begins",
-    body: "New clients start with a focused 12-week arc: personalized training, nutrition guidance, and cardio strategy built around your specific goals and history.",
+    body: "New clients start with a focused 12-week arc: personalized training, nutrition guidance, and cardio strategy built around your current physical abilities.",
     photo: "/images/trainers/maria-arellano.webp",
     photoAlt: "Maria Arellano, GetAgeFit personal trainer",
   },
   {
     step: "04",
     title: "Coaching, every session",
-    body: "One-on-one or 1:2 sessions with a coach who adjusts your program as you get stronger and your life changes.",
+    body: "One-on-one or 1:2 sessions with a coach who gradually adjusts your program as you get stronger and your life changes.",
   },
   {
     step: "05",
     title: "Track real progress",
-    body: "Ongoing measurement (from InBody scans to strength benchmarks) so you always know what's working, week over week.",
+    body: "Optional ongoing measurement (from InBody scans to strength benchmarks) so your trainer always knows what's working, month over month.",
     photo: "/images/trainers/jeff-venditte.webp",
     photoAlt: "Jeff Venditte, GetAgeFit personal trainer",
   },
   {
     step: "06",
     title: "Keep going, for the long run",
-    body: "After your 12 weeks, you become part of a lasting community built on relationships, encouragement, and mutual accountability.",
+    body: "After your 12 weeks, you and your trainer will go through an evaluation process and decide on your next steps for your health and fitness journey.",
   },
 ];
 

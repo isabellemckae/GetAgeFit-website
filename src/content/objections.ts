@@ -38,7 +38,7 @@ export const objections: Objection[] = [
   },
   {
     question: "What if I’m nervous about walking into a gym?",
-    answer: "That’s normal. You’ll be greeted by a person.",
+    answer: "That’s normal. You’ll love our supportive community.",
   },
   {
     question: "What if I’m not sure it’s right for me?",

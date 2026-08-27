@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Section } from "@/components/ui/Section";
-import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
-import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { CTASection } from "@/components/content/CTASection";
+import { TrainersGrid } from "@/components/content/TrainersGrid";
 import { PageHero } from "@/components/layout/PageHero";
 import { trainers } from "@/content/trainers";
 import { cta } from "@/lib/site-config";
@@ -37,49 +36,7 @@ export default function TrainersPage() {
       />
 
       <Section tone="white">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {trainers.map((trainer, index) => (
-            <article
-              key={trainer.slug}
-              id={trainer.slug}
-              className="group scroll-mt-28 overflow-hidden rounded-xl2 border border-ink-100 bg-sand-50 shadow-card transition-all duration-300 ease-soft hover:-translate-y-1 hover:shadow-soft"
-            >
-              <div className="overflow-hidden">
-                <ResponsiveImage
-                  src={`/images/trainers/${trainer.slug}.webp`}
-                  alt={`${trainer.name}, ${trainer.role} at GetAgeFit`}
-                  placeholderLabel={trainer.photoLabel}
-                  aspect="aspect-[4/5]"
-                  sizes="(min-width: 1280px) 25vw, (min-width: 640px) 50vw, 100vw"
-                  className="transition-transform duration-500 ease-soft group-hover:scale-105"
-                />
-              </div>
-              <div
-                className={`h-1 ${index % 2 === 0 ? "bg-sage-600" : "bg-plum-600"}`}
-              />
-              <div className="p-6">
-                <h2 className="mb-1 text-lg font-display text-ink-900">
-                  {trainer.name}
-                </h2>
-                <p className="mb-3 text-sm font-medium text-plum-600">
-                  {trainer.role}
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {trainer.credentials.map((c) => (
-                    <Badge key={c} tone="sage">
-                      {c}
-                    </Badge>
-                  ))}
-                </div>
-                {trainer.specialties.length > 0 && (
-                  <p className="mt-3 text-xs leading-relaxed text-ink-500">
-                    {trainer.specialties.join(" · ")}
-                  </p>
-                )}
-              </div>
-            </article>
-          ))}
-        </div>
+        <TrainersGrid trainers={trainers} />
         <p className="mt-10 text-center text-sm text-ink-400">
           Roster and credentials sourced from the current GetAgeFit team page.
           Please confirm this list is still accurate before publishing.

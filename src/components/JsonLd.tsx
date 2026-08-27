@@ -47,7 +47,7 @@ export function serviceJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "Service",
-    serviceType: "Personalized Strength & Healthy-Aging Coaching",
+    serviceType: "Personal Training & Healthy-Aging Gym Coaching",
     provider: {
       "@type": "ExerciseGym",
       name: siteConfig.nap.legalName,
@@ -58,7 +58,7 @@ export function serviceJsonLd() {
       suggestedMinAge: 40,
     },
     description:
-      "One-on-one and small-group personalized strength coaching, nutrition counseling, and progress tracking for adults 40 and older.",
+      "One-on-one and small-group personal training at our Georgetown gym: strength coaching, nutrition counseling, and progress tracking for adults 40 and older.",
   };
 }
 

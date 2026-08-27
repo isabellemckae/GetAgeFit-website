@@ -30,7 +30,7 @@ export const trainers: Trainer[] = [
   {
     slug: "james-petersen",
     name: "James Petersen",
-    role: "Personal Trainer",
+    role: "Certified Personal Trainer",
     credentials: ["NASM CPT", "NASM Nutrition Coach", "NASM Senior Fitness Specialist"],
     specialties: ["Balance & core training", "200-hr community yoga training"],
     philosophy: needsPhilosophy,
@@ -40,7 +40,7 @@ export const trainers: Trainer[] = [
   {
     slug: "maria-arellano",
     name: "Maria Arellano",
-    role: "Personal Trainer",
+    role: "Certified Personal Trainer",
     credentials: ["CPT", "First Aid/CPR"],
     specialties: ["BS Biology & Spanish", "M.Ed. Education Administration"],
     philosophy: needsPhilosophy,
@@ -63,7 +63,7 @@ export const trainers: Trainer[] = [
   {
     slug: "paula-jones",
     name: "Paula Jones",
-    role: "Personal Trainer",
+    role: "Certified Personal Trainer",
     credentials: ["NASM CPT"],
     specialties: ["NFF Figure Competitor", "British Horse Society Instructor"],
     philosophy: needsPhilosophy,
@@ -73,7 +73,7 @@ export const trainers: Trainer[] = [
   {
     slug: "chip-collerain",
     name: "Chip Collerain",
-    role: "Personal Trainer",
+    role: "Certified Personal Trainer",
     credentials: ["CPT", "BS Mechanical Engineering"],
     specialties: ["Sustainable, doable lifestyle change"],
     philosophy: needsPhilosophy,
@@ -83,7 +83,7 @@ export const trainers: Trainer[] = [
   {
     slug: "isa-lozano",
     name: "Isa Lozano",
-    role: "Personal Trainer",
+    role: "Certified Personal Trainer",
     credentials: ["CPT", "Certified Behavior Change Specialist"],
     specialties: [
       "Sustainable body recomposition",
@@ -96,7 +96,7 @@ export const trainers: Trainer[] = [
   {
     slug: "tish-strandboge",
     name: "Tish Strandboge",
-    role: "Personal Trainer",
+    role: "Certified Personal Trainer",
     credentials: ["BA English", "CPT", "Certified Nutrition Coach", "GGS Menopause Coaching Specialist"],
     specialties: ["Menopause & midlife coaching"],
     philosophy: needsPhilosophy,
@@ -106,7 +106,7 @@ export const trainers: Trainer[] = [
   {
     slug: "robin-winkles",
     name: "Robin Winkles",
-    role: "Personal Trainer",
+    role: "Certified Personal Trainer",
     credentials: ["BA Health Education", "Athletic Training (minor)", "CPT", "Nutrition Coach"],
     specialties: ["Physical-therapy background"],
     philosophy: needsPhilosophy,
@@ -116,7 +116,7 @@ export const trainers: Trainer[] = [
   {
     slug: "christy-wall",
     name: "Christy Wall",
-    role: "Personal Trainer",
+    role: "Certified Personal Trainer",
     credentials: ["NASM CPT"],
     specialties: ["Older-adult training", "Cardiovascular health", "Nutrition"],
     philosophy: needsPhilosophy,
@@ -126,7 +126,7 @@ export const trainers: Trainer[] = [
   {
     slug: "neon-luong",
     name: "Neon Luong",
-    role: "Personal Trainer",
+    role: "Certified Personal Trainer",
     credentials: ["BS Kinesiology", "CPT"],
     specialties: ["Body recomposition", "Hypertrophy & performance"],
     philosophy: needsPhilosophy,
@@ -136,7 +136,7 @@ export const trainers: Trainer[] = [
   {
     slug: "jeff-venditte",
     name: "Jeff Venditte",
-    role: "Personal Trainer",
+    role: "Certified Personal Trainer",
     credentials: ["CPT", "CPR/AED", "NASM Corrective Exercise Specialization"],
     specialties: ["Corrective exercise"],
     philosophy: needsPhilosophy,
@@ -156,7 +156,7 @@ export const trainers: Trainer[] = [
   {
     slug: "keith-stolle",
     name: "Keith Stolle",
-    role: "Personal Trainer",
+    role: "Certified Personal Trainer",
     credentials: ["BA Healthcare Administration", "CPT"],
     specialties: ["GetAgeFit transformation graduate turned trainer"],
     philosophy: needsPhilosophy,
@@ -166,7 +166,7 @@ export const trainers: Trainer[] = [
   {
     slug: "ali-tabei",
     name: "Ali Tabei",
-    role: "Personal Trainer",
+    role: "Certified Personal Trainer",
     credentials: ["Fitness Specialist", "Senior Fitness Specialist", "TRX Trainer", "Strength & Conditioning Coach"],
     specialties: ["Bodybuilding & fitness background"],
     philosophy: needsPhilosophy,
@@ -176,7 +176,7 @@ export const trainers: Trainer[] = [
   {
     slug: "tracie-stolle",
     name: "Tracie Stolle",
-    role: "Personal Trainer",
+    role: "Certified Personal Trainer",
     credentials: ["CPT"],
     specialties: ["Flexible training", "Time under tension", "Clients 19–85+"],
     philosophy: needsPhilosophy,
@@ -186,7 +186,7 @@ export const trainers: Trainer[] = [
   {
     slug: "travis-strawser",
     name: "Travis Strawser",
-    role: "Personal Trainer",
+    role: "Certified Personal Trainer",
     credentials: ["BS Business Administration (Marketing)", "NASM CPT", "Certified Massage Therapist", "Certified Stretch Coach"],
     specialties: ["Massage & stretch-assisted recovery"],
     philosophy: needsPhilosophy,

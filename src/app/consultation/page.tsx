@@ -65,16 +65,21 @@ export default function ConsultationPage() {
         </div>
       </section>
 
+      {/* Alternating color-block treatment: a sage panel behind "what
+          we'll cover" and a plum-accented card behind the form, for
+          stronger section-to-section separation than the previous plain
+          white background (Demo #4 Part 3). Same existing sage/plum
+          system used elsewhere on the site — no new palette. */}
       <Section tone="white">
-        <div className="grid gap-14 lg:grid-cols-[1fr_1.2fr]">
-          <div>
+        <div className="grid gap-8 lg:grid-cols-[1fr_1.2fr]">
+          <div className="rounded-xl2 bg-sage-50 p-8 md:p-10">
             <h2 className="mb-5 text-2xl">In your consultation, we&rsquo;ll</h2>
             <ul className="space-y-4">
               {covers.map((item) => (
                 <li key={item} className="flex items-start gap-3 text-ink-600">
                   <span
                     aria-hidden="true"
-                    className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-sage-100 text-xs font-bold text-sage-700"
+                    className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-sage-600 text-xs font-bold text-sand-50"
                   >
                     ✓
                   </span>
@@ -82,7 +87,7 @@ export default function ConsultationPage() {
                 </li>
               ))}
             </ul>
-            <p className="mt-8 text-sm text-ink-400">
+            <p className="mt-8 text-sm text-ink-500">
               Prefer to talk first? Call {siteConfig.nap.phone} or visit our{" "}
               <a href="/contact" className="font-medium text-sage-700 hover:text-sage-900">
                 contact page
@@ -93,7 +98,7 @@ export default function ConsultationPage() {
 
           <div>
             {hasExternalBooking ? (
-              <div className="overflow-hidden rounded-xl2 border border-ink-100 shadow-card">
+              <div className="overflow-hidden rounded-xl2 border-t-4 border-plum-600 shadow-card">
                 <iframe
                   title="Schedule a consultation"
                   src={process.env.NEXT_PUBLIC_BOOKING_URL}
@@ -101,7 +106,7 @@ export default function ConsultationPage() {
                 />
               </div>
             ) : (
-              <div className="rounded-xl2 border border-ink-100 bg-sand-50 p-8 shadow-card">
+              <div className="rounded-xl2 border-t-4 border-plum-600 bg-white p-8 shadow-card">
                 <ConsultationForm />
               </div>
             )}

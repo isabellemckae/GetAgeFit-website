@@ -145,12 +145,12 @@ export default function AboutPage() {
           <div>
             <Eyebrow>The Studio</Eyebrow>
             <h2 className="mb-6 text-3xl md:text-4xl">
-              An intimate space built for coaching, not crowds.
+              A roomy &amp; intimate space built for coaching, not crowds.
             </h2>
             <p className="mb-3 text-lg leading-relaxed text-ink-600">
               GetAgeFit trains out of a flagship Georgetown studio designed
-              around one-on-one and small-group coaching rather than open
-              gym floor access.
+              around one-on-one and 1:2 coaching rather than open gym floor
+              access.
             </p>
             <p className="text-sm text-ink-400">
               [CONFIRM before publishing, the previous site described an

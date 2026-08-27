@@ -17,6 +17,7 @@ const notList = [
   "A clinical rehabilitation facility",
   "A cold, exclusive luxury club",
   "A stereotypical “senior fitness” program",
+  "A franchise",
 ];
 
 const isList = [
@@ -43,6 +44,10 @@ const isList = [
   {
     title: "A long-term partner, not a quick fix",
     body: "Your 12-week transformation is the start. We stay focused on your capability and independence for years beyond it, not a single before-and-after photo.",
+  },
+  {
+    title: "Locally owned, not a franchise",
+    body: "A small, locally owned business in Georgetown, Texas, since 2016, not a corporate chain following a national script.",
   },
 ];
 
@@ -102,35 +107,40 @@ export default function WhyGetAgeFitPage() {
             <div className="photo-tint-plum-diagonal" />
           </ResponsiveImage>
           <div>
-            <h2 className="mb-6 text-2xl">GetAgeFit is not&hellip;</h2>
+            <h2 className="mb-3 text-2xl">GetAgeFit is not&hellip;</h2>
+            <div className="mb-6 h-1.5 w-16 rounded-full bg-plum-500" />
             <ul className="space-y-4">
               {notList.map((item) => (
                 <li key={item} className="flex items-start gap-3 text-ink-600">
-                  <span aria-hidden="true" className="mt-1 text-ink-300">
+                  <span
+                    aria-hidden="true"
+                    className="mt-0.5 text-xl font-bold leading-none text-plum-400"
+                  >
                     •
                   </span>
-                  <span>{item}</span>
+                  <span className="text-[1.05rem]">{item}</span>
                 </li>
               ))}
             </ul>
             <p className="mt-6 text-sm text-ink-400">
               We say this not to put down other options. Different people
               need different things. We say it so you know exactly what
-              you&rsquo;re walking into here.
+              you&rsquo;ll experience here.
             </p>
           </div>
           <div>
-            <h2 className="mb-6 text-2xl">GetAgeFit is&hellip;</h2>
+            <h2 className="mb-3 text-2xl">GetAgeFit is&hellip;</h2>
+            <div className="mb-6 h-1.5 w-16 rounded-full bg-sage-500" />
             <div className="space-y-6">
               {isList.map((item, i) => (
                 <div
                   key={item.title}
-                  className={`border-l-2 pl-4 ${i % 2 === 0 ? "border-sage-500" : "border-plum-500"}`}
+                  className={`border-l-4 pl-5 ${i % 2 === 0 ? "border-sage-500" : "border-plum-500"}`}
                 >
-                  <h3 className="mb-1 font-semibold text-ink-900">
+                  <h3 className="mb-1 text-lg font-bold text-ink-900">
                     {item.title}
                   </h3>
-                  <p className="text-sm leading-relaxed text-ink-600">
+                  <p className="text-[0.95rem] leading-relaxed text-ink-600">
                     {item.body}
                   </p>
                 </div>

@@ -32,7 +32,7 @@ const programs = [
     photos: ["/images/trainers/james-petersen.webp"],
   },
   {
-    name: "1:2 Coaching",
+    name: "Train alongside a friend or spouse.",
     subtitle: "Personalized programming, shared energy",
     body: "Train alongside one other client with a shared coach, still fully personalized programming, with the added motivation of training alongside someone else on their own journey.",
     bullets: [

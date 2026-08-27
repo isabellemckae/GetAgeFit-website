@@ -12,6 +12,7 @@ import { FounderHomeSection } from "@/components/home/FounderHomeSection";
 import { outcomes } from "@/content/outcomes";
 import { testimonials } from "@/content/testimonials";
 import { objectionsClosing } from "@/content/objections";
+import { siteConfig } from "@/lib/site-config";
 
 // Demo #2 homepage. Rebuilt per the approved New Website Master Reference
 // (§10, §11) and Prompt 3 — see docs/ARCHITECTURE.md for the full
@@ -35,46 +36,49 @@ const PRIMARY_CTA_SUPPORT_SHORT = "No cost. No obligation.";
 export default function HomePage() {
   return (
     <>
-      {/* 1. HERO */}
-      <section className="bg-mesh-hero">
-        <div className="relative mx-auto grid w-full max-w-content items-center gap-12 px-6 py-16 md:px-10 md:py-24 lg:grid-cols-2 lg:py-28">
-          <div>
-            <Badge tone="plum">The 12-Week Transformation Experience</Badge>
-            <h1 className="mb-6 mt-5 text-4xl leading-[1.08] sm:text-5xl lg:text-[3.4rem]">
-              GET STRONG.{" "}
-              <span className="bg-gradient-to-r from-sage-700 to-sage-500 bg-clip-text text-transparent">
-                LIVE STRONG.
-              </span>
-            </h1>
-            <p className="mb-4 max-w-xl text-lg leading-relaxed text-ink-700 sm:text-xl">
-              You have a lot of life ahead of you. Let&rsquo;s make sure
-              you&rsquo;re strong enough to enjoy it.
-            </p>
-            <p className="mb-9 max-w-xl text-lg leading-relaxed text-ink-600">
-              A guided 12-week transformation built especially for brand-new
-              clients, ages 40 to 80 and beyond: real strength, healthy
-              aging, and independence you can feel in daily life.
-            </p>
-            <Button
-              href="/consultation"
-              size="lg"
-              trackCta={PRIMARY_CTA_LABEL}
-              trackLocation="homepage-hero"
-            >
-              {PRIMARY_CTA_LABEL}
-            </Button>
-            <p className="mt-4 text-sm text-ink-500">
-              {PRIMARY_CTA_SUPPORT_FULL}
-            </p>
-          </div>
-          <ResponsiveImage
-            src="/images/training/coaching-session-leg-press.webp"
-            alt="A GetAgeFit trainer coaching a client through a leg-press machine at the studio"
-            placeholderLabel="Hero photo needed: warm trainer/client interaction"
-            aspect="aspect-[4/5]"
-            className="lg:aspect-[5/6]"
-            priority
-          />
+      {/* 1. HERO — reusing the /how-it-works blurred/scrimmed full-bleed
+          photo banner treatment (same markup pattern: absolutely-positioned
+          fill photo + dark gradient overlay + light text on top), per
+          Demo #4 Part 2.1. Same hero copy/CTA as before; only the container
+          treatment changed. */}
+      <section className="relative flex h-[720px] items-center overflow-hidden md:h-[600px]">
+        <ResponsiveImage
+          src="/images/training/coaching-session-leg-press.webp"
+          alt="A GetAgeFit trainer coaching a client through a leg-press machine at the studio"
+          placeholderLabel="Hero photo needed: warm trainer/client interaction"
+          aspect="aspect-auto"
+          imageClassName="object-center"
+          className="!absolute !inset-0 !h-full !w-full !rounded-none"
+          priority
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-ink-900/90 via-ink-900/70 to-plum-900/60" />
+        </ResponsiveImage>
+        <div className="relative z-10 mx-auto w-full max-w-content px-6 md:px-10">
+          <Badge tone="plum">The 12-Week Transformation Experience</Badge>
+          <h1 className="mb-6 mt-5 max-w-2xl text-4xl leading-[1.08] text-sand-50 sm:text-5xl lg:text-[3.4rem]">
+            GET STRONG. <span className="text-sage-300">LIVE STRONG.</span>
+          </h1>
+          <p className="mb-4 max-w-xl text-lg leading-relaxed text-sand-100 sm:text-xl">
+            You have a lot of life ahead of you. Let&rsquo;s make sure
+            you&rsquo;re strong enough to enjoy it.
+          </p>
+          <p className="mb-9 max-w-xl text-lg leading-relaxed text-sand-200/90">
+            A guided 12-week transformation built especially for brand-new
+            clients, ages 40 to 80 and beyond: real strength, healthy
+            aging, and independence you can feel in daily life.
+          </p>
+          <Button
+            href="/consultation"
+            size="lg"
+            variant="light"
+            trackCta={PRIMARY_CTA_LABEL}
+            trackLocation="homepage-hero"
+          >
+            {PRIMARY_CTA_LABEL}
+          </Button>
+          <p className="mt-4 text-sm text-sand-200/80">
+            {PRIMARY_CTA_SUPPORT_FULL}
+          </p>
         </div>
       </section>
 
@@ -109,7 +113,8 @@ export default function HomePage() {
             <p>
               At Get Age Fit, you don&rsquo;t walk in and wonder what
               you&rsquo;re supposed to do. You have a trainer. You have a
-              plan. And you have people who know you.
+              plan. And you have people who know, appreciate, and support
+              you.
             </p>
             <p>
               Your training is built around your body, your goals, and
@@ -177,10 +182,10 @@ export default function HomePage() {
         </div>
       </Section>
 
-      {/* 6. REAL CLIENT STORIES */}
+      {/* 6. FIVE-STAR REVIEWS (was "Real Client Stories") */}
       <Section tone="white">
         <div className="mx-auto mb-14 max-w-2xl text-center">
-          <h2 className="text-3xl md:text-4xl">Real Client Stories</h2>
+          <h2 className="text-3xl md:text-4xl">Five-Star Reviews</h2>
         </div>
         {/* Permission/results disclaimer intentionally cut in the Phase 4
             editorial reduction pass — it wasn't approved-source copy, and
@@ -191,6 +196,29 @@ export default function HomePage() {
           {testimonials.map((testimonial) => (
             <TestimonialQuote key={testimonial.slug} testimonial={testimonial} />
           ))}
+        </div>
+        <div className="mt-12 text-center">
+          {siteConfig.social.googleReviews ? (
+            <a
+              href={siteConfig.social.googleReviews}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-lg font-semibold text-sage-700 underline decoration-2 underline-offset-4 hover:text-sage-900"
+            >
+              Explore 150+ Five-Star Reviews →
+            </a>
+          ) : (
+            // TODO(Demo #4 Part 2.5): wire up once the verified Google
+            // Business Profile reviews URL is supplied — see
+            // siteConfig.social.googleReviews. Not guessed/invented.
+            <span
+              className="inline-flex cursor-not-allowed items-center gap-2 text-lg font-semibold text-sage-700/50 underline decoration-2 underline-offset-4"
+              title="Google reviews URL not yet configured"
+              aria-disabled="true"
+            >
+              Explore 150+ Five-Star Reviews →
+            </span>
+          )}
         </div>
       </Section>
 
@@ -240,43 +268,7 @@ export default function HomePage() {
         <FounderHomeSection />
       </Section>
 
-      {/* 10. WHAT'S POSSIBLE FOR YOU? */}
-      <Section tone="white">
-        <div className="grid items-center gap-12 lg:grid-cols-2">
-          <div className="text-center lg:text-left">
-            <h2 className="mb-6 text-3xl md:text-4xl">
-              What&rsquo;s Possible for You?
-            </h2>
-            <p className="mb-8 text-lg leading-relaxed text-ink-700">
-              You don&rsquo;t have to know exactly what you need. You
-              certainly don&rsquo;t have to commit to anything today.
-              Let&rsquo;s just have a conversation.
-            </p>
-            <Button
-              href="/consultation"
-              size="lg"
-              trackCta={PRIMARY_CTA_LABEL}
-              trackLocation="homepage-final-cta"
-            >
-              {PRIMARY_CTA_LABEL}
-            </Button>
-            <p className="mt-4 text-sm text-ink-500">
-              {PRIMARY_CTA_SUPPORT_SHORT}
-            </p>
-          </div>
-          <ResponsiveImage
-            src="/images/trainers/travis-strawser.webp"
-            alt="Travis Strawser, GetAgeFit personal trainer"
-            placeholderLabel="Final CTA photo needed: real client/trainer interaction showing genuine happiness"
-            aspect="aspect-[4/5]"
-            className="shadow-soft"
-          >
-            <div className="photo-tint-plum-diagonal" />
-          </ResponsiveImage>
-        </div>
-      </Section>
-
-      {/* 11. FOOTER — rendered globally by src/app/layout.tsx, not here. */}
+      {/* 10. FOOTER — rendered globally by src/app/layout.tsx, not here. */}
     </>
   );
 }

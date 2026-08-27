@@ -30,6 +30,11 @@ export const siteConfig = {
   social: {
     instagram: "",
     facebook: "",
+    // TODO(Demo #4 Part 2.5): set once GetAgeFit supplies the verified
+    // Google Business Profile reviews URL. Left blank rather than guessed —
+    // the "Explore 150+ Five-Star Reviews" link on the homepage falls back
+    // to a non-navigating placeholder until this is filled in.
+    googleReviews: "",
   },
 
   bookingUrl: process.env.NEXT_PUBLIC_BOOKING_URL || "/consultation",
