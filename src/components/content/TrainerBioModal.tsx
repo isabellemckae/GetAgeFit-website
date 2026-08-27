@@ -9,11 +9,14 @@ import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
  * Detailed trainer bio — opened from a card in TrainersGrid.tsx.
  *
  * Only ever renders verified fields already in src/content/trainers.ts
- * (name, role, credentials, specialties, photo). `philosophy`/`story` are
- * placeholder text ("[INSERT ...]") for every trainer right now — this
- * intentionally omits those sections rather than showing bracket
- * placeholders to a visitor, and will pick them up automatically once a
- * trainer's real content replaces the placeholder (see `hasContent`).
+ * (name, role, credentials, specialties, photo, philosophy, story).
+ * `philosophy` is still placeholder text ("[INSERT ...]") for every
+ * trainer — this intentionally omits that section rather than showing a
+ * bracket placeholder to a visitor, and will pick it up automatically
+ * once a trainer's own philosophy replaces the placeholder (see
+ * `hasContent`). `story` is populated for all trainers with verbatim
+ * source bios that may contain multiple paragraphs; `whitespace-pre-line`
+ * below preserves those paragraph breaks as written.
  */
 function hasContent(value: string) {
   return !value.trim().startsWith("[");
@@ -122,7 +125,7 @@ export function TrainerBioModal({
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-400">
                 Coaching Philosophy
               </p>
-              <p className="text-sm leading-relaxed text-ink-600">
+              <p className="whitespace-pre-line text-sm leading-relaxed text-ink-600">
                 {trainer.philosophy}
               </p>
             </div>
@@ -133,7 +136,7 @@ export function TrainerBioModal({
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-400">
                 Their Story
               </p>
-              <p className="text-sm leading-relaxed text-ink-600">
+              <p className="whitespace-pre-line text-sm leading-relaxed text-ink-600">
                 {trainer.story}
               </p>
             </div>
