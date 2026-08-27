@@ -3,13 +3,17 @@
 import { useEffect } from "react";
 import { Trainer } from "@/content/trainers";
 import { Badge } from "@/components/ui/Badge";
-import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
 
 /**
  * Detailed trainer bio — opened from a card in TrainersGrid.tsx.
  *
+ * Text-only by design: the trainer's photo already appears on the card
+ * the visitor just clicked, so the modal isn't re-shown it — this stays
+ * a clean, text-focused reading experience (name, role, credentials,
+ * specialties, bio).
+ *
  * Only ever renders verified fields already in src/content/trainers.ts
- * (name, role, credentials, specialties, photo, philosophy, story).
+ * (name, role, credentials, specialties, philosophy, story).
  * `philosophy` is still placeholder text ("[INSERT ...]") for every
  * trainer — this intentionally omits that section rather than showing a
  * bracket placeholder to a visitor, and will pick it up automatically
@@ -72,17 +76,6 @@ export function TrainerBioModal({
             <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
         </button>
-
-        <div className="relative w-full shrink-0 sm:w-2/5">
-          <ResponsiveImage
-            src={`/images/trainers/${trainer.slug}.webp`}
-            alt={`${trainer.name}, ${trainer.role} at GetAgeFit`}
-            placeholderLabel={trainer.photoLabel}
-            aspect="aspect-[4/5]"
-            imageClassName="object-top"
-            className="h-full !rounded-none"
-          />
-        </div>
 
         <div className="overflow-y-auto p-6 sm:p-8">
           <h2 className="mb-1 font-display text-2xl text-ink-900">
