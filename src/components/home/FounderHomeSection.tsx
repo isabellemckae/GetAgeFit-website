@@ -12,9 +12,11 @@ export function FounderHomeSection() {
   return (
     <div className="grid items-center gap-10 lg:grid-cols-[0.8fr_1.2fr]">
       <ResponsiveImage
+        src="/images/founder/theo-thurston.webp"
         alt="Theo Thurston, founder of Get Age Fit"
         placeholderLabel="Theo Thurston portrait needed"
         aspect="aspect-[4/5]"
+        imageClassName="object-top"
       />
       <div>
         <p className="mb-4 text-lg leading-relaxed text-ink-700 sm:text-xl">
