@@ -266,7 +266,7 @@ export default function HomePage() {
       <Section tone="sand">
         <div className="mx-auto mb-12 max-w-2xl text-center">
           <h2 className="text-3xl md:text-4xl">
-            Why I Created Get Age Fit (Theo)
+            Why I Created Get Age Fit
           </h2>
         </div>
         <FounderHomeSection />

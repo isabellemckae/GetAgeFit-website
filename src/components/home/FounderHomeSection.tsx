@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/Button";
 import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
 
 /**
- * Homepage §9 — "Why I Created Get Age Fit — Theo" (Founder trust).
+ * Homepage §9 — "Why I Created Get Age Fit" (Founder trust).
  * Copy is VERIFIED / APPROVED verbatim from the New Website Master
  * Reference §11 and inlined directly here (single non-repeating block,
  * one instance ever) rather than a content/*.ts file — mirrors how
@@ -28,7 +28,7 @@ export function FounderHomeSection() {
           to get stronger at any age. And you shouldn’t have to feel
           intimidated, embarrassed, or out of place to do it.
         </p>
-        <p className="mb-6 font-semibold text-ink-900">
+        <p className="mb-6 text-xl font-bold text-ink-900">
           Theo Thurston, Founder
         </p>
         <Button
