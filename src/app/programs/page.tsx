@@ -228,9 +228,12 @@ export default function ProgramsPage() {
           </h2>
           <p className="mb-8 text-lg leading-relaxed text-ink-600">
             GetAgeFit is a premium, personalized coaching experience, and we
-            believe the right investment conversation happens after we
-            understand your goals, not before. Your coach will walk through
-            program details and investment openly during your consultation.
+            believe the right investment conversation happens after
+            you&rsquo;ve experienced the program, not before. We&rsquo;ll
+            start with a consultation to understand your goals, then set up
+            a hands-on evaluation so you can feel the difference for
+            yourself. Once you&rsquo;ve experienced it firsthand, we&rsquo;ll
+            walk you through the investment, openly and honestly.
           </p>
           <Button
             href={cta.qualify.href}

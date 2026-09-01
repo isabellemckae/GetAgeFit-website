@@ -33,7 +33,7 @@ const goalOptions: { value: PrimaryGoal; label: string }[] = primaryGoalValues.m
 const frequencyOptions = [
   { value: "1x", label: "1x per week" },
   { value: "2x", label: "2x per week" },
-  { value: "3x_plus", label: "3+ times per week" },
+  { value: "3x_plus", label: "3x per week" },
   { value: "not_sure", label: "Not sure yet" },
 ];
 
@@ -289,7 +289,7 @@ export function QualifyQuiz() {
             />
             <RadioGroup
               name="readiness"
-              label="How ready are you to start a long-term training plan?"
+              label="How ready are you to start a personalized training plan?"
               options={readinessOptions}
               value={form.readiness}
               onChange={(v) =>

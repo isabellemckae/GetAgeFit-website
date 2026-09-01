@@ -45,7 +45,7 @@ export const objections: Objection[] = [
   {
     question: "What if I’m not sure it’s right for me?",
     answer:
-      "No pressure, no commitment — we’ll show you exactly how our program works, so you can make an informed decision.",
+      "No pressure, no commitment, we’ll show you exactly how our program works, so you can make an informed decision.",
   },
 ];
 

@@ -107,7 +107,7 @@ export default function WhyGetAgeFitPage() {
             <div className="photo-tint-plum-diagonal" />
           </ResponsiveImage>
           <div>
-            <h2 className="mb-3 text-2xl">GetAgeFit is not&hellip;</h2>
+            <h2 className="mb-3 text-2xl">GetAgeFit is NOT&hellip;</h2>
             <div className="mb-6 h-1.5 w-16 rounded-full bg-plum-500" />
             <ul className="space-y-4">
               {notList.map((item) => (

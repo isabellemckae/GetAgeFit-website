@@ -150,7 +150,7 @@ export default function AboutPage() {
             <p className="mb-3 text-lg leading-relaxed text-ink-600">
               GetAgeFit trains out of a flagship Georgetown studio designed
               around one-on-one and 1:2 coaching rather than open gym floor
-              access.
+              access. You&rsquo;re with your trainer 100% of the time.
             </p>
             <p className="text-sm text-ink-400">
               [CONFIRM before publishing, the previous site described an
