@@ -56,7 +56,8 @@ export default function HomePage() {
         <div className="relative z-10 mx-auto w-full max-w-content px-6 md:px-10">
           <Badge tone="plum">The 12-Week Transformation Experience</Badge>
           <h1 className="mb-6 mt-5 max-w-2xl text-4xl leading-[1.08] text-sand-50 sm:text-5xl lg:text-[3.4rem]">
-            GET STRONG. <span className="text-sage-300">LIVE STRONG.</span>
+            GET STRONG.{" "}
+            <span className="font-bold text-[#4ADE80]">LIVE STRONG.</span>
           </h1>
           <p className="mb-4 max-w-xl text-lg leading-relaxed text-sand-100 sm:text-xl">
             You have a lot of life ahead of you. Let&rsquo;s make sure

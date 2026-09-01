@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/Button";
 import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
+import { SupplementTeaser } from "@/components/home/SupplementTeaser";
 
 /**
  * Homepage §9 — "Why I Created Get Age Fit" (Founder trust).
@@ -39,6 +40,7 @@ export function FounderHomeSection() {
         >
           Read Our Story
         </Button>
+        <SupplementTeaser />
       </div>
     </div>
   );
