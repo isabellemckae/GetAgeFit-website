@@ -227,6 +227,133 @@ export type UpsertLeadResult =
  * broken/misconfigured Airtable integration can never crash the
  * qualification API route or the quiz UI in front of it.
  */
+export type GenericLeadInput = {
+  firstName?: string;
+  lastName?: string;
+  email: string;
+  phone?: string;
+  /** Exact Leads-table "Source" single-select option (e.g. "supp waitlist", "contact form"). */
+  source: string;
+  /** Free-text "Source Detail" value, e.g. "GetAgeFit Essentials Waitlist". */
+  sourceDetail: string;
+  message?: string;
+  /** ISO timestamp for the "Submitted At" field and the Notes entry. */
+  submittedAt: string;
+};
+
+function buildGenericNote(input: {
+  sourceDetail: string;
+  message?: string;
+  submittedAt: string;
+}): string {
+  const messagePart = input.message ? ` Message: ${input.message}` : "";
+  return `[${input.submittedAt}] ${input.sourceDetail} submission.${messagePart}`;
+}
+
+/**
+ * Create-or-update a Coaching OS Lead from a generic /api/lead submission
+ * (Contact form, supplement waitlist signup, etc.), matched by normalized
+ * email. A sibling to upsertQualificationLead() below with the same
+ * dedup-safety and never-clobber policy, kept as a separate function
+ * (rather than a shared refactor) so the already-working qualification
+ * path is never put at risk by changes made for this one:
+ *
+ * - No existing Lead found → create one: Source, Source Detail, and
+ *   Pipeline Stage = "New" are set from the submission.
+ * - Exactly one existing Lead found → update it, appending a Notes entry
+ *   only. Source, Source Detail, Pipeline Stage, and Email are never
+ *   overwritten on an existing record, so a repeat form submission can
+ *   never regress or overwrite a Lead's CRM history. "Lead Name" and
+ *   "Phone" are filled in only if currently blank.
+ * - More than one existing Lead matches → skip create/update entirely
+ *   (see upsertQualificationLead's doc comment for why).
+ *
+ * Never throws — callers can treat this as fire-and-forget alongside the
+ * generic CRM_WEBHOOK_URL forward.
+ */
+export async function upsertGenericLead(
+  input: GenericLeadInput,
+): Promise<UpsertLeadResult> {
+  const config = getConfig();
+  if (!config) {
+    console.log(
+      "[AirtableClient] Airtable API not configured. Skipping direct Lead upsert for:",
+      input.email,
+    );
+    return { status: "unavailable", reason: "not_configured" };
+  }
+
+  try {
+    const normalizedEmail = normalizeEmail(input.email);
+    const lookup = await findLeadByEmail(normalizedEmail);
+
+    if (lookup.status === "unavailable") {
+      return { status: "unavailable", reason: lookup.reason };
+    }
+
+    if (lookup.status === "multiple") {
+      const matchedRecordIds = lookup.records.map((r) => r.id);
+      console.error(
+        `[AirtableClient] ${lookup.records.length} existing Leads match email "${normalizedEmail}". Skipping automatic update/create to avoid updating the wrong record or creating a duplicate. Needs manual review. Record IDs:`,
+        matchedRecordIds,
+      );
+      return { status: "skipped_duplicate", matchedRecordIds };
+    }
+
+    const leadName = `${input.firstName ?? ""} ${input.lastName ?? ""}`.trim();
+    const noteAddition = buildGenericNote(input);
+
+    if (lookup.status === "found") {
+      const fields: Record<string, unknown> = {
+        Notes: appendNote(lookup.record.fields["Notes"], noteAddition),
+      };
+      if (leadName && isBlank(lookup.record.fields["Lead Name"])) {
+        fields["Lead Name"] = leadName;
+      }
+      if (input.phone && isBlank(lookup.record.fields["Phone"])) {
+        fields["Phone"] = input.phone;
+      }
+
+      const res = await airtablePatch(lookup.record.id, fields, config);
+      if (!res.ok) {
+        const body = await safeReadText(res);
+        console.error(
+          `[AirtableClient] Failed to update Lead ${lookup.record.id}: ${res.status} ${res.statusText}`,
+          body,
+        );
+        return { status: "error", reason: `update_failed_${res.status}` };
+      }
+      return { status: "updated", recordId: lookup.record.id };
+    }
+
+    // lookup.status === "not_found" → create
+    const fields: Record<string, unknown> = {
+      ...(leadName ? { "Lead Name": leadName } : {}),
+      Email: normalizedEmail,
+      ...(input.phone ? { Phone: input.phone } : {}),
+      Source: input.source,
+      "Source Detail": input.sourceDetail,
+      "Pipeline Stage": "New",
+      Notes: noteAddition,
+    };
+
+    const res = await airtableCreate(fields, config);
+    if (!res.ok) {
+      const body = await safeReadText(res);
+      console.error(
+        `[AirtableClient] Failed to create Lead: ${res.status} ${res.statusText}`,
+        body,
+      );
+      return { status: "error", reason: `create_failed_${res.status}` };
+    }
+    const json = (await res.json()) as { id: string };
+    return { status: "created", recordId: json.id };
+  } catch (err) {
+    console.error("[AirtableClient] Unexpected error during generic Lead upsert:", err);
+    return { status: "error", reason: "unexpected_exception" };
+  }
+}
+
 export async function upsertQualificationLead(
   input: QualificationLeadInput,
 ): Promise<UpsertLeadResult> {
@@ -297,7 +424,11 @@ export async function upsertQualificationLead(
       ...(leadName ? { "Lead Name": leadName } : {}),
       Email: normalizedEmail,
       ...(input.phone ? { Phone: input.phone } : {}),
-      Source: "Website",
+      // Matches the live "Source" single-select option exactly (lowercase
+      // "website", not "Website") — confirmed against the Coaching OS
+      // Leads table schema; a prior case mismatch here meant this field
+      // was silently rejected/left blank on every created Lead.
+      Source: "website",
       "Source Detail": "Qualification Funnel",
       "Pipeline Stage": "New",
       "Qualification Outcome": outcomeLabel,
