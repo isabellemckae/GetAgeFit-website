@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import Image from "next/image";
 import { Badge } from "@/components/ui/Badge";
 import { trackEvent } from "@/lib/analytics";
 
@@ -112,6 +113,14 @@ export function SupplementTeaser() {
               <p className="mb-5 mt-8 text-xs font-semibold uppercase tracking-wide text-sage-700">
                 Introducing GetAgeFit Essentials&trade;
               </p>
+
+              <Image
+                src="/images/products/getagefit-essentials.png"
+                alt="GetAgeFit Essentials: ageLIFT pre-workout and ageFUEL meal replacement"
+                width={664}
+                height={554}
+                className="mb-5 h-auto w-full rounded-xl2 border border-ink-100"
+              />
 
               <div className="space-y-5">
                 <div className="rounded-xl2 border border-plum-100 bg-plum-50/40 p-5">
