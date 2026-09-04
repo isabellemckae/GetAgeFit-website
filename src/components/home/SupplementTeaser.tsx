@@ -225,7 +225,8 @@ export function SupplementTeaser() {
  * Reuses the existing, unmodified /api/lead endpoint (see
  * ContactForm.tsx for the same pattern) with a distinct `source` so
  * these show up in the CRM as their own lead type rather than mixed in
- * with contact-page or qualify-quiz leads. No new backend code.
+ * with contact-page or qualify-quiz leads. No new backend code — the
+ * route already reads firstName/lastName/email/phone from the body.
  *
  * The endpoint requires a valid email on every submission (see
  * src/app/api/lead/route.ts), so email is required here even though
@@ -269,6 +270,36 @@ function NotifyMeForm() {
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-3">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <label htmlFor="supplement-first-name" className="sr-only">
+            First name
+          </label>
+          <input
+            id="supplement-first-name"
+            name="firstName"
+            type="text"
+            required
+            autoComplete="given-name"
+            placeholder="First name"
+            className="w-full rounded-xl2 border border-ink-100 bg-white px-4 py-3 text-ink-800 shadow-sm focus:border-sage-400"
+          />
+        </div>
+        <div>
+          <label htmlFor="supplement-last-name" className="sr-only">
+            Last name
+          </label>
+          <input
+            id="supplement-last-name"
+            name="lastName"
+            type="text"
+            required
+            autoComplete="family-name"
+            placeholder="Last name"
+            className="w-full rounded-xl2 border border-ink-100 bg-white px-4 py-3 text-ink-800 shadow-sm focus:border-sage-400"
+          />
+        </div>
+      </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <label htmlFor="supplement-email" className="sr-only">

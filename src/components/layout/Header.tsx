@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { primaryNav, cta, siteConfig } from "@/lib/site-config";
@@ -25,11 +26,15 @@ export function Header() {
     <header className="sticky top-0 z-40 border-b border-ink-100/60 bg-sand-50/90 backdrop-blur">
       <div className="h-[3px] w-full bg-gradient-to-r from-sage-600 via-plum-500 to-sage-600" />
       <div className="mx-auto flex h-20 w-full max-w-[1400px] items-center justify-between gap-6 px-6 md:px-10">
-        <Link
-          href="/"
-          className="shrink-0 whitespace-nowrap font-display text-xl font-semibold tracking-tight text-ink-900"
-        >
-          {siteConfig.name}
+        <Link href="/" className="shrink-0">
+          <Image
+            src="/images/brand/getagefit-logo.png"
+            alt={siteConfig.name}
+            width={630}
+            height={81}
+            priority
+            className="h-8 w-auto"
+          />
         </Link>
 
         <nav
