@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { primaryNav, cta, siteConfig } from "@/lib/site-config";
@@ -11,9 +12,13 @@ export function Footer() {
       <Container className="relative py-16 md:py-20">
         <div className="grid gap-12 md:grid-cols-[1.3fr_1fr_1fr_1fr]">
           <div>
-            <p className="mb-3 font-display text-xl font-semibold text-sand-50">
-              {siteConfig.name}
-            </p>
+            <Image
+              src="/images/brand/getagefit-logo-light.png"
+              alt={siteConfig.name}
+              width={630}
+              height={81}
+              className="mb-3 h-7 w-auto"
+            />
             <p className="mb-6 max-w-xs text-sm leading-relaxed text-sand-200/80">
               {siteConfig.tagline} Healthy-aging coaching for adults 40+ in
               Georgetown, Texas.
