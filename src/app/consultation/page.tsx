@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Section, Eyebrow } from "@/components/ui/Section";
 import { ConsultationForm } from "@/components/forms/ConsultationForm";
+import { CalendlyEmbed } from "@/components/booking/CalendlyEmbed";
 import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
 import { siteConfig } from "@/lib/site-config";
 
@@ -99,11 +100,7 @@ export default function ConsultationPage() {
           <div>
             {hasExternalBooking ? (
               <div className="overflow-hidden rounded-xl2 border-t-4 border-plum-600 shadow-card">
-                <iframe
-                  title="Schedule a consultation"
-                  src={process.env.NEXT_PUBLIC_BOOKING_URL}
-                  className="h-[720px] w-full"
-                />
+                <CalendlyEmbed url={process.env.NEXT_PUBLIC_BOOKING_URL!} />
               </div>
             ) : (
               <div className="rounded-xl2 border-t-4 border-plum-600 bg-white p-8 shadow-card">
