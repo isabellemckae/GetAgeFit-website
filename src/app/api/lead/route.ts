@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { forwardToCrm } from "@/lib/crm";
-import { upsertGenericLead } from "@/lib/airtableClient";
+import { upsertGenericLead, PRODUCT_INTEREST_ESSENTIALS } from "@/lib/airtableClient";
 
 // Maps this route's `source` values (set by each form component's fetch
 // call — see ContactForm.tsx and SupplementTeaser.tsx) to the exact
@@ -46,6 +46,31 @@ export async function POST(req: NextRequest) {
     submittedAt,
   });
 
+  // Communication-consent + product-interest: only the supplement
+  // waitlist form asks about these today, so only that source gets a
+  // defined value here. Any other source (e.g. the Contact form) passes
+  // `undefined` for all three, which upsertGenericLead() treats as "this
+  // submission never asked" and leaves any existing Airtable value
+  // untouched rather than overwriting it — see that function's doc
+  // comment on GenericLeadInput.
+  const isSupplementWaitlist = rawSource === "supplement_waitlist";
+
+  // Submitting the "Notify Me" form is itself the email opt-in (matches
+  // the approved copy: "we will use it to communicate with you... you
+  // can unsubscribe from emails... at any time") — there's no separate
+  // email checkbox and none is needed. SMS is different: it requires its
+  // own explicit, affirmative checkbox, so it's read from the request
+  // body instead of assumed. A submission that leaves that box unchecked
+  // still writes `false` (a real "no"), not "unanswered" — and a phone
+  // number being present never implies consent by itself.
+  const emailConsent = isSupplementWaitlist ? true : undefined;
+  const smsConsent = isSupplementWaitlist
+    ? typeof body.smsConsent === "boolean"
+      ? body.smsConsent
+      : false
+    : undefined;
+  const productInterest = isSupplementWaitlist ? PRODUCT_INTEREST_ESSENTIALS : undefined;
+
   // Direct Airtable (Coaching OS) Lead upsert — additive alongside the
   // generic CRM forward above, same pattern already used by /api/qualify
   // and /api/consultation. Never allowed to throw or block the response.
@@ -59,6 +84,9 @@ export async function POST(req: NextRequest) {
     sourceDetail: detail,
     message,
     submittedAt,
+    emailConsent,
+    smsConsent,
+    productInterest,
   });
   const airtableWrite =
     airtableResult.status === "created" || airtableResult.status === "updated";

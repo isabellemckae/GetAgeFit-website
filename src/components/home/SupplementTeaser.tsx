@@ -16,6 +16,13 @@ import { trackEvent } from "@/lib/analytics";
  * supplied directly by the client. Only light punctuation cleanup was
  * applied (a couple of run-on hyphens tightened into commas) — no
  * wording, claims, or ingredient/timeline details were added or changed.
+ *
+ * The signup block at the bottom (headline/copy/form/consent/legal) is
+ * Theo's separately-approved copy for the actual "Notify Me" signup
+ * itself, kept as its own block distinct from the mission copy above.
+ * One punctuation change applied to match the site's standing no-em-dash
+ * rule: "ready to order—and occasionally" became "ready to order, and
+ * occasionally" — no wording or meaning changed.
  */
 export function SupplementTeaser() {
   const [open, setOpen] = useState(false);
@@ -197,13 +204,39 @@ export function SupplementTeaser() {
               </div>
 
               <div className="mt-8 rounded-xl2 border-t-4 border-plum-500 bg-sand-100 p-6">
+                <h3 className="mb-2 font-display text-xl text-ink-900">
+                  Be the First to Know.
+                </h3>
                 <p className="mb-4 text-sm leading-relaxed text-ink-700 sm:text-base">
-                  If you&rsquo;d like to be notified when ageLIFT&trade; and
-                  ageFUEL&trade; become available in early 2027, leave your
-                  email and/or cell number below and we&rsquo;ll send you a
-                  link to order with a special introductory offer!
+                  ageLIFT&trade; and ageFUEL&trade; are coming in early 2027.
+                  Leave your information below and we&rsquo;ll let you know
+                  when they&rsquo;re ready to order, and occasionally share a
+                  brief update as we get closer to launch.
                 </p>
                 <NotifyMeForm />
+                {/* Legal/privacy copy, approved verbatim by Theo — kept
+                    visually subordinate (smaller size, muted color) to the
+                    headline/copy/form above, per instruction. */}
+                <p className="mt-5 text-xs leading-relaxed text-ink-500">
+                  Your privacy matters to us. We will never sell your
+                  contact information to outside marketers. We will use it
+                  to communicate with you about ageLIFT&trade;,
+                  ageFUEL&trade;, their availability and occasional product
+                  updates. We expect these updates to be approximately once
+                  a month. You can unsubscribe from emails or opt out of
+                  text messages at any time.
+                </p>
+                <p className="mt-2 text-xs leading-relaxed text-ink-500">
+                  Message and data rates may apply. Consent is not a
+                  condition of purchase. See our{" "}
+                  <a
+                    href="/privacy"
+                    className="underline hover:text-ink-700"
+                  >
+                    Privacy Policy
+                  </a>{" "}
+                  for complete details.
+                </p>
               </div>
 
               <div className="mt-8 border-t border-ink-100 pt-5 text-sm text-ink-500">
@@ -225,15 +258,24 @@ export function SupplementTeaser() {
  * Reuses the existing, unmodified /api/lead endpoint (see
  * ContactForm.tsx for the same pattern) with a distinct `source` so
  * these show up in the CRM as their own lead type rather than mixed in
- * with contact-page or qualify-quiz leads. No new backend code — the
- * route already reads firstName/lastName/email/phone from the body.
+ * with contact-page or qualify-quiz leads. No new API route — /api/lead
+ * already reads firstName/lastName/email/phone from the body, and now
+ * also reads the explicit `smsConsent` boolean added below (see
+ * src/app/api/lead/route.ts and src/lib/airtableClient.ts).
  *
  * The endpoint requires a valid email on every submission (see
- * src/app/api/lead/route.ts), so email is required here even though
- * Theo's copy says "email and/or cell number" — phone is offered as an
- * optional add-on rather than an alternative. Flagged for the client:
- * if phone-only signups are wanted, the API route itself would need to
- * change.
+ * src/app/api/lead/route.ts), matching the approved copy, which asks for
+ * email as part of the core form (phone stays an optional add-on, not an
+ * alternative to email).
+ *
+ * SMS consent is deliberately NOT read from FormData the way every other
+ * field is: an unchecked checkbox is simply absent from FormData, which
+ * would make "unchecked" indistinguishable from "this field doesn't
+ * exist." Instead the checkbox's real `.checked` boolean is read
+ * directly and always sent explicitly (true or false), so the backend
+ * can tell "explicitly declined" apart from "never asked" (see the
+ * emailConsent/smsConsent handling in /api/lead/route.ts), and so a
+ * phone number being entered is never mistaken for SMS consent.
  */
 function NotifyMeForm() {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
@@ -243,12 +285,19 @@ function NotifyMeForm() {
     setStatus("submitting");
     const form = e.currentTarget;
     const data = Object.fromEntries(new FormData(form).entries());
+    const smsConsentInput = form.elements.namedItem("smsConsent");
+    const smsConsent =
+      smsConsentInput instanceof HTMLInputElement ? smsConsentInput.checked : false;
 
     try {
       const res = await fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, source: "supplement_waitlist" }),
+        body: JSON.stringify({
+          ...data,
+          smsConsent,
+          source: "supplement_waitlist",
+        }),
       });
       if (!res.ok) throw new Error("Request failed");
       setStatus("success");
@@ -327,6 +376,24 @@ function NotifyMeForm() {
           />
         </div>
       </div>
+      {/* Separate, affirmative SMS consent — distinct from email consent
+          (implied by submitting this form at all, see the doc comment
+          above) and never inferred from entering a phone number. */}
+      <label
+        htmlFor="supplement-sms-consent"
+        className="flex items-start gap-3 text-sm text-ink-700"
+      >
+        <input
+          id="supplement-sms-consent"
+          name="smsConsent"
+          type="checkbox"
+          className="mt-1 h-4 w-4 shrink-0 rounded border-ink-200 text-sage-600 accent-sage-600"
+        />
+        <span>
+          Yes, I&rsquo;d also like to receive occasional text-message
+          updates from Get Age Fit.
+        </span>
+      </label>
       {status === "error" && (
         <p role="alert" className="text-sm font-medium text-red-700">
           Something went wrong. Please try again.
@@ -335,7 +402,7 @@ function NotifyMeForm() {
       <button
         type="submit"
         disabled={status === "submitting"}
-        className="inline-flex items-center justify-center rounded-full bg-plum-600 px-6 py-3 text-sm font-semibold text-sand-50 transition-colors hover:bg-plum-700 disabled:opacity-50"
+        className="inline-flex items-center justify-center rounded-full bg-plum-600 px-6 py-3 text-sm font-semibold uppercase tracking-wide text-sand-50 transition-colors hover:bg-plum-700 disabled:opacity-50"
       >
         {status === "submitting" ? "Submitting…" : "Notify Me"}
       </button>

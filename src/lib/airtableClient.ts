@@ -227,6 +227,12 @@ export type UpsertLeadResult =
  * broken/misconfigured Airtable integration can never crash the
  * qualification API route or the quiz UI in front of it.
  */
+// Exact "Product Interest" single-select option name for the GetAgeFit
+// Essentials line (ageLIFT + ageFUEL) — kept as one constant so the API
+// route and this file can never drift apart on the exact string Airtable
+// expects for that option.
+export const PRODUCT_INTEREST_ESSENTIALS = "GetAgeFit Essentials (ageLIFT + ageFUEL)";
+
 export type GenericLeadInput = {
   firstName?: string;
   lastName?: string;
@@ -239,6 +245,24 @@ export type GenericLeadInput = {
   message?: string;
   /** ISO timestamp for the "Submitted At" field and the Notes entry. */
   submittedAt: string;
+  /**
+   * Explicit communication-consent flags, one per channel. `undefined`
+   * means "this particular submission never asked about this channel"
+   * (e.g. the Contact form doesn't collect SMS consent at all) and must
+   * leave any existing Airtable value untouched — never write `false`
+   * just because a given form doesn't ask. A defined `true`/`false` means
+   * the submission DID ask and this is the real answer, and gets written
+   * either way — an unchecked SMS box is a genuine "no", not "unknown",
+   * and must overwrite a stale "yes" from an earlier submission.
+   */
+  emailConsent?: boolean;
+  smsConsent?: boolean;
+  /**
+   * Exact "Product Interest" single-select option name (see
+   * PRODUCT_INTEREST_ESSENTIALS above). Same "undefined = don't touch"
+   * rule as the consent flags.
+   */
+  productInterest?: string;
 };
 
 function buildGenericNote(input: {
@@ -306,6 +330,14 @@ export async function upsertGenericLead(
     if (lookup.status === "found") {
       const fields: Record<string, unknown> = {
         Notes: appendNote(lookup.record.fields["Notes"], noteAddition),
+        // Refreshed on every resubmission, same deliberate precedent as
+        // upsertQualificationLead()'s "Submitted At" handling below — it
+        // reflects the most recent submission, not CRM progression, so
+        // updating it is never "unrelated information" being clobbered.
+        "Submitted At": input.submittedAt,
+        ...(input.emailConsent !== undefined ? { "Email Consent": input.emailConsent } : {}),
+        ...(input.smsConsent !== undefined ? { "SMS Consent": input.smsConsent } : {}),
+        ...(input.productInterest ? { "Product Interest": input.productInterest } : {}),
       };
       if (leadName && isBlank(lookup.record.fields["Lead Name"])) {
         fields["Lead Name"] = leadName;
@@ -334,6 +366,10 @@ export async function upsertGenericLead(
       Source: input.source,
       "Source Detail": input.sourceDetail,
       "Pipeline Stage": "New",
+      "Submitted At": input.submittedAt,
+      ...(input.emailConsent !== undefined ? { "Email Consent": input.emailConsent } : {}),
+      ...(input.smsConsent !== undefined ? { "SMS Consent": input.smsConsent } : {}),
+      ...(input.productInterest ? { "Product Interest": input.productInterest } : {}),
       Notes: noteAddition,
     };
 
