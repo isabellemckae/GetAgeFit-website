@@ -185,9 +185,11 @@ export default function HomePage() {
 
       {/* 6. REAL CLIENT STORIES (Demo #4 follow-up: heading reverted from
           "Five-Star Reviews" — these are real client reviews, and "Real
-          Client Stories" better fits the brand voice. Everything below
-          the heading — the reviews, star presentation, and the
-          "Explore 150+ Five-Star Reviews" link — is unchanged.) */}
+          Client Stories" better fits the brand voice. Demo #5: the body
+          below the heading was redesigned from a 3-up card grid into a
+          single editorial column — see TestimonialQuote.tsx's doc comment
+          for why. The heading and the "Explore 150+ Five-Star Reviews"
+          link are unchanged.) */}
       <Section tone="white">
         <div className="mx-auto mb-14 max-w-2xl text-center">
           <h2 className="text-3xl md:text-4xl">Real Client Stories</h2>
@@ -196,11 +198,10 @@ export default function HomePage() {
             editorial reduction pass — it wasn't approved-source copy. Now
             replaced with five real, approved client testimonials (see
             src/content/testimonials.ts); still no live-claim caveat needed
-            since nothing here is a statistic. The grid below is unchanged
-            (sm:grid-cols-3) — five items simply wrap onto a second row. */}
-        <div className="grid gap-12 sm:grid-cols-3">
-          {testimonials.map((testimonial) => (
-            <TestimonialQuote key={testimonial.slug} testimonial={testimonial} />
+            since nothing here is a statistic. */}
+        <div className="mx-auto max-w-3xl divide-y divide-ink-100">
+          {testimonials.map((testimonial, i) => (
+            <TestimonialQuote key={testimonial.slug} testimonial={testimonial} index={i} />
           ))}
         </div>
         <div className="mt-12 text-center">

@@ -1,47 +1,60 @@
-import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
 import { Testimonial } from "@/content/testimonials";
 
-/**
- * Homepage §6 — "Real Client Stories" (Proof). Short-form, distinct from
- * the fuller case-study TransformationCard used on /our-clients. Per-item
- * like TrainerCard/TransformationCard, since testimonials are a genuine
- * repeatable card type. Data is five real, approved client testimonials —
- * see src/content/testimonials.ts. No real client photos exist yet, so
- * each still renders through the standard placeholder image.
- */
-function StarRating() {
-  return (
-    <div className="mb-4 flex items-center gap-1 text-sage-600" aria-label="5 out of 5 stars">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <svg key={i} width="18" height="18" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-          <path d="M10 1.5l2.59 5.25 5.79.84-4.19 4.08.99 5.77L10 14.77l-5.18 2.67.99-5.77L1.62 7.59l5.79-.84L10 1.5z" />
-        </svg>
-      ))}
-    </div>
-  );
-}
+const accents = ["sage", "plum"] as const;
 
-export function TestimonialQuote({ testimonial }: { testimonial: Testimonial }) {
+/**
+ * Homepage §6 — "Real Client Stories". Redesigned (Demo #5) from a
+ * 3-up equal-width card grid into a single, editorial column of
+ * full-width pull-quotes.
+ *
+ * Why: the five approved testimonials vary a lot in length (roughly
+ * 260 to 700 characters). In a grid, CSS stretches every card in a row
+ * to match the row's tallest one — so the short testimonials ended up
+ * with a large empty gap at the bottom just to line up with the long
+ * ones next to them, which read as accidental, not designed. A single
+ * stacked column has no row to match: each entry only ever takes the
+ * vertical space its own words need, so five different lengths sit
+ * comfortably next to each other instead of fighting a shared grid.
+ *
+ * No photos: none exist for these clients, and per direction this
+ * section is now 100% typographic — no placeholder avatars, initials,
+ * or generated images stand in for them. No star rating either — a
+ * row of star icons is the signature look of a generic
+ * reviews-carousel, which this section is deliberately moving away
+ * from in favor of the quote and the name carrying the whole thing.
+ * The small accent bar under each quote (alternating sage/plum) is the
+ * same restrained "signature mark instead of decoration" motif already
+ * used by OutcomeAnchor.tsx elsewhere on this page.
+ */
+export function TestimonialQuote({
+  testimonial,
+  index = 0,
+}: {
+  testimonial: Testimonial;
+  index?: number;
+}) {
+  const accent = accents[index % accents.length];
   return (
-    <figure className="relative flex flex-col items-center rounded-xl2 border border-ink-100 bg-white px-6 py-9 text-center shadow-card">
+    <figure className="py-12 first:pt-0 last:pb-0 sm:py-14">
       <span
         aria-hidden="true"
-        className="absolute -top-5 font-display text-6xl leading-none text-plum-200"
+        className="mb-3 block font-display text-6xl leading-none text-plum-200 sm:text-7xl"
       >
-        “
+        &ldquo;
       </span>
-      <ResponsiveImage
-        alt={testimonial.context}
-        placeholderLabel={testimonial.photoLabel}
-        aspect="aspect-square"
-        className="mb-5 w-24 !rounded-full ring-4 ring-sage-100"
-      />
-      <StarRating />
-      <blockquote className="mb-3 font-display text-xl leading-snug text-ink-900 sm:text-2xl">
-        “{testimonial.quote}”
+      <blockquote className="max-w-3xl font-display text-xl leading-relaxed text-ink-900 sm:text-2xl sm:leading-relaxed">
+        {testimonial.quote}
       </blockquote>
-      <figcaption className="text-sm font-medium text-sage-700">
-        {testimonial.context}
+      <figcaption className="mt-6 flex items-center gap-3">
+        <span
+          aria-hidden="true"
+          className={`h-1 w-10 shrink-0 rounded-full ${
+            accent === "sage" ? "bg-sage-500" : "bg-plum-500"
+          }`}
+        />
+        <span className="text-sm font-semibold uppercase tracking-[0.14em] text-sage-700">
+          {testimonial.context}
+        </span>
       </figcaption>
     </figure>
   );
