@@ -11,7 +11,22 @@ import { TrainerBioModal } from "@/components/content/TrainerBioModal";
  * src/app/trainers/page.tsx, now wrapped with click-to-open-bio behavior.
  * Cards stay visually identical — this only adds an interaction layer
  * (see TrainerBioModal.tsx) on top of the existing clean card design.
+ *
+ * Demo #5: trainers added as placeholder bios (no photo shoot yet) have
+ * no /images/trainers/<slug>.webp file on disk. Previously every trainer
+ * had a real file, so this component always guessed the src from the
+ * slug. Listing the slugs that don't have one yet lets ResponsiveImage
+ * fall back to its existing PhotoPlaceholder (the same fallback
+ * TrainerCard.tsx already relies on) instead of requesting a file that
+ * 404s and rendering a broken image icon.
  */
+const SLUGS_WITHOUT_PHOTO_YET = new Set([
+  "angeline-jarvis",
+  "jalen-curtis",
+  "thea-thurston",
+  "jim-zach",
+]);
+
 export function TrainersGrid({ trainers }: { trainers: Trainer[] }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
@@ -29,7 +44,11 @@ export function TrainersGrid({ trainers }: { trainers: Trainer[] }) {
           >
             <div className="overflow-hidden">
               <ResponsiveImage
-                src={`/images/trainers/${trainer.slug}.webp`}
+                src={
+                  SLUGS_WITHOUT_PHOTO_YET.has(trainer.slug)
+                    ? undefined
+                    : `/images/trainers/${trainer.slug}.webp`
+                }
                 alt={`${trainer.name}, ${trainer.role} at GetAgeFit`}
                 placeholderLabel={trainer.photoLabel}
                 aspect="aspect-[4/5]"
