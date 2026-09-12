@@ -186,17 +186,18 @@ export default function HomePage() {
       {/* 6. REAL CLIENT STORIES (Demo #4 follow-up: heading reverted from
           "Five-Star Reviews" — these are real client reviews, and "Real
           Client Stories" better fits the brand voice. Everything below
-          the heading — the three reviews, star presentation, and the
+          the heading — the reviews, star presentation, and the
           "Explore 150+ Five-Star Reviews" link — is unchanged.) */}
       <Section tone="white">
         <div className="mx-auto mb-14 max-w-2xl text-center">
           <h2 className="text-3xl md:text-4xl">Real Client Stories</h2>
         </div>
         {/* Permission/results disclaimer intentionally cut in the Phase 4
-            editorial reduction pass — it wasn't approved-source copy, and
-            all three testimonials are still placeholders, so there's no
-            live claim to caveat yet. Reinstate once real, permitted
-            testimonials replace the placeholders below. */}
+            editorial reduction pass — it wasn't approved-source copy. Now
+            replaced with five real, approved client testimonials (see
+            src/content/testimonials.ts); still no live-claim caveat needed
+            since nothing here is a statistic. The grid below is unchanged
+            (sm:grid-cols-3) — five items simply wrap onto a second row. */}
         <div className="grid gap-12 sm:grid-cols-3">
           {testimonials.map((testimonial) => (
             <TestimonialQuote key={testimonial.slug} testimonial={testimonial} />

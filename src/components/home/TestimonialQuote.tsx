@@ -5,8 +5,9 @@ import { Testimonial } from "@/content/testimonials";
  * Homepage §6 — "Real Client Stories" (Proof). Short-form, distinct from
  * the fuller case-study TransformationCard used on /our-clients. Per-item
  * like TrainerCard/TransformationCard, since testimonials are a genuine
- * repeatable card type. All current data is placeholder — see
- * src/content/testimonials.ts.
+ * repeatable card type. Data is five real, approved client testimonials —
+ * see src/content/testimonials.ts. No real client photos exist yet, so
+ * each still renders through the standard placeholder image.
  */
 function StarRating() {
   return (
