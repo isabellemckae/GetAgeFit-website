@@ -24,6 +24,15 @@
 // information. Thea Thurston is confirmed a distinct person from founder
 // Theo Thurston, not the same person under a different name.
 //
+// Demo #5 follow-up: Jim Zach's placeholders replaced with his real
+// role/credentials/bio, sourced verbatim from his submitted certificates
+// (NASM CPT, NASM Integrated Core Training, American Red Cross CPR/AED)
+// and bio document — not invented. Christy Wall and Angeline Jarvis
+// removed from the roster entirely per explicit direction. (Christy
+// Wall's photo is still used decoratively on a few other pages —
+// /consultation, /why-getagefit, /about — untouched, since that's
+// outside the Trainer Bios section this file feeds.)
+//
 // ⚠️ CONFIRM before launch: this roster may have changed since capture
 // (new hires, departures). Cross-check against the current team page.
 
@@ -84,20 +93,6 @@ Working with clients ages 19 to 85+, Tracie creates personalized, flexible train
     photoLabel: "Trainer photo needed",
   },
   {
-    slug: "christy-wall",
-    name: "Christy Wall",
-    role: "Certified Personal Trainer",
-    credentials: ["NASM CPT"],
-    specialties: ["Older-adult training", "Cardiovascular health", "Nutrition"],
-    philosophy: needsPhilosophy,
-    story: `Christy is an NASM Certified Personal Trainer with a passion for helping others achieve their health and fitness goals. She has always prioritized fitness in her own life, training with personal trainers and using circuit and endurance training to stay active and healthy. Christy has completed three half marathons, experiences that instilled in her the value of discipline and perseverance.
-
-After joining Get Age Fit, Christy completed the 12-Week Transformation Program and experienced its incredible results firsthand. This success inspired her to guide others through the program, helping them unlock their potential and transformtheir lives.
-
-Christy's mission is to support clients—particularly older adults—in building strength, improving cardiovascular health, and embracing better nutrition. She sees every client as more than just a participant—they become a friend whose success she genuinely cares about. At Get Age Fit, Christy is dedicated to empowering people to live stronger, healthier, and more fulfilling lives at any age.`,
-    photoLabel: "Trainer photo needed",
-  },
-  {
     slug: "tish-strandboge",
     name: "Tish Strandboge",
     role: "Certified Personal Trainer",
@@ -124,16 +119,6 @@ Isabelle is a NASM Certified Personal Trainer and NASM Behavior Change Specialis
 Her expertise extends beyond the gym. Isabelle has competed in the NPC Wellness division, earning 1st and 2nd place, giving her firsthand experience with disciplined training, nutrition, body composition, and the commitment required to achieve meaningful physical change.
 
 Whether your goal is to lose weight, build strength, improve mobility, or simply feel more capable in your everyday life, Isabelle is here to help you make it happen.`,
-    photoLabel: "Trainer photo needed",
-  },
-  {
-    slug: "angeline-jarvis",
-    name: "Angeline Jarvis",
-    role: "[CONFIRM ROLE/TITLE]",
-    credentials: ["[CONFIRM CREDENTIALS]"],
-    specialties: ["[CONFIRM SPECIALTIES]"],
-    philosophy: needsPhilosophy,
-    story: needsStory,
     photoLabel: "Trainer photo needed",
   },
   {
@@ -280,11 +265,17 @@ After meeting Theo Thurston, Robert was drawn to the mission and culture of Get 
   {
     slug: "jim-zach",
     name: "Jim Zach",
-    role: "[CONFIRM ROLE/TITLE]",
-    credentials: ["[CONFIRM CREDENTIALS]"],
-    specialties: ["[CONFIRM SPECIALTIES]"],
+    role: "Certified Personal Trainer",
+    credentials: ["NASM CPT", "NASM Integrated Core Training", "CPR/AED (American Red Cross)"],
+    specialties: ["Strength, confidence & mobility at any age"],
     philosophy: needsPhilosophy,
-    story: needsStory,
+    story: `After 25 years as a business owner, I decided to pursue something that had already become a major part of my life—fitness. Strength training, prioritizing nutrition, and challenging myself became things I genuinely looked forward to every day, and I realized I wanted to help others experience that same feeling.
+
+As a NASM Certified Personal Trainer with additional training in Integrated Core Training and CPR/AED certification, my goal is to meet people where they are and help them build strength, confidence, and healthier habits that last.
+
+I'm excited to join the GET Age Fit team and believe that at any age, we can continue to challenge ourselves, build confidence, improve our mobility, and get stronger!
+
+Please come in and let me show you how to look and feel your best!`,
     photoLabel: "Trainer photo needed",
   },
 ];

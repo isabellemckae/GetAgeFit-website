@@ -20,11 +20,7 @@ import { TrainerBioModal } from "@/components/content/TrainerBioModal";
  * TrainerCard.tsx already relies on) instead of requesting a file that
  * 404s and rendering a broken image icon.
  */
-const SLUGS_WITHOUT_PHOTO_YET = new Set([
-  "angeline-jarvis",
-  "jalen-curtis",
-  "thea-thurston",
-]);
+const SLUGS_WITHOUT_PHOTO_YET = new Set(["jalen-curtis", "thea-thurston"]);
 
 export function TrainersGrid({ trainers }: { trainers: Trainer[] }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
