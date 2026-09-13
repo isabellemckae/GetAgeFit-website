@@ -19,8 +19,13 @@ import { TrainerBioModal } from "@/components/content/TrainerBioModal";
  * fall back to its existing PhotoPlaceholder (the same fallback
  * TrainerCard.tsx already relies on) instead of requesting a file that
  * 404s and rendering a broken image icon.
+ *
+ * Demo #5 follow-up 2: the two remaining photo-less placeholders (Jalen
+ * Curtis, Thea Thurston) were removed from the roster entirely, so this
+ * is empty for now — kept in place (rather than removing the mechanism)
+ * for the next trainer added without a photo yet.
  */
-const SLUGS_WITHOUT_PHOTO_YET = new Set(["jalen-curtis", "thea-thurston"]);
+const SLUGS_WITHOUT_PHOTO_YET = new Set<string>([]);
 
 export function TrainersGrid({ trainers }: { trainers: Trainer[] }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);

@@ -33,6 +33,13 @@
 // /consultation, /why-getagefit, /about — untouched, since that's
 // outside the Trainer Bios section this file feeds.)
 //
+// Demo #5 follow-up 2: Jalen Curtis and Thea Thurston (both still
+// bracketed placeholders, never received real bios) and Keith Stolle
+// removed from the roster entirely per explicit direction. (Keith
+// Stolle's photo/name are still used decoratively as a client
+// transformation story on /programs and /transformations — untouched,
+// since that's outside the Trainer Bios section this file feeds.)
+//
 // ⚠️ CONFIRM before launch: this roster may have changed since capture
 // (new hires, departures). Cross-check against the current team page.
 
@@ -49,11 +56,6 @@ export type Trainer = {
 
 const needsPhilosophy =
   "[INSERT COACHING PHILOSOPHY, IN THIS TRAINER'S OWN WORDS]";
-
-// Placeholder story text for a trainer with no bio supplied yet — kept
-// distinct from needsPhilosophy's wording so it's clear in the CMS/data
-// which specific piece of content is still missing.
-const needsStory = "[INSERT TRAINER BIO/STORY]";
 
 export const trainers: Trainer[] = [
   {
@@ -144,16 +146,6 @@ Travis discovered his passion for physical training during his time in the milit
     photoLabel: "Trainer photo needed",
   },
   {
-    slug: "keith-stolle",
-    name: "Keith Stolle",
-    role: "Certified Personal Trainer",
-    credentials: ["BA Healthcare Administration", "CPT"],
-    specialties: ["GetAgeFit transformation graduate turned trainer"],
-    philosophy: needsPhilosophy,
-    story: `Keith started his transformation on his own, wanting to get healthier. He was finding it hard to keep motivated and wasn't making the gains he desired. That's when he found Get Age Fit and started his 12-week transformation. In working with a trainer, Keith was able to exceed his goals within those 12 weeks. He continued working with his trainer for another few months before deciding to become a certified personal trainer himself. Keith is dedicated to helping others achieve their fitness goals and to live a healthier lifestyle.`,
-    photoLabel: "Trainer photo needed",
-  },
-  {
     slug: "will-roberts",
     name: "Will Roberts",
     role: "Fitness Coach",
@@ -238,28 +230,6 @@ After meeting Theo Thurston, Robert was drawn to the mission and culture of Get 
     specialties: ["NFF Figure Competitor", "British Horse Society Instructor"],
     philosophy: needsPhilosophy,
     story: `Paula's belief in and approach to strong, healthy living has deep roots. She worked as a trainer with Get Age Fit in 2021 and 2022. After spending time in Portugal, she returned to Texas following the passing of her husband. His battle with cancer deepened her belief in the importance of maintaining health through strength training, regular exercise, and a balanced lifestyle—especially as we age. With an even greater commitment to health and fitness, Paula joined the Get Age Fit team again. Outside the gym, Paula enjoys time with her horse, Topaz, along with thrifting, reading, dancing, traveling, and spending time with family and friends. Most weekends are dedicated to church and relaxing. Paula is passionate about helping clients achieve their goals, and would love to have you on her schedule!`,
-    photoLabel: "Trainer photo needed",
-  },
-  {
-    slug: "jalen-curtis",
-    name: "Jalen Curtis",
-    role: "[CONFIRM ROLE/TITLE]",
-    credentials: ["[CONFIRM CREDENTIALS]"],
-    specialties: ["[CONFIRM SPECIALTIES]"],
-    philosophy: needsPhilosophy,
-    story: needsStory,
-    photoLabel: "Trainer photo needed",
-  },
-  {
-    // Confirmed a distinct person from founder Theo Thurston, not the
-    // same person under a variant spelling.
-    slug: "thea-thurston",
-    name: "Thea Thurston",
-    role: "[CONFIRM ROLE/TITLE]",
-    credentials: ["[CONFIRM CREDENTIALS]"],
-    specialties: ["[CONFIRM SPECIALTIES]"],
-    philosophy: needsPhilosophy,
-    story: needsStory,
     photoLabel: "Trainer photo needed",
   },
   {
