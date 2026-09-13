@@ -117,7 +117,13 @@ Christy's mission is to support clients—particularly older adults—in buildin
       "Healthy relationship with fitness & nutrition",
     ],
     philosophy: needsPhilosophy,
-    story: `Isa has shown herself to be master at helping clients achieve sustainable body recomposition and improved confidence. Her ability to help clients build strength while fostering a healthy relationship with fitness and nutrition ensures the results they achieve will be sustainable and long-lasting. Her experience with her own incredible 12-Week Transformation makes her an ideal trainer for those looking for similar results. As a bodybuilding enthusiast currently training for competition, her commitment to continued growth in the health and fitness field makes her atop-notch trainer at Get Age Fit`,
+    story: `Getting stronger, moving better, and feeling confident in your body at any age starts with the right approach.
+
+Isabelle is a NASM Certified Personal Trainer and NASM Behavior Change Specialist with over three years of experience coaching adults in the healthy-aging demographic. She combines evidence-based training, behavior change, and practical nutrition strategies to help clients build strength, improve fitness, and create habits that last.
+
+Her expertise extends beyond the gym. Isabelle has competed in the NPC Wellness division, earning 1st and 2nd place, giving her firsthand experience with disciplined training, nutrition, body composition, and the commitment required to achieve meaningful physical change.
+
+Whether your goal is to lose weight, build strength, improve mobility, or simply feel more capable in your everyday life, Isabelle is here to help you make it happen.`,
     photoLabel: "Trainer photo needed",
   },
   {
