@@ -24,7 +24,6 @@ const SLUGS_WITHOUT_PHOTO_YET = new Set([
   "angeline-jarvis",
   "jalen-curtis",
   "thea-thurston",
-  "jim-zach",
 ]);
 
 export function TrainersGrid({ trainers }: { trainers: Trainer[] }) {
