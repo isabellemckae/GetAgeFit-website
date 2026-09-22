@@ -318,7 +318,7 @@ export async function upsertGenericLead(
     if (lookup.status === "multiple") {
       const matchedRecordIds = lookup.records.map((r) => r.id);
       console.error(
-        `[AirtableClient] ${lookup.records.length} existing Leads match email "${normalizedEmail}". Skipping automatic update/create to avoid updating the wrong record or creating a duplicate. Needs manual review. Record IDs:`,
+        `[ALERT][duplicate-lead-collision] ${lookup.records.length} existing Leads match email "${normalizedEmail}" — submission NOT captured in Airtable. Source: "${input.source}" / "${input.sourceDetail}". Needs manual review (merge/dedupe the matched records, then have the lead resubmit or add them manually). Record IDs:`,
         matchedRecordIds,
       );
       return { status: "skipped_duplicate", matchedRecordIds };
@@ -413,7 +413,7 @@ export async function upsertQualificationLead(
     if (lookup.status === "multiple") {
       const matchedRecordIds = lookup.records.map((r) => r.id);
       console.error(
-        `[AirtableClient] ${lookup.records.length} existing Leads match email "${normalizedEmail}". Skipping automatic update/create to avoid updating the wrong record or creating a duplicate. Needs manual review. Record IDs:`,
+        `[ALERT][duplicate-lead-collision] ${lookup.records.length} existing Leads match email "${normalizedEmail}" — qualification submission NOT captured in Airtable. Source: Qualification Funnel. Needs manual review (merge/dedupe the matched records, then have the lead resubmit or add them manually). Record IDs:`,
         matchedRecordIds,
       );
       return { status: "skipped_duplicate", matchedRecordIds };

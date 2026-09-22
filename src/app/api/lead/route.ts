@@ -91,7 +91,18 @@ export async function POST(req: NextRequest) {
   const airtableWrite =
     airtableResult.status === "created" || airtableResult.status === "updated";
 
-  return NextResponse.json({ ok: true, forwarded, airtableWrite });
+  // Exposes the raw upsert status (not just the created/updated boolean
+  // above) so the frontend can tell "not captured because of a duplicate
+  // email collision" apart from every other reason a write didn't happen
+  // (Airtable unconfigured, a transient API error, etc.) and react to that
+  // one case specifically instead of showing a normal success state for a
+  // submission that was never actually recorded in the CRM.
+  return NextResponse.json({
+    ok: true,
+    forwarded,
+    airtableWrite,
+    airtableStatus: airtableResult.status,
+  });
 }
 
 function asString(v: unknown): string | undefined {

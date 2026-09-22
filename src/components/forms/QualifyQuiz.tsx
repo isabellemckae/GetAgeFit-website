@@ -58,6 +58,11 @@ export function QualifyQuiz() {
   const [submitStatus, setSubmitStatus] = useState<"idle" | "submitting" | "done" | "error">(
     "idle",
   );
+  // Tracks the raw Airtable upsert status so a duplicate-email collision
+  // (submission not actually recorded in the CRM — see upsertQualificationLead()
+  // in src/lib/airtableClient.ts) can be surfaced distinctly, without
+  // blocking the qualification result/CTA itself from showing.
+  const [airtableStatus, setAirtableStatus] = useState<string | null>(null);
 
   useEffect(() => {
     trackEvent({ name: "qualify_start" });
@@ -88,6 +93,8 @@ export function QualifyQuiz() {
         body: JSON.stringify({ ...form, result, source: "qualify_page" }),
       });
       if (!res.ok) throw new Error("Request failed");
+      const json: { airtableStatus?: string } = await res.json();
+      setAirtableStatus(json.airtableStatus ?? null);
       setSubmitStatus("done");
       trackEvent({ name: "qualify_complete", result });
     } catch {
@@ -344,6 +351,14 @@ export function QualifyQuiz() {
               <p role="alert" className="mb-4 text-sm text-red-700">
                 We saved your answers locally, but couldn&rsquo;t reach our server.
                 Please continue: a team member can follow up manually.
+              </p>
+            )}
+            {submitStatus === "done" && airtableStatus === "skipped_duplicate" && (
+              <p role="alert" className="mb-4 text-sm text-plum-700">
+                We couldn&rsquo;t automatically match your answers to your
+                record in our system. Please continue below, and mention
+                this when you connect with us so we can confirm we have
+                everything.
               </p>
             )}
             <Button

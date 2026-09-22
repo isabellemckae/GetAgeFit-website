@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/Badge";
 import { trackEvent } from "@/lib/analytics";
+import { siteConfig } from "@/lib/site-config";
 
 /**
  * Homepage §9 follow-up — a colorful, bold-but-not-overpowering teaser
@@ -278,7 +279,9 @@ export function SupplementTeaser() {
  * phone number being entered is never mistaken for SMS consent.
  */
 function NotifyMeForm() {
-  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "submitting" | "success" | "needs_review" | "error"
+  >("idle");
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -300,7 +303,15 @@ function NotifyMeForm() {
         }),
       });
       if (!res.ok) throw new Error("Request failed");
-      setStatus("success");
+      const json: { airtableStatus?: string } = await res.json();
+      // See ContactForm.tsx for why this is checked separately from
+      // res.ok: a duplicate-email collision means this signup was NOT
+      // recorded in the CRM, so it needs its own, non-success state.
+      if (json.airtableStatus === "skipped_duplicate") {
+        setStatus("needs_review");
+      } else {
+        setStatus("success");
+      }
       trackEvent({ name: "lead_captured", source: "supplement_waitlist" });
       form.reset();
     } catch {
@@ -313,6 +324,19 @@ function NotifyMeForm() {
       <p role="status" className="text-sm font-semibold text-sage-800">
         You&rsquo;re on the list. We&rsquo;ll email you when ageLIFT&trade;
         and ageFUEL&trade; are ready to order.
+      </p>
+    );
+  }
+
+  if (status === "needs_review") {
+    return (
+      <p role="status" className="text-sm font-semibold text-plum-800">
+        We got your signup, but couldn&rsquo;t automatically match it to
+        your record in our system. Reach out to{" "}
+        <a href={`mailto:${siteConfig.nap.email}`} className="underline">
+          {siteConfig.nap.email}
+        </a>{" "}
+        so we can confirm you&rsquo;re on the list.
       </p>
     );
   }

@@ -2,8 +2,9 @@
 
 import { FormEvent, useState } from "react";
 import { trackEvent } from "@/lib/analytics";
+import { siteConfig } from "@/lib/site-config";
 
-type Status = "idle" | "submitting" | "success" | "error";
+type Status = "idle" | "submitting" | "success" | "needs_review" | "error";
 
 export function ContactForm() {
   const [status, setStatus] = useState<Status>("idle");
@@ -24,7 +25,16 @@ export function ContactForm() {
         body: JSON.stringify({ ...data, source: "contact_page" }),
       });
       if (!res.ok) throw new Error("Request failed");
-      setStatus("success");
+      const json: { airtableStatus?: string } = await res.json();
+      // A duplicate-email collision means this submission was NOT recorded
+      // in the CRM (see upsertGenericLead() in src/lib/airtableClient.ts) —
+      // show a distinct state rather than the normal success message, so
+      // nobody thinks the team already has this on file.
+      if (json.airtableStatus === "skipped_duplicate") {
+        setStatus("needs_review");
+      } else {
+        setStatus("success");
+      }
       trackEvent({ name: "lead_captured", source: "contact_page" });
       form.reset();
     } catch {
@@ -47,6 +57,30 @@ export function ContactForm() {
         <p className="text-ink-600">
           Thank you for reaching out. A member of the GetAgeFit team will
           respond soon.
+        </p>
+      </div>
+    );
+  }
+
+  if (status === "needs_review") {
+    return (
+      <div
+        role="status"
+        className="rounded-xl2 border border-plum-200 bg-plum-50 p-8 text-center"
+      >
+        <p className="mb-1 font-display text-xl text-plum-800">
+          We received your message.
+        </p>
+        <p className="text-ink-600">
+          We couldn&rsquo;t automatically match it to your record in our
+          system, so please call us at{" "}
+          <a
+            href={`tel:${siteConfig.nap.phone.replace(/[^+\d]/g, "")}`}
+            className="font-semibold text-plum-700 underline"
+          >
+            {siteConfig.nap.phone}
+          </a>{" "}
+          to make sure we have it, or a team member will follow up directly.
         </p>
       </div>
     );

@@ -80,7 +80,17 @@ export async function POST(req: NextRequest) {
   const airtableWrite =
     airtableResult.status === "created" || airtableResult.status === "updated";
 
-  return NextResponse.json({ ok: true, result, forwarded, airtableWrite });
+  // See src/app/api/lead/route.ts for why this is exposed alongside the
+  // created/updated boolean above: lets the frontend distinguish a
+  // duplicate-email collision (submission not captured in the CRM) from
+  // every other non-write reason, instead of treating them all the same.
+  return NextResponse.json({
+    ok: true,
+    result,
+    forwarded,
+    airtableWrite,
+    airtableStatus: airtableResult.status,
+  });
 }
 
 function asString(v: unknown): string | undefined {
