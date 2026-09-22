@@ -390,6 +390,220 @@ export async function upsertGenericLead(
   }
 }
 
+// Exact "Source Detail" value written for every Calendly-originated Lead,
+// so the webhook route and this file can never drift on the literal
+// string — see upsertConsultationBookedLead() below.
+const CALENDLY_SOURCE_DETAIL = "Calendly Booking";
+
+export type ConsultationBookingInput = {
+  email: string;
+  name?: string;
+  phone?: string;
+  /** ISO instant of the booked consultation start, if Calendly supplied one. */
+  startTime?: string;
+  eventName?: string;
+  /**
+   * Calendly's invitee URI — globally unique per booking. Embedded in the
+   * Notes entry and used as the idempotency key: if Calendly redelivers
+   * the same `invitee.created` event, this lets the second delivery be
+   * recognized as already-applied rather than double-writing.
+   */
+  inviteeUri: string;
+  /** ISO timestamp for the Notes entry and (on create) "Submitted At". */
+  submittedAt: string;
+};
+
+export type ConsultationBookingResult =
+  | { status: "created"; recordId: string }
+  | { status: "updated"; recordId: string }
+  | { status: "already_processed"; recordId: string }
+  | { status: "skipped_duplicate"; matchedRecordIds: string[] }
+  | { status: "unavailable"; reason: string; retryable: boolean }
+  | { status: "error"; reason: string };
+
+function calendlyEventMarker(inviteeUri: string): string {
+  return `Calendly Event: ${inviteeUri}`;
+}
+
+function buildConsultationNote(input: ConsultationBookingInput): string {
+  const timePart = input.startTime ? ` Time: ${input.startTime}.` : "";
+  const eventPart = input.eventName ? ` Event: ${input.eventName}.` : "";
+  return `[${input.submittedAt}] Consultation booked via Calendly.${timePart}${eventPart} ${calendlyEventMarker(input.inviteeUri)}.`;
+}
+
+/**
+ * Create-or-update a Coaching OS Lead from a Calendly `invitee.created`
+ * booking, matched by normalized email — the fully-automated counterpart
+ * to upsertGenericLead()/upsertQualificationLead() above, called from
+ * src/app/api/calendly-webhook/route.ts. No staff action is required for
+ * any outcome below except the duplicate-collision case, which by
+ * definition can't be resolved automatically without risking silently
+ * updating the wrong record.
+ *
+ * - No existing Lead found → create one (Source "website", Source Detail
+ *   "Calendly Booking", Pipeline Stage "New" — same shape every other
+ *   Lead is created with), then immediately advance that same new record
+ *   to Pipeline Stage "Consultation Booked" with Consultation Date set.
+ *   Doing this as two writes (create, then advance) rather than one is
+ *   deliberate: it's what lets the brand-new-Lead case and the
+ *   already-existed case both end by *transitioning into* "Consultation
+ *   Booked" via an update, so a single update-triggered Airtable
+ *   automation (see the Calendly-booking notification automation) covers
+ *   both without double-firing the existing create-triggered "New Lead
+ *   Email Notification" automation alongside it.
+ * - Exactly one existing Lead found → update it: set Pipeline Stage
+ *   "Consultation Booked" and Consultation Date, append a Notes entry.
+ *   Source, Email, and every other CRM progression/attribution field are
+ *   left untouched, so a booking can never regress or overwrite a Lead's
+ *   existing history — "Lead Name"/"Phone"/"Source Detail" are filled in
+ *   only if currently blank, same never-clobber convention as
+ *   upsertGenericLead() above.
+ * - More than one existing Lead matches → do NOT update any of them and
+ *   do NOT create a new one (would-be duplicate, same policy as
+ *   upsertGenericLead()). Unlike that function, this also appends a
+ *   Notes-only flag to *every* matched record (touching no other field)
+ *   so the booking is visible to a human no matter which duplicate they
+ *   open, not just discoverable via server logs — the booking itself is
+ *   never silently lost, only its automatic CRM write.
+ * - Idempotent: if the same Calendly event is delivered again (Calendly
+ *   retries on a timeout, or can redeliver for other reasons), the
+ *   invitee URI embedded in Notes is checked before any write to an
+ *   already-found Lead, and a second delivery is recognized and
+ *   short-circuited as a no-op rather than appending a duplicate note or
+ *   re-triggering the notification automation. This does not close the
+ *   narrow race where two near-simultaneous deliveries for a brand-new
+ *   email both reach the "not found" branch before either write
+ *   completes — Airtable's REST API has no compare-and-swap/unique-
+ *   constraint primitive to prevent that from here. That failure mode
+ *   degrades safely rather than corrupting data: it produces a second
+ *   Lead for the same email, which the very next lookup (by this
+ *   function or any other caller) correctly detects and flags as a
+ *   collision needing manual review, exactly like any other duplicate.
+ *
+ * Never throws — the webhook route treats any unexpected failure as
+ * { status: "error" } and returns a 5xx so Calendly retries the delivery.
+ */
+export async function upsertConsultationBookedLead(
+  input: ConsultationBookingInput,
+): Promise<ConsultationBookingResult> {
+  const config = getConfig();
+  if (!config) {
+    console.log(
+      "[AirtableClient] Airtable API not configured. Skipping Calendly booking upsert for:",
+      input.email,
+    );
+    return { status: "unavailable", reason: "not_configured", retryable: false };
+  }
+
+  try {
+    const normalizedEmail = normalizeEmail(input.email);
+    const lookup = await findLeadByEmail(normalizedEmail);
+
+    if (lookup.status === "unavailable") {
+      // A transient network/API error is worth Calendly retrying; a
+      // missing configuration never resolves itself on retry.
+      return {
+        status: "unavailable",
+        reason: lookup.reason,
+        retryable: lookup.reason !== "not_configured",
+      };
+    }
+
+    const marker = calendlyEventMarker(input.inviteeUri);
+    const noteAddition = buildConsultationNote(input);
+    const leadName = (input.name ?? "").trim();
+
+    if (lookup.status === "multiple") {
+      const matchedRecordIds = lookup.records.map((r) => r.id);
+      console.error(
+        `[ALERT][duplicate-lead-collision] Calendly booking for "${normalizedEmail}" could NOT be automatically recorded — ${lookup.records.length} existing Leads match this email. Needs manual review/merge, then re-apply this booking. Record IDs:`,
+        matchedRecordIds,
+      );
+      const flagNote = `[${input.submittedAt}] ⚠ A Calendly consultation booking for this email could NOT be automatically recorded: multiple Lead records match "${normalizedEmail}". Manual review needed to merge/dedupe, then re-apply this booking. ${marker}.`;
+      await Promise.all(
+        lookup.records.map((record) =>
+          airtablePatch(record.id, { Notes: appendNote(record.fields["Notes"], flagNote) }, config),
+        ),
+      );
+      return { status: "skipped_duplicate", matchedRecordIds };
+    }
+
+    if (lookup.status === "found") {
+      const existingNotes = lookup.record.fields["Notes"];
+      if (typeof existingNotes === "string" && existingNotes.includes(marker)) {
+        // Same Calendly event delivered again — already applied.
+        return { status: "already_processed", recordId: lookup.record.id };
+      }
+
+      const fields: Record<string, unknown> = {
+        "Pipeline Stage": "Consultation Booked",
+        Notes: appendNote(existingNotes, noteAddition),
+      };
+      if (input.startTime) fields["Consultation Date"] = input.startTime;
+      if (leadName && isBlank(lookup.record.fields["Lead Name"])) {
+        fields["Lead Name"] = leadName;
+      }
+      if (input.phone && isBlank(lookup.record.fields["Phone"])) {
+        fields["Phone"] = input.phone;
+      }
+      if (isBlank(lookup.record.fields["Source Detail"])) {
+        fields["Source Detail"] = CALENDLY_SOURCE_DETAIL;
+      }
+
+      const res = await airtablePatch(lookup.record.id, fields, config);
+      if (!res.ok) {
+        const body = await safeReadText(res);
+        console.error(
+          `[AirtableClient] Failed to update Lead ${lookup.record.id} for Calendly booking: ${res.status} ${res.statusText}`,
+          body,
+        );
+        return { status: "error", reason: `update_failed_${res.status}` };
+      }
+      return { status: "updated", recordId: lookup.record.id };
+    }
+
+    // lookup.status === "not_found" → create (as "New"), then advance to
+    // "Consultation Booked" — see the function doc comment above for why
+    // this is two writes instead of one.
+    const createFields: Record<string, unknown> = {
+      ...(leadName ? { "Lead Name": leadName } : {}),
+      Email: normalizedEmail,
+      ...(input.phone ? { Phone: input.phone } : {}),
+      Source: "website",
+      "Source Detail": CALENDLY_SOURCE_DETAIL,
+      "Pipeline Stage": "New",
+      "Submitted At": input.submittedAt,
+      Notes: noteAddition,
+    };
+    const createRes = await airtableCreate(createFields, config);
+    if (!createRes.ok) {
+      const body = await safeReadText(createRes);
+      console.error(
+        `[AirtableClient] Failed to create Lead for Calendly booking: ${createRes.status} ${createRes.statusText}`,
+        body,
+      );
+      return { status: "error", reason: `create_failed_${createRes.status}` };
+    }
+    const created = (await createRes.json()) as { id: string };
+
+    const bookingFields: Record<string, unknown> = { "Pipeline Stage": "Consultation Booked" };
+    if (input.startTime) bookingFields["Consultation Date"] = input.startTime;
+    const bookRes = await airtablePatch(created.id, bookingFields, config);
+    if (!bookRes.ok) {
+      const body = await safeReadText(bookRes);
+      console.error(
+        `[ALERT][calendly-booking-partial-write] Lead ${created.id} was created for "${normalizedEmail}" but could NOT be advanced to Consultation Booked: ${bookRes.status} ${bookRes.statusText}`,
+        body,
+      );
+      return { status: "error", reason: `booking_update_failed_${bookRes.status}` };
+    }
+    return { status: "created", recordId: created.id };
+  } catch (err) {
+    console.error("[AirtableClient] Unexpected error during Calendly booking upsert:", err);
+    return { status: "error", reason: "unexpected_exception" };
+  }
+}
+
 export async function upsertQualificationLead(
   input: QualificationLeadInput,
 ): Promise<UpsertLeadResult> {
