@@ -47,6 +47,11 @@ const SLUGS_WITH_BIO_PHOTO = new Set<string>([
   "paula-jones",
   "maria-arellano",
   "isa-lozano",
+  "chip-collerain",
+  "ali-tabei",
+  "tish-strandboge",
+  "james-petersen",
+  "tracie-stolle",
 ]);
 
 // The collapsed certifications block caps at roughly two comfortable badge
