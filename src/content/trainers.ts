@@ -42,6 +42,18 @@
 //
 // ⚠️ CONFIRM before launch: this roster may have changed since capture
 // (new hires, departures). Cross-check against the current team page.
+//
+// Approved edit (client-directed): every literal "CPT" credential renamed
+// to "NASM CPT" — wording change only, no items added or removed. Two
+// trainers (Will Roberts, Ali Tabei) have no "CPT" entry in `credentials`
+// at all, so nothing was renamed for them; see the audit note this edit
+// produced for the resulting ambiguity against "all trainers completed
+// NASM certification."
+//
+// `specialties` is displayed together with `credentials` under one
+// "Certifications" label in both TrainersGrid.tsx and TrainerBioModal.tsx
+// (client-directed: specialties are certifications too). Wording/order
+// within each array is unchanged.
 
 export type Trainer = {
   slug: string;
@@ -62,7 +74,7 @@ export const trainers: Trainer[] = [
     slug: "maria-arellano",
     name: "Maria Arellano",
     role: "Certified Personal Trainer",
-    credentials: ["CPT", "First Aid/CPR"],
+    credentials: ["NASM CPT", "First Aid/CPR"],
     specialties: ["BS Biology & Spanish", "M.Ed. Education Administration"],
     philosophy: needsPhilosophy,
     story: `Maria uses her experience with her own 12-Week Transformation to coach clients to lasting results, including proper techniques for training and why that's important. But it's also important to Maria that her clients are instilled with a love of working out. Her workouts are the perfect balance of intense and fun.
@@ -86,7 +98,7 @@ James lifted his first weight when he began swimming competitively at the age of
     slug: "tracie-stolle",
     name: "Tracie Stolle",
     role: "Certified Personal Trainer",
-    credentials: ["CPT"],
+    credentials: ["NASM CPT"],
     specialties: ["Flexible training", "Time under tension", "Clients 19–85+"],
     philosophy: needsPhilosophy,
     story: `Tracie has been a dedicated personal trainer at Get Age Fit since early 2024, combining her passion for fitness with firsthand experience in the gym's 12-week transformation program. She brings empathy and insight to every client, shaped in part by her family's journey with type 1 and type 2 diabetes and her belief in the power of strength training and nutrition.
@@ -98,7 +110,7 @@ Working with clients ages 19 to 85+, Tracie creates personalized, flexible train
     slug: "tish-strandboge",
     name: "Tish Strandboge",
     role: "Certified Personal Trainer",
-    credentials: ["BA English", "CPT", "Certified Nutrition Coach", "GGS Menopause Coaching Specialist"],
+    credentials: ["BA English", "NASM CPT", "Certified Nutrition Coach", "GGS Menopause Coaching Specialist"],
     specialties: ["Menopause & midlife coaching"],
     philosophy: needsPhilosophy,
     story: `Empowering active adults to be strong and live life to the fullest is Tish's passion and purpose, and she has the client results to prove it. If she's not in the gym empowering clients or fine-tuning her own fitness, she can be found on the tennis courts, at a concert, traveling, surfing, or hanging out with family and friends.`,
@@ -108,7 +120,7 @@ Working with clients ages 19 to 85+, Tracie creates personalized, flexible train
     slug: "isa-lozano",
     name: "Isa Lozano",
     role: "Certified Personal Trainer",
-    credentials: ["CPT", "Certified Behavior Change Specialist"],
+    credentials: ["NASM CPT", "Certified Behavior Change Specialist"],
     specialties: [
       "Sustainable body recomposition",
       "Healthy relationship with fitness & nutrition",
@@ -127,7 +139,7 @@ Whether your goal is to lose weight, build strength, improve mobility, or simply
     slug: "chip-collerain",
     name: "Chip Collerain",
     role: "Certified Personal Trainer",
-    credentials: ["CPT", "BS Mechanical Engineering"],
+    credentials: ["NASM CPT", "BS Mechanical Engineering"],
     specialties: ["Sustainable, doable lifestyle change"],
     philosophy: needsPhilosophy,
     story: `Chip's philosophy regarding health and fitness makes him a valuable asset to the Get Age Fit team. Chip's goal is to coach clients into changing their lifestyles in a way that is doable and fun. His clients learn to adopt a "want to" attitude over a "have to" attitude, which makes their health and fitness journeys long-lasting and sustainable. When not at the gym, Chip enjoys woodworking and scuba diving, two passions that give him fascinating stories to share with his clients and team.`,
@@ -169,7 +181,7 @@ Will's life mission statement is to impart "strength and courage"!`,
     slug: "neon-luong",
     name: "Neon Luong",
     role: "Certified Personal Trainer",
-    credentials: ["BS Kinesiology", "CPT"],
+    credentials: ["BS Kinesiology", "NASM CPT"],
     specialties: ["Body recomposition", "Hypertrophy & performance"],
     philosophy: needsPhilosophy,
     story: `As a first-generation immigrant, Neon struggled to find his identity in his early 20s. Fitness and physical activities provide a haven for him to express himself. Dabbling into calisthenics, bodybuilding, weightlifting, and powerlifting, Neon realized the positive impact of physical movements on the human body. His first client was actually his mother, who was undergoing menopause in her 60s. Helping his mom regain fitness and independence, he discovered he can meddle his passion for fitness and helping others. After his realization, he decided to major in Kinesiology. Going through his personal training journey in various settings such as commercial gyms, private corporate fitness centers, in-home training, etc., he has acquired much experience in empowering others through fitness. Priding himself on being evidence-based, he specializes in helping clients with both body recomposition goals (muscle gain, fat loss) and performance-oriented goals (faster, bigger, more powerful).`,
@@ -179,7 +191,7 @@ Will's life mission statement is to impart "strength and courage"!`,
     slug: "jeff-venditte",
     name: "Jeff Venditte",
     role: "Certified Personal Trainer",
-    credentials: ["CPT", "CPR/AED", "NASM Corrective Exercise Specialization"],
+    credentials: ["NASM CPT", "CPR/AED", "NASM Corrective Exercise Specialization"],
     specialties: ["Corrective exercise"],
     philosophy: needsPhilosophy,
     story: `Throughout my life, I have participated in a range of sports and physical activities. Upon beginning my professional career in engineering and sales, I encountered significant workplace pressures and found it increasingly difficult to allocate time for both family and personal wellness. Years of inconsistent exercise and suboptimal dietary choices eventually led to health concerns that necessitated a shift in my lifestyle. This realization prompted my retirement and a renewed commitment to regular exercise; however, sustaining consistency initially remained a challenge.

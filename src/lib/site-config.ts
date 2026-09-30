@@ -45,9 +45,8 @@ export const primaryNav: NavLink[] = [
   { label: "Why GetAgeFit", href: "/why-getagefit" },
   { label: "How It Works", href: "/how-it-works" },
   { label: "Programs", href: "/programs" },
-  { label: "Transformations", href: "/transformations" },
   { label: "Trainers", href: "/trainers" },
-  { label: "About", href: "/about" },
+  { label: "Founder", href: "/founder" },
   { label: "Resources", href: "/resources" },
 ];
 

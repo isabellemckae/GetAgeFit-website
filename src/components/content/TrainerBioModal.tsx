@@ -21,6 +21,10 @@ import { Badge } from "@/components/ui/Badge";
  * `hasContent`). `story` is populated for all trainers with verbatim
  * source bios that may contain multiple paragraphs; `whitespace-pre-line`
  * below preserves those paragraph breaks as written.
+ *
+ * Approved edit (client-directed): `credentials` and `specialties` render
+ * together under one "Certifications" label, matching TrainersGrid.tsx's
+ * preview cards, rather than two separately-labeled sections.
  */
 function hasContent(value: string) {
   return !value.trim().startsWith("[");
@@ -85,31 +89,18 @@ export function TrainerBioModal({
             {trainer.role}
           </p>
 
-          {trainer.credentials.length > 0 && (
+          {(trainer.credentials.length > 0 || trainer.specialties.length > 0) && (
             <div className="mb-5">
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-400">
-                Credentials
+                Certifications
               </p>
               <div className="flex flex-wrap gap-1.5">
-                {trainer.credentials.map((c) => (
+                {[...trainer.credentials, ...trainer.specialties].map((c) => (
                   <Badge key={c} tone="sage">
                     {c}
                   </Badge>
                 ))}
               </div>
-            </div>
-          )}
-
-          {trainer.specialties.length > 0 && (
-            <div className="mb-5">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-400">
-                Specialties
-              </p>
-              <ul className="space-y-1 text-sm text-ink-600">
-                {trainer.specialties.map((s) => (
-                  <li key={s}>{s}</li>
-                ))}
-              </ul>
             </div>
           )}
 

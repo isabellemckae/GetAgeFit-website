@@ -16,6 +16,14 @@ const nextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      // About was renamed to Founder (Demo #6) — old links/bookmarks keep working.
+      { source: "/about", destination: "/founder", permanent: true },
+      // Transformations was removed from the site (Demo #6, client-directed).
+      { source: "/transformations", destination: "/", permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

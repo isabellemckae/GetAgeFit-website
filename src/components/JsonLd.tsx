@@ -76,26 +76,3 @@ export function faqJsonLd(items: { question: string; answer: string }[]) {
     })),
   };
 }
-
-export function articleJsonLd(article: {
-  title: string;
-  excerpt: string;
-  authorPlaceholder: string;
-  slug: string;
-}) {
-  return {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: article.title,
-    description: article.excerpt,
-    author: {
-      "@type": "Organization",
-      name: article.authorPlaceholder,
-    },
-    publisher: {
-      "@type": "Organization",
-      name: siteConfig.nap.legalName,
-    },
-    mainEntityOfPage: `${siteConfig.url}/resources/${article.slug}`,
-  };
-}

@@ -1,22 +1,28 @@
 import type { Metadata } from "next";
 import { Section, Eyebrow } from "@/components/ui/Section";
-import { ArticleCard } from "@/components/content/ArticleCard";
 import { CTASection } from "@/components/content/CTASection";
 import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
-import { articles, articleCategories } from "@/content/articles";
+
+// Demo #6 (client-directed): the previous article listing here was
+// unpublished, review-pending copy (src/content/articles.ts, still
+// "PROPOSED COPY" with bracketed author/review-date placeholders) — never
+// actually approved for publishing. Cleared rather than left live, so the
+// page doesn't imply articles already exist. Isa will write and publish
+// the first three articles later; no placeholder articles or authors are
+// invented here in the meantime. The /resources/[slug] article route and
+// its content model were removed along with the listing — see the
+// summary this edit produced for what else depended on them.
 
 export const metadata: Metadata = {
-  title: "Resources | Healthy Aging & Strength Training Guides",
+  title: "Resources | Coming Soon",
   description:
-    "Practical, expert guidance on strength training after 40, healthy aging, nutrition, mobility, and injury-aware training from the GetAgeFit coaching team.",
+    "GetAgeFit's resource center — practical guidance on strength, healthy aging, and independence from our coaching team — is coming soon.",
   alternates: { canonical: "/resources" },
 };
 
 export default function ResourcesPage() {
   return (
     <>
-      {/* Asymmetric hero — text + accent photo, rather than the centered
-          block used elsewhere. */}
       <section className="bg-mesh-hero py-16 md:py-24">
         <div className="relative mx-auto grid max-w-content items-center gap-10 px-6 md:px-10 lg:grid-cols-[1.3fr_0.7fr]">
           <div>
@@ -43,20 +49,16 @@ export default function ResourcesPage() {
       </section>
 
       <Section tone="white">
-        <div className="mb-10 flex flex-wrap gap-2">
-          {articleCategories.map((cat) => (
-            <span
-              key={cat}
-              className="rounded-full border border-ink-100 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-ink-500"
-            >
-              {cat}
-            </span>
-          ))}
-        </div>
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {articles.map((article) => (
-            <ArticleCard key={article.slug} article={article} />
-          ))}
+        <div className="mx-auto max-w-xl text-center">
+          <Eyebrow tone="plum">Coming Soon</Eyebrow>
+          <h2 className="mb-4 text-3xl md:text-4xl">
+            Our first articles are on the way.
+          </h2>
+          <p className="text-lg leading-relaxed text-ink-600">
+            The GetAgeFit team is putting together practical guidance on
+            strength, healthy aging, and independence. Check back soon for
+            our first pieces.
+          </p>
         </div>
       </Section>
 

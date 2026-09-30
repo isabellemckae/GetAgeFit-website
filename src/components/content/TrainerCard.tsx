@@ -14,9 +14,9 @@ export function TrainerCard({ trainer }: { trainer: Trainer }) {
         <h3 className="font-display text-xl text-ink-900">{trainer.name}</h3>
         <p className="mb-3 text-sm font-medium text-plum-600">{trainer.role}</p>
         <div className="flex flex-wrap gap-2">
-          {trainer.specialties.slice(0, 2).map((s) => (
-            <Badge key={s} tone="sand">
-              {s}
+          {[...trainer.credentials, ...trainer.specialties].slice(0, 2).map((c) => (
+            <Badge key={c} tone="sand">
+              {c}
             </Badge>
           ))}
         </div>

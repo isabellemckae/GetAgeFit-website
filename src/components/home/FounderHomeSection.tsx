@@ -33,12 +33,12 @@ export function FounderHomeSection() {
           Theo Thurston, Founder
         </p>
         <Button
-          href="/about"
+          href="/founder"
           variant="secondary"
-          trackCta="Read Our Story"
+          trackCta="Read More Here"
           trackLocation="homepage-founder"
         >
-          Read Our Story
+          Read More Here
         </Button>
         <SupplementTeaser />
       </div>

@@ -90,7 +90,12 @@ const config: Config = {
           lime: {
             100: "#E5E7EB",
             300: "#9CA3AF",
-            500: "#6B7280",
+            // Real value (Demo #6, client-directed): sampled directly from
+            // the "AGE" glyph fill in public/images/brand/getagefit-logo.png
+            // (dominant pixel color, confirmed #8DA42E) — not guessed. The
+            // other shades in this group are still the placeholder gray
+            // above until real values for them are supplied too.
+            500: "#8DA42E",
             700: "#374151",
             900: "#111827",
           },

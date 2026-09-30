@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next";
 import { siteConfig } from "@/lib/site-config";
-import { articles } from "@/content/articles";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticRoutes = [
@@ -8,9 +7,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/why-getagefit",
     "/how-it-works",
     "/programs",
-    "/transformations",
     "/trainers",
-    "/about",
+    "/founder",
     "/resources",
     "/contact",
     "/consultation",
@@ -19,9 +17,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/terms",
   ];
 
-  const articleRoutes = articles.map((a) => `/resources/${a.slug}`);
-
-  return [...staticRoutes, ...articleRoutes].map((route) => ({
+  return staticRoutes.map((route) => ({
     url: `${siteConfig.url}${route}`,
     lastModified: new Date(),
     changeFrequency: route === "" ? "weekly" : "monthly",

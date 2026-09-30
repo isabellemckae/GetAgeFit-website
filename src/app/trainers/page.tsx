@@ -25,7 +25,7 @@ export default function TrainersPage() {
             Every coach at GetAgeFit brings real, credentialed expertise in
             healthy-aging coaching, and just as importantly, a genuine
             investment in your progress. Led by founder Theo Thurston (see{" "}
-            <a href="/about" className="font-medium text-sage-700 hover:text-sage-900">
+            <a href="/founder" className="font-medium text-sage-700 hover:text-sage-900">
               his story
             </a>
             ), the team below guides clients through every stage of the
