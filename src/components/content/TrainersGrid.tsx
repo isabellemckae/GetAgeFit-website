@@ -179,7 +179,7 @@ function TrainerPreviewCard({
             }
             alt={`${trainer.name}, ${trainer.role} at GetAgeFit`}
             placeholderLabel={trainer.photoLabel}
-            aspect="aspect-[4/5]"
+            aspect="aspect-square"
             sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
             className="transition-transform duration-500 ease-soft group-hover:scale-105"
           />
