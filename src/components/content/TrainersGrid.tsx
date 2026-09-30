@@ -35,6 +35,20 @@ import { TrainerBioModal } from "@/components/content/TrainerBioModal";
  */
 const SLUGS_WITHOUT_PHOTO_YET = new Set<string>([]);
 
+// Client-directed (Demo #6): several trainers' /images/trainers/<slug>.webp
+// file is reused decoratively elsewhere on the site (founder page team
+// strip/values, how-it-works, consultation, programs) — overwriting it
+// would change those other placements too. Trainers listed here instead
+// get a dedicated headshot (solid background, cropped for the bio card
+// only) from /images/trainers/bio/<slug>.webp, leaving the shared file
+// everywhere else untouched.
+const SLUGS_WITH_BIO_PHOTO = new Set<string>([
+  "travis-strawser",
+  "paula-jones",
+  "maria-arellano",
+  "isa-lozano",
+]);
+
 // The collapsed certifications block caps at roughly two comfortable badge
 // rows. Whichever whole badges fit within that height show by default; a
 // trainer with more gets a "Click to see more" toggle for the rest.
@@ -154,7 +168,9 @@ function TrainerPreviewCard({
             src={
               SLUGS_WITHOUT_PHOTO_YET.has(trainer.slug)
                 ? undefined
-                : `/images/trainers/${trainer.slug}.webp`
+                : SLUGS_WITH_BIO_PHOTO.has(trainer.slug)
+                  ? `/images/trainers/bio/${trainer.slug}.webp`
+                  : `/images/trainers/${trainer.slug}.webp`
             }
             alt={`${trainer.name}, ${trainer.role} at GetAgeFit`}
             placeholderLabel={trainer.photoLabel}
