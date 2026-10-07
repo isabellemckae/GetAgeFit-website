@@ -12,12 +12,21 @@ const accents = ["sage", "plum", "sage"] as const;
  * order. The other four stay in `testimonials` untouched and unused —
  * nothing is deleted, this component just doesn't render them.
  *
- * Desktop: three columns, `items-start` rather than the grid default of
- * stretch — these three quotes are very different lengths, and
- * stretching every card to match the tallest is exactly the "accidental
- * empty gap" problem the old design's doc comment describes. Each card
- * instead only ever takes the height its own words need. Tablet and
- * mobile stack to a single column for comfortable reading width.
+ * Desktop (lg+): three equal-height columns. The three quotes are very
+ * different lengths (roughly 350–700 characters), so each card clamps its
+ * quote to the same number of lines (`line-clamp-6`) rather than showing
+ * it in full — uniform line count is what makes the cards come out even,
+ * not a guessed fixed height. Hovering (mouse) or focusing (keyboard —
+ * the card itself is tabbable) lifts the clamp to reveal the full quote;
+ * a soft fade at the clamped edge hints that there's more to read. The
+ * full quote is always present in the DOM either way (line-clamp is CSS
+ * truncation only), so screen readers always hear the complete quote
+ * regardless of hover state.
+ *
+ * Tablet and mobile stack to a single column, where there's no row to
+ * keep even and no hover affordance to rely on — so the clamp/fade/hint
+ * are desktop-only (`lg:`) and these breakpoints just show the full
+ * quote plainly.
  */
 export function FeaturedTestimonials() {
   const featured = featuredTestimonialSlugs
@@ -31,7 +40,8 @@ export function FeaturedTestimonials() {
         return (
           <figure
             key={testimonial.slug}
-            className="rounded-xl2 bg-sand-50 p-8 sm:p-9"
+            tabIndex={0}
+            className="group relative rounded-xl2 bg-sand-50 p-8 sm:p-9"
           >
             <span
               aria-hidden="true"
@@ -39,9 +49,21 @@ export function FeaturedTestimonials() {
             >
               &ldquo;
             </span>
-            <blockquote className="whitespace-pre-line text-lg leading-relaxed text-ink-900 sm:text-xl">
-              {testimonial.quote}
-            </blockquote>
+            <div className="relative">
+              <blockquote className="whitespace-pre-line text-lg leading-relaxed text-ink-900 sm:text-xl lg:line-clamp-6 lg:group-hover:line-clamp-none lg:group-focus-within:line-clamp-none">
+                {testimonial.quote}
+              </blockquote>
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-0 bottom-0 hidden h-10 bg-gradient-to-t from-sand-50 to-transparent lg:block lg:group-hover:hidden lg:group-focus-within:hidden"
+              />
+            </div>
+            <p
+              aria-hidden="true"
+              className="mt-2 hidden text-xs font-medium text-ink-400 lg:block lg:group-hover:hidden lg:group-focus-within:hidden"
+            >
+              Hover to read the full quote
+            </p>
             <figcaption className="mt-6 flex items-center gap-3">
               <span
                 aria-hidden="true"
