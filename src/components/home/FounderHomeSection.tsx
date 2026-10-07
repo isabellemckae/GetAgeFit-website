@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/Button";
 import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
-import { SupplementTeaser } from "@/components/home/SupplementTeaser";
 
 /**
  * Homepage §9 — "Why I Created Get Age Fit" (Founder trust).
@@ -8,6 +7,11 @@ import { SupplementTeaser } from "@/components/home/SupplementTeaser";
  * Reference §11 and inlined directly here (single non-repeating block,
  * one instance ever) rather than a content/*.ts file — mirrors how
  * CTASection inlines its own default copy.
+ *
+ * The supplement teaser that used to sit below the "Read More Here"
+ * button has moved to its own section on /founder (client-directed) —
+ * removed from here rather than duplicated. Everything else in this
+ * section is unchanged.
  */
 export function FounderHomeSection() {
   return (
@@ -40,7 +44,6 @@ export function FounderHomeSection() {
         >
           Read More Here
         </Button>
-        <SupplementTeaser />
       </div>
     </div>
   );

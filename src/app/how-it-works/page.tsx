@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Section, Eyebrow } from "@/components/ui/Section";
 import { PillarCard } from "@/components/content/PillarCard";
 import { FAQAccordion } from "@/components/content/FAQAccordion";
@@ -194,6 +195,11 @@ export default function HowItWorksPage() {
               <h2 className="text-3xl md:text-4xl">Good to know</h2>
             </div>
             <FAQAccordion items={faqs} />
+            <p className="mt-6 text-sm text-ink-500">
+              <Link href="/faq" className="font-medium text-sage-700 hover:text-sage-900">
+                See more frequently asked questions →
+              </Link>
+            </p>
           </div>
         </div>
       </Section>

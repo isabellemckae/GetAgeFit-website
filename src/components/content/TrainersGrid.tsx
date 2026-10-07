@@ -49,7 +49,6 @@ const SLUGS_WITH_BIO_PHOTO = new Set<string>([
   "isa-lozano",
   "chip-collerain",
   "ali-tabei",
-  "tish-strandboge",
   "james-petersen",
   "tracie-stolle",
 ]);

@@ -36,8 +36,8 @@ export default function ResourcesPage() {
             </p>
           </div>
           <ResponsiveImage
-            src="/images/trainers/tish-strandboge.webp"
-            alt="Tish Strandboge, GetAgeFit personal trainer"
+            src="/images/trainers/isa-lozano.webp"
+            alt="Isa Lozano, GetAgeFit personal trainer"
             placeholderLabel="Coach portrait"
             aspect="aspect-[3/4]"
             imageClassName="object-top"

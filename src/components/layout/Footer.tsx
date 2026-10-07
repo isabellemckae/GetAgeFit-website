@@ -74,6 +74,11 @@ export function Footer() {
                   Resources
                 </Link>
               </li>
+              <li>
+                <Link href="/faq" className="text-sand-200/90 hover:text-sand-50">
+                  FAQ
+                </Link>
+              </li>
             </ul>
           </div>
 

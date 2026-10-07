@@ -7,12 +7,19 @@ import { trackEvent } from "@/lib/analytics";
 import { siteConfig } from "@/lib/site-config";
 
 /**
- * Homepage §9 follow-up — a colorful, bold-but-not-overpowering teaser
- * line under the founder copy, opening a popup on click (same open/close
- * pattern as TrainerBioModal.tsx: backdrop click, Escape, and an X button
- * all close it; same widen-and-scroll treatment for long content).
+ * Relocated from the homepage founder section to its own section on
+ * /founder (client-directed): a full-card teaser — product image +
+ * headline + approved copy + CTA — opening the same popup on click (same
+ * open/close pattern as TrainerBioModal.tsx: backdrop click, Escape, and
+ * an X button all close it; same widen-and-scroll treatment for long
+ * content). The popup's content and the /api/lead submission logic below
+ * are completely unchanged by the relocation — only the closed-state
+ * trigger card is new.
  *
- * Body copy below is Theo's own verbatim message for GETAGEFIT
+ * The trigger card's headline/copy is Theo's separately-approved copy for
+ * this placement ("Did you know?..."), preserved verbatim.
+ *
+ * Body copy inside the popup is Theo's own verbatim message for GETAGEFIT
  * ESSENTIALS™ (ageLIFT™ pre-workout and ageFUEL™ meal replacement),
  * supplied directly by the client. Only light punctuation cleanup was
  * applied (a couple of run-on hyphens tightened into commas) — no
@@ -47,15 +54,31 @@ export function SupplementTeaser() {
         type="button"
         onClick={() => setOpen(true)}
         aria-haspopup="dialog"
-        className="mt-6 flex items-center gap-2 rounded-lg border-l-4 border-plum-500 bg-gradient-to-r from-plum-50 to-sage-50 px-4 py-3 text-left text-sm font-bold text-plum-700 transition-colors hover:from-plum-100 hover:to-sage-100 sm:text-base"
+        className="group flex flex-col gap-6 rounded-xl2 border border-plum-100 bg-gradient-to-br from-plum-50 via-white to-sage-50 p-6 text-left shadow-card transition-shadow duration-300 ease-soft hover:shadow-soft sm:flex-row sm:items-center sm:p-8"
       >
-        <span>
-          Did you know that Theo has created a GetAgeFit supplement line to
-          enhance your training &amp; life?
-        </span>
-        <span aria-hidden="true" className="shrink-0 text-sage-600">
-          →
-        </span>
+        <Image
+          src="/images/products/getagefit-essentials.png"
+          alt="GetAgeFit Essentials: ageLIFT pre-workout and ageFUEL meal replacement"
+          width={664}
+          height={554}
+          className="mx-auto h-auto w-full max-w-[200px] shrink-0 rounded-xl2 border border-ink-100 sm:mx-0"
+        />
+        <div>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-plum-600">
+            Did you know?
+          </p>
+          <p className="text-base leading-relaxed text-ink-700 sm:text-lg">
+            Theo is taking his passion for healthy aging beyond the training
+            studio with Age Lift and Age Fuel, two new products being
+            developed specifically for adults 40 and beyond. See what Theo
+            is creating and be among the first to know when it becomes
+            available.
+          </p>
+          <span className="mt-5 inline-flex items-center gap-2 font-semibold text-sage-700 group-hover:text-sage-900">
+            See what Theo&rsquo;s creating
+            <span aria-hidden="true">→</span>
+          </span>
+        </div>
       </button>
 
       {open && (

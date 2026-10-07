@@ -39,7 +39,7 @@ export function Header() {
 
         <nav
           aria-label="Primary"
-          className="hidden items-center gap-6 xl:flex"
+          className="hidden items-center gap-4 xl:flex"
         >
           {primaryNav.map((link) => {
             const active = pathname === link.href;

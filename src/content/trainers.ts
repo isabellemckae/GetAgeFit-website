@@ -54,6 +54,11 @@
 // "Certifications" label in both TrainersGrid.tsx and TrainerBioModal.tsx
 // (client-directed: specialties are certifications too). Wording/order
 // within each array is unchanged.
+//
+// Tish Strandboge removed from the roster entirely (client-directed).
+// Her photo files remain on disk (public/images/trainers/tish-strandboge.webp,
+// public/images/trainers/bio/tish-strandboge.webp) but are no longer
+// referenced anywhere in the app.
 
 export type Trainer = {
   slug: string;
@@ -104,16 +109,6 @@ James lifted his first weight when he began swimming competitively at the age of
     story: `Tracie has been a dedicated personal trainer at Get Age Fit since early 2024, combining her passion for fitness with firsthand experience in the gym's 12-week transformation program. She brings empathy and insight to every client, shaped in part by her family's journey with type 1 and type 2 diabetes and her belief in the power of strength training and nutrition.
 
 Working with clients ages 19 to 85+, Tracie creates personalized, flexible training plans inspired by a Body for Life approach, emphasizing time under tension for maximum results. Whether you're just starting or ready to level up, she's committed to helping you build strength, confidence, and lasting health.`,
-    photoLabel: "Trainer photo needed",
-  },
-  {
-    slug: "tish-strandboge",
-    name: "Tish Strandboge",
-    role: "Certified Personal Trainer",
-    credentials: ["BA English", "NASM CPT", "Certified Nutrition Coach", "GGS Menopause Coaching Specialist"],
-    specialties: ["Menopause & midlife coaching"],
-    philosophy: needsPhilosophy,
-    story: `Empowering active adults to be strong and live life to the fullest is Tish's passion and purpose, and she has the client results to prove it. If she's not in the gym empowering clients or fine-tuning her own fitness, she can be found on the tennis courts, at a concert, traveling, surfing, or hanging out with family and friends.`,
     photoLabel: "Trainer photo needed",
   },
   {
