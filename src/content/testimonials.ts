@@ -1,8 +1,16 @@
-// Five real, approved GetAgeFit client testimonials (homepage architecture
-// #6, "Real Client Stories"). Quotes are verbatim as supplied — do not
+// Real, approved GetAgeFit client testimonials (homepage architecture #6,
+// "Real Client Stories"). Quotes are verbatim as supplied — do not
 // rewrite or paraphrase them. This section is deliberately 100%
 // typographic (Demo #5 redesign) — no client photos, placeholders, or
 // avatars of any kind, so there is no image field on this type at all.
+//
+// Client-directed (three-review redesign): the homepage now displays only
+// three of these — see `featuredTestimonialSlugs` below and
+// FeaturedTestimonials.tsx — while all seven entries stay in the
+// codebase, kept for potential future use rather than deleted. Lisa
+// Sanders and Brenda Brand were supplied directly by the client as new
+// approved testimonials for this redesign; the other five predate it and
+// are no longer displayed, but remain unchanged and undeleted.
 
 export type Testimonial = {
   slug: string;
@@ -41,4 +49,25 @@ export const testimonials: Testimonial[] = [
       "My husband and I have been training here for more than three months now. We absolutely love it. It is a true first class gym experience. The facility is pristine, with an abundance of well-maintained equipment. We love that our trainer pushes us hard but it's always done in a safe way. We both comment all the time that if we were working out at home, there's no way we would push ourself in the same way. Overall, you can tell that the owner, Theo, and his team all are really kind people who care and just want to make us all a little healthier and live longer, stronger lives. I'm very grateful to have found this place!",
     context: "Andrea Morales",
   },
+  {
+    slug: "lisa-sanders",
+    quote:
+      "Rian and I have been working at Get Age Fit on our strength and conditioning since the beginning of December. The results have been fantastic! We developed a great workout program that was specific to our needs and we were pushed with each workout to give it our all.\n\nI highly recommend Get Age Fit no matter what your fitness goals are.",
+    context: "Lisa Sanders",
+  },
+  {
+    slug: "brenda-brand",
+    quote:
+      "We've been working at GetAgeFit for just 3 weeks and we're already seeing a huge difference in our joy, energy, and muscle. Training together as a couple has been such a great experience, and Get Age Fit has exceeded our expectations.\n\nWe don't only train 3x a week, but we also stay motivated through group messages with our trainer. Highly recommend Get Age Fit! Can't wait to see our 12-week results!",
+    context: "Brenda Brand",
+  },
+];
+
+// Client-directed: exactly these three display on the homepage, in this
+// order — see FeaturedTestimonials.tsx. The remaining four stay in the
+// array above, unused but not deleted.
+export const featuredTestimonialSlugs = [
+  "lisa-sanders",
+  "brenda-brand",
+  "j-bryant-boyd",
 ];
