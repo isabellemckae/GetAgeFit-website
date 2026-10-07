@@ -1,6 +1,20 @@
+import Image from "next/image";
 import { testimonials, featuredTestimonialSlugs } from "@/content/testimonials";
 
 const accents = ["sage", "plum", "sage"] as const;
+
+// Client-supplied real photos for the three featured testimonials, used
+// in the circular badge. Kept as a local lookup (not a field on the
+// shared Testimonial type) since the other four testimonials have no
+// photo on file at all — see testimonials.ts's own doc comment. Each
+// source photo was cropped to a square centered on the client's face and
+// lightly enhanced (no warping) — see the commit that added these for
+// the exact crop boxes used.
+const photosBySlug: Record<string, string> = {
+  "lisa-sanders": "/images/testimonials/lisa-sanders.webp",
+  "brenda-brand": "/images/testimonials/brenda-brand.webp",
+  "j-bryant-boyd": "/images/testimonials/j-bryant-boyd.webp",
+};
 
 /**
  * Homepage §6 — "Real Client Stories", three-review editorial redesign
@@ -8,15 +22,12 @@ const accents = ["sage", "plum", "sage"] as const;
  * video: solid-color cards, a circular badge breaking the card's corner,
  * staggered alternating offset down the page, name-then-quote hierarchy).
  *
- * Two deliberate departures from that reference, both required by
- * standing instructions from earlier in this project:
- * - No star-rating icons — these testimonials carry no verified star
- *   rating, and fabricating one was explicitly ruled out.
- * - No face photo in the circular badge — there's no approved client
- *   photo for any of these three, and a stock/generic face would
- *   misrepresent a real person. The badge instead holds the client's
- *   initial, keeping the "circle breaks the card's corner" look without
- *   inventing imagery of someone.
+ * One deliberate departure from that reference, required by a standing
+ * instruction from earlier in this project: no star-rating icons — these
+ * testimonials carry no verified star rating, and fabricating one was
+ * explicitly ruled out. (The circular badge itself now holds each
+ * client's real supplied photo — see `photosBySlug` — falling back to
+ * their initial only if a photo is ever missing.)
  *
  * Shows exactly the three testimonials named in
  * `featuredTestimonialSlugs` (src/content/testimonials.ts), in that
@@ -50,6 +61,7 @@ export function FeaturedTestimonials() {
       {featured.map((testimonial, i) => {
         const accent = accents[i % accents.length];
         const badgeOnRight = i % 2 === 0;
+        const photo = photosBySlug[testimonial.slug];
         const initial = testimonial.context.trim().charAt(0).toUpperCase();
         const cardBg = accent === "sage" ? "bg-sage-800" : "bg-plum-800";
         const fadeFrom = accent === "sage" ? "from-sage-800" : "from-plum-800";
@@ -65,13 +77,23 @@ export function FeaturedTestimonials() {
           >
             <span
               aria-hidden="true"
-              className={`absolute -top-6 flex h-16 w-16 items-center justify-center rounded-full bg-sand-50 shadow-card sm:h-20 sm:w-20 ${
+              className={`absolute -top-6 flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-sand-50 shadow-card sm:h-20 sm:w-20 ${
                 badgeOnRight ? "-right-5 sm:-right-6" : "-left-5 sm:-left-6"
               }`}
             >
-              <span className={`font-display text-2xl sm:text-3xl ${badgeText}`}>
-                {initial}
-              </span>
+              {photo ? (
+                <Image
+                  src={photo}
+                  alt=""
+                  fill
+                  sizes="80px"
+                  className="object-cover"
+                />
+              ) : (
+                <span className={`font-display text-2xl sm:text-3xl ${badgeText}`}>
+                  {initial}
+                </span>
+              )}
             </span>
 
             <figure
