@@ -3,6 +3,7 @@ import { Section, Eyebrow } from "@/components/ui/Section";
 import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
 
 import { CTASection } from "@/components/content/CTASection";
+import { pageOpenGraph } from "@/lib/seo";
 
 // Restored as its own page (client-directed): About and Founder were split
 // back apart after being merged into one /founder page. This page is
@@ -14,11 +15,15 @@ import { CTASection } from "@/components/content/CTASection";
 // block, which now lives only on /founder so the two pages don't duplicate
 // the same content.
 
+const ABOUT_TITLE = "About GetAgeFit | Our Mission & Culture";
+const ABOUT_DESCRIPTION =
+  "GetAgeFit's mission is giving people independence through fitness and strength in every stage of life. Meet the culture and studio behind the coaching.";
+
 export const metadata: Metadata = {
-  title: "About GetAgeFit | Our Mission & Culture",
-  description:
-    "GetAgeFit's mission is giving people independence through fitness and strength in every stage of life. Meet the culture and studio behind the coaching.",
+  title: ABOUT_TITLE,
+  description: ABOUT_DESCRIPTION,
   alternates: { canonical: "/about" },
+  ...pageOpenGraph({ title: ABOUT_TITLE, description: ABOUT_DESCRIPTION, path: "/about" }),
 };
 
 const values = [
@@ -130,11 +135,11 @@ export default function AboutPage() {
             </p>
           </div>
           <ResponsiveImage
-            src="/images/training/coaching-session-leg-press.webp"
-            alt="A GetAgeFit trainer coaching a client at the studio"
+            src="/images/trainers/paula-jones.webp"
+            alt="Paula Jones, GetAgeFit personal trainer"
             placeholderLabel="Studio photo needed"
             aspect="aspect-[3/4]"
-            imageClassName="object-[center_30%]"
+            imageClassName="object-top"
             className="shadow-soft"
           >
             <div className="photo-tint-sage-diagonal" />

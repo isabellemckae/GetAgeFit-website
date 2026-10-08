@@ -37,6 +37,30 @@ export function localBusinessJsonLd() {
       "@type": "City",
       name: "Georgetown, Texas",
     },
+    // Verified against the business's own current hours (siteConfig.nap.hours
+    // / FAQ "What are your studio hours?") — Sunday is "by appointment" only,
+    // not a standing open period, so it's intentionally left out of this
+    // structured list rather than asserting hours that aren't confirmed.
+    openingHoursSpecification: [
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+        ],
+        opens: "05:00",
+        closes: "20:00",
+      },
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: ["Saturday"],
+        opens: "06:00",
+        closes: "16:00",
+      },
+    ],
     sameAs: [siteConfig.social.instagram, siteConfig.social.facebook].filter(
       Boolean,
     ),

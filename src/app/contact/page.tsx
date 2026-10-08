@@ -4,12 +4,17 @@ import { Eyebrow } from "@/components/ui/Section";
 import { ContactForm } from "@/components/forms/ContactForm";
 import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
 import { siteConfig } from "@/lib/site-config";
+import { pageOpenGraph } from "@/lib/seo";
+
+const CONTACT_TITLE = "Contact GetAgeFit";
+const CONTACT_DESCRIPTION =
+  "Have a question before scheduling a consultation? Get in touch with the GetAgeFit team in Georgetown, Texas.";
 
 export const metadata: Metadata = {
-  title: "Contact GetAgeFit",
-  description:
-    "Have a question before scheduling a consultation? Get in touch with the GetAgeFit team in Georgetown, Texas.",
+  title: CONTACT_TITLE,
+  description: CONTACT_DESCRIPTION,
   alternates: { canonical: "/contact" },
+  ...pageOpenGraph({ title: CONTACT_TITLE, description: CONTACT_DESCRIPTION, path: "/contact" }),
 };
 
 export default function ContactPage() {

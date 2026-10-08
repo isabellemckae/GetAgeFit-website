@@ -1,16 +1,22 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Section, Eyebrow } from "@/components/ui/Section";
 import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { CTASection } from "@/components/content/CTASection";
 import { cta } from "@/lib/site-config";
+import { pageOpenGraph } from "@/lib/seo";
+
+const PROGRAMS_TITLE = "Programs | The 12-Week Transformation Experience";
+const PROGRAMS_DESCRIPTION =
+  "GetAgeFit specializes in the 12-week transformation experience for brand-new clients 40 to 80+, plus ongoing one-on-one and 1:2 healthy-aging coaching. Investment discussed during your consultation.";
 
 export const metadata: Metadata = {
-  title: "Programs | The 12-Week Transformation Experience",
-  description:
-    "GetAgeFit specializes in the 12-week transformation experience for brand-new clients 40 to 80+, plus ongoing one-on-one and 1:2 healthy-aging coaching. Investment discussed during your consultation.",
+  title: PROGRAMS_TITLE,
+  description: PROGRAMS_DESCRIPTION,
   alternates: { canonical: "/programs" },
+  ...pageOpenGraph({ title: PROGRAMS_TITLE, description: PROGRAMS_DESCRIPTION, path: "/programs" }),
 };
 
 const transformationBullets = [
@@ -234,6 +240,16 @@ export default function ProgramsPage() {
             a hands-on evaluation so you can feel the difference for
             yourself. Once you&rsquo;ve experienced it firsthand, we&rsquo;ll
             walk you through the investment, openly and honestly.
+          </p>
+          <p className="mb-6 text-sm text-ink-500">
+            For more info, check out our{" "}
+            <Link
+              href="/faq"
+              className="font-medium text-sage-700 underline decoration-1 underline-offset-2 hover:text-sage-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-600"
+            >
+              FAQ page
+            </Link>
+            .
           </p>
           <Button
             href={cta.qualify.href}

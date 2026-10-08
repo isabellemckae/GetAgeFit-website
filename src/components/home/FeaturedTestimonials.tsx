@@ -72,8 +72,7 @@ export function FeaturedTestimonials() {
             key={testimonial.slug}
             className={`relative w-[90%] sm:w-[85%] ${
               badgeOnRight ? "mr-auto" : "ml-auto"
-            } ${i > 0 ? "-mt-4 sm:-mt-6" : ""}`}
-            style={{ zIndex: i + 1 }}
+            } ${i > 0 ? "mt-12 sm:mt-14" : ""}`}
           >
             <span
               aria-hidden="true"

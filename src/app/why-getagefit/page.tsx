@@ -2,12 +2,17 @@ import type { Metadata } from "next";
 import { Section, Eyebrow } from "@/components/ui/Section";
 import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
 import { CTASection } from "@/components/content/CTASection";
+import { pageOpenGraph } from "@/lib/seo";
+
+const WHY_TITLE = "Why GetAgeFit | Healthy-Aging Coaching Built Around You";
+const WHY_DESCRIPTION =
+  "See what sets GetAgeFit apart from traditional gyms and generic personal training: personalized, healthy-aging coaching built for adults 40+ in Georgetown, Texas.";
 
 export const metadata: Metadata = {
-  title: "Why GetAgeFit | Healthy-Aging Coaching Built Around You",
-  description:
-    "See what sets GetAgeFit apart from traditional gyms and generic personal training: personalized, healthy-aging coaching built for adults 40+ in Georgetown, Texas.",
+  title: WHY_TITLE,
+  description: WHY_DESCRIPTION,
   alternates: { canonical: "/why-getagefit" },
+  ...pageOpenGraph({ title: WHY_TITLE, description: WHY_DESCRIPTION, path: "/why-getagefit" }),
 };
 
 const notList = [
@@ -164,10 +169,11 @@ export default function WhyGetAgeFitPage() {
       <Section tone="sand">
         <div className="grid items-center gap-12 lg:grid-cols-2">
           <ResponsiveImage
-            src="/images/training/coaching-session-leg-press.webp"
-            alt="A GetAgeFit trainer coaching a client at the studio"
+            src="/images/trainers/travis-strawser.webp"
+            alt="Travis Strawser, GetAgeFit personal trainer"
             placeholderLabel="Studio hospitality photo needed"
             aspect="aspect-[4/3]"
+            imageClassName="object-top"
             className="shadow-soft"
           >
             <div className="photo-tint-sage" />

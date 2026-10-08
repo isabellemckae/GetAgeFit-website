@@ -24,7 +24,7 @@ export const siteConfig = {
     postalCode: "78628",
     phone: "(512) 591-7923",
     email: "info@getagefit.com",
-    hours: "Mon–Fri 5:00am–8:00pm · Sat 7:00am–4:00pm · Sun by appointment",
+    hours: "Mon–Fri 5:00am–8:00pm · Sat 6:00am–4:00pm · Sun by appointment",
   },
 
   social: {

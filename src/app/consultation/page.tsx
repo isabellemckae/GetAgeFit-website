@@ -1,15 +1,25 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Section, Eyebrow } from "@/components/ui/Section";
 import { ConsultationForm } from "@/components/forms/ConsultationForm";
 import { CalendlyEmbed } from "@/components/booking/CalendlyEmbed";
 import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
 import { siteConfig } from "@/lib/site-config";
+import { pageOpenGraph } from "@/lib/seo";
+
+const CONSULTATION_TITLE = "Schedule a Consultation";
+const CONSULTATION_DESCRIPTION =
+  "Schedule your GetAgeFit consultation: a conversation about your goals, your history, and whether personalized coaching is the right fit for you.";
 
 export const metadata: Metadata = {
-  title: "Schedule a Consultation",
-  description:
-    "Schedule your GetAgeFit consultation: a conversation about your goals, your history, and whether personalized coaching is the right fit for you.",
+  title: CONSULTATION_TITLE,
+  description: CONSULTATION_DESCRIPTION,
   alternates: { canonical: "/consultation" },
+  ...pageOpenGraph({
+    title: CONSULTATION_TITLE,
+    description: CONSULTATION_DESCRIPTION,
+    path: "/consultation",
+  }),
 };
 
 const covers = [
@@ -41,6 +51,15 @@ export default function ConsultationPage() {
             No pressure, no scripted sales pitch, just an honest
             conversation about your goals and whether GetAgeFit is the right
             coaching partner for you.
+          </p>
+          <p className="mb-6 text-sm text-ink-500">
+            Have a few questions?{" "}
+            <Link
+              href="/faq"
+              className="font-medium text-sage-700 underline decoration-1 underline-offset-2 hover:text-sage-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-600"
+            >
+              Visit our FAQ page.
+            </Link>
           </p>
           <div className="flex items-center justify-center gap-3">
             <div className="flex -space-x-3">

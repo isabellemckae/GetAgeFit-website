@@ -3,6 +3,7 @@ import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
+import { FirstLetterEmphasis } from "@/components/ui/FirstLetterEmphasis";
 import { RecognitionList } from "@/components/home/RecognitionList";
 import { OutcomeAnchor } from "@/components/home/OutcomeAnchor";
 import { FeaturedTestimonials } from "@/components/home/FeaturedTestimonials";
@@ -12,6 +13,7 @@ import { FounderHomeSection } from "@/components/home/FounderHomeSection";
 import { outcomes } from "@/content/outcomes";
 import { objectionsClosing } from "@/content/objections";
 import { siteConfig } from "@/lib/site-config";
+import { pageOpenGraph } from "@/lib/seo";
 
 // Demo #2 homepage. Rebuilt per the approved New Website Master Reference
 // (§10, §11) and Prompt 3 — see docs/ARCHITECTURE.md for the full
@@ -20,11 +22,15 @@ import { siteConfig } from "@/lib/site-config";
 // doesn't cascade the new CTA wording onto secondary pages that haven't
 // been reviewed yet — that propagation is planned for Phase 4/5.
 
+const HOME_TITLE = "Personal Training for Adults 40+ in Georgetown, TX";
+const HOME_DESCRIPTION =
+  "Get Age Fit's 12-week transformation experience is healthy-aging personal training for brand-new clients 40 to 80+, built around strength, independence, and confidence for the years ahead.";
+
 export const metadata: Metadata = {
-  title: "Personal Training for Adults 40+ in Georgetown, TX",
-  description:
-    "Get Age Fit's 12-week transformation experience is healthy-aging personal training for brand-new clients 40 to 80+, built around strength, independence, and confidence for the years ahead.",
+  title: HOME_TITLE,
+  description: HOME_DESCRIPTION,
   alternates: { canonical: "/" },
+  ...pageOpenGraph({ title: HOME_TITLE, description: HOME_DESCRIPTION, path: "/" }),
 };
 
 const PRIMARY_CTA_LABEL = "Schedule Your Free Evaluation & Consultation";
@@ -55,8 +61,16 @@ export default function HomePage() {
         <div className="relative z-10 mx-auto w-full max-w-content px-6 md:px-10">
           <Badge tone="plum">The 12-Week Transformation Experience</Badge>
           <h1 className="mb-6 mt-5 max-w-2xl text-4xl leading-[1.08] text-sand-50 sm:text-5xl lg:text-[3.4rem]">
-            GET STRONG.{" "}
-            <span className="font-bold text-brand-lime-500">LIVE STRONG.</span>
+            <span className="block">
+              <FirstLetterEmphasis text="Gym in Georgetown, TX" />
+            </span>
+            <span className="block">
+              <FirstLetterEmphasis
+                text="Personal Training Personalized"
+                highlightWords={["Personalized"]}
+                highlightClassName="font-bold text-brand-lime-500"
+              />
+            </span>
           </h1>
           <p className="mb-4 max-w-xl text-lg leading-relaxed text-sand-100 sm:text-xl">
             You have a lot of life ahead of you. Let&rsquo;s make sure
@@ -89,16 +103,20 @@ export default function HomePage() {
             Maybe You&rsquo;re Noticing&hellip;
           </h2>
         </div>
+        {/* This section previously reused the hero's own leg-press photo
+            here too — the same image appeared twice in one scroll of the
+            homepage (client-flagged repetition, see Task 3 photography
+            audit). No second real action/interaction photo exists in the
+            current asset library to replace it with honestly, so this
+            falls back to the on-brand photo placeholder (per
+            PhotoPlaceholder.tsx's own stated purpose) rather than reusing
+            the hero photo again or introducing a stock image. */}
         <ResponsiveImage
-          src="/images/training/coaching-session-leg-press.webp"
           alt="A real Get Age Fit client working with a trainer"
           placeholderLabel="Recognition photo needed: real client working with trainer"
           aspect="aspect-[16/9]"
-          imageClassName="object-[35%_35%]"
           className="mx-auto mb-12 max-w-2xl shadow-soft"
-        >
-          <div className="photo-tint-sage" />
-        </ResponsiveImage>
+        />
         <RecognitionList />
       </Section>
 

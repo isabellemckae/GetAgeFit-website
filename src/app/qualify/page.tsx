@@ -3,13 +3,18 @@ import { Container } from "@/components/ui/Container";
 import { Eyebrow } from "@/components/ui/Section";
 import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
 import { QualifyQuiz } from "@/components/forms/QualifyQuiz";
+import { pageOpenGraph } from "@/lib/seo";
+
+const QUALIFY_TITLE = "Is GetAgeFit Right for You?";
+const QUALIFY_DESCRIPTION =
+  "A short, thoughtful qualification experience to help you understand whether GetAgeFit's personalized coaching is the right fit, no pressure, no obligation.";
 
 export const metadata: Metadata = {
-  title: "Is GetAgeFit Right for You?",
-  description:
-    "A short, thoughtful qualification experience to help you understand whether GetAgeFit's personalized coaching is the right fit, no pressure, no obligation.",
+  title: QUALIFY_TITLE,
+  description: QUALIFY_DESCRIPTION,
   alternates: { canonical: "/qualify" },
   robots: { index: true, follow: true },
+  ...pageOpenGraph({ title: QUALIFY_TITLE, description: QUALIFY_DESCRIPTION, path: "/qualify" }),
 };
 
 export default function QualifyPage() {

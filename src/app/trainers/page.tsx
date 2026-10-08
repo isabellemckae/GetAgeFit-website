@@ -6,12 +6,17 @@ import { TrainersGrid } from "@/components/content/TrainersGrid";
 import { PageHero } from "@/components/layout/PageHero";
 import { trainers } from "@/content/trainers";
 import { cta } from "@/lib/site-config";
+import { pageOpenGraph } from "@/lib/seo";
+
+const TRAINERS_TITLE = "Trainers | Meet the GetAgeFit Coaching Team";
+const TRAINERS_DESCRIPTION =
+  "Meet the coaches behind GetAgeFit's personalized healthy-aging training in Georgetown, Texas: expert, human, and invested in your independence.";
 
 export const metadata: Metadata = {
-  title: "Trainers | Meet the GetAgeFit Coaching Team",
-  description:
-    "Meet the coaches behind GetAgeFit's personalized healthy-aging training in Georgetown, Texas: expert, human, and invested in your independence.",
+  title: TRAINERS_TITLE,
+  description: TRAINERS_DESCRIPTION,
   alternates: { canonical: "/trainers" },
+  ...pageOpenGraph({ title: TRAINERS_TITLE, description: TRAINERS_DESCRIPTION, path: "/trainers" }),
 };
 
 export default function TrainersPage() {

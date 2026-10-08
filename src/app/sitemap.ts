@@ -15,8 +15,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/contact",
     "/consultation",
     "/qualify",
-    "/privacy",
-    "/terms",
+    // /privacy and /terms are intentionally left out: both are marked
+    // `robots: { index: false }` (placeholder legal content pending
+    // counsel review — see their own page.tsx), and listing a noindex
+    // page in the sitemap sends crawlers contradictory signals.
   ];
 
   return staticRoutes.map((route) => ({

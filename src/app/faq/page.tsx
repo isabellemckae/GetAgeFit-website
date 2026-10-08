@@ -5,6 +5,7 @@ import { FAQAccordion } from "@/components/content/FAQAccordion";
 import { CTASection } from "@/components/content/CTASection";
 import { JsonLd, faqJsonLd } from "@/components/JsonLd";
 import { faqs } from "@/content/faq";
+import { pageOpenGraph } from "@/lib/seo";
 
 // New dedicated FAQ page (client-directed) — placed in primary nav rather
 // than added to the homepage, per instruction to keep the homepage
@@ -12,11 +13,15 @@ import { faqs } from "@/content/faq";
 // established on /how-it-works (see that page's own shorter FAQ), with a
 // longer, more complete set of pre-consultation questions here.
 
+const FAQ_TITLE = "FAQ | Questions About Personal Training at GetAgeFit";
+const FAQ_DESCRIPTION =
+  "Answers to the questions adults 40+ most often ask before scheduling a free evaluation and consultation at GetAgeFit in Georgetown, Texas.";
+
 export const metadata: Metadata = {
-  title: "FAQ | Questions About Personal Training at GetAgeFit",
-  description:
-    "Answers to the questions adults 40+ most often ask before scheduling a free evaluation and consultation at GetAgeFit in Georgetown, Texas.",
+  title: FAQ_TITLE,
+  description: FAQ_DESCRIPTION,
   alternates: { canonical: "/faq" },
+  ...pageOpenGraph({ title: FAQ_TITLE, description: FAQ_DESCRIPTION, path: "/faq" }),
 };
 
 export default function FAQPage() {
@@ -26,8 +31,8 @@ export default function FAQPage() {
 
       <PageHero
         eyebrow="FAQ"
-        heading="Questions before you get started."
-        body="Honest answers to what adults 40+ most often want to know before scheduling a free evaluation and consultation."
+        heading="Frequently asked questions"
+        body="Getting started with personal training should feel exciting, not intimidating. We want you to feel welcome, comfortable, and confident from your very first visit. Here are answers to some of the questions we hear most often."
       />
 
       <Section tone="white">
@@ -36,7 +41,11 @@ export default function FAQPage() {
         </div>
       </Section>
 
-      <CTASection location="faq-page" />
+      <CTASection
+        location="faq-page"
+        heading="Ready to experience GetAgeFit?"
+        body="Whether you want to regain strength, improve your energy, feel more confident, or simply stay active as you age, we'd love to meet you. Start with a complimentary consultation and personal training experience. No pressure, no obligation, just a warm welcome."
+      />
     </>
   );
 }

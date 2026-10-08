@@ -9,12 +9,21 @@ import { JsonLd, faqJsonLd } from "@/components/JsonLd";
 import { pillars } from "@/content/pillars";
 import { Button } from "@/components/ui/Button";
 import { cta } from "@/lib/site-config";
+import { pageOpenGraph } from "@/lib/seo";
+
+const HOW_IT_WORKS_TITLE = "How It Works | The GetAgeFit Process";
+const HOW_IT_WORKS_DESCRIPTION =
+  "From consultation to your 12-week transformation: see exactly how GetAgeFit's healthy-aging coaching process works for brand-new clients, step by step.";
 
 export const metadata: Metadata = {
-  title: "How It Works | The GetAgeFit Process",
-  description:
-    "From consultation to your 12-week transformation: see exactly how GetAgeFit's healthy-aging coaching process works for brand-new clients, step by step.",
+  title: HOW_IT_WORKS_TITLE,
+  description: HOW_IT_WORKS_DESCRIPTION,
   alternates: { canonical: "/how-it-works" },
+  ...pageOpenGraph({
+    title: HOW_IT_WORKS_TITLE,
+    description: HOW_IT_WORKS_DESCRIPTION,
+    path: "/how-it-works",
+  }),
 };
 
 const steps = [
@@ -88,11 +97,11 @@ export default function HowItWorksPage() {
           split-panel hero and the homepage's mesh-gradient hero. */}
       <section className="relative flex h-[420px] items-center overflow-hidden md:h-[480px]">
         <ResponsiveImage
-          src="/images/training/coaching-session-leg-press.webp"
-          alt="A GetAgeFit trainer coaching a client through a strength machine"
+          src="/images/trainers/chip-collerain.webp"
+          alt="Chip Collerain, GetAgeFit personal trainer"
           placeholderLabel="How it works hero photo"
           aspect="aspect-auto"
-          imageClassName="object-center"
+          imageClassName="object-top"
           className="!absolute !inset-0 !h-full !w-full !rounded-none"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-ink-900/90 via-ink-900/70 to-plum-900/60" />

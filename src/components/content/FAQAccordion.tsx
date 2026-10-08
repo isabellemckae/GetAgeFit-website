@@ -40,7 +40,7 @@ export function FAQAccordion({ items }: { items: FAQItem[] }) {
               role="region"
               aria-labelledby={buttonId}
               hidden={!isOpen}
-              className="px-6 pb-5 text-[0.95rem] leading-relaxed text-ink-500"
+              className="whitespace-pre-line px-6 pb-5 text-[0.95rem] leading-relaxed text-ink-500"
             >
               {item.answer}
             </div>

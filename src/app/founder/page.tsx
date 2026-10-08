@@ -5,6 +5,7 @@ import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
 import { SupplementTeaser } from "@/components/home/SupplementTeaser";
 
 import { CTASection } from "@/components/content/CTASection";
+import { pageOpenGraph } from "@/lib/seo";
 
 // Split back out from the combined About/Founder page (client-directed):
 // this page is now Theo's personal story exclusively — the business/
@@ -17,11 +18,15 @@ import { CTASection } from "@/components/content/CTASection";
 // bodybuilding photo gallery, per direction — and the supplement teaser
 // (moved from the homepage) now lives below it.
 
+const FOUNDER_TITLE = "Founder | Theo Thurston's Story";
+const FOUNDER_DESCRIPTION =
+  "Meet Theo Thurston, founder of GetAgeFit: his own fitness journey, his bodybuilding background, and why he built a studio dedicated to healthy aging.";
+
 export const metadata: Metadata = {
-  title: "Founder | Theo Thurston's Story",
-  description:
-    "Meet Theo Thurston, founder of GetAgeFit: his own fitness journey, his bodybuilding background, and why he built a studio dedicated to healthy aging.",
+  title: FOUNDER_TITLE,
+  description: FOUNDER_DESCRIPTION,
   alternates: { canonical: "/founder" },
+  ...pageOpenGraph({ title: FOUNDER_TITLE, description: FOUNDER_DESCRIPTION, path: "/founder" }),
 };
 
 export default function FounderPage() {
