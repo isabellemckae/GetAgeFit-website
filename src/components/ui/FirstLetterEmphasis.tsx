@@ -17,6 +17,14 @@
  * bump stays proportionate to whatever font-size is in effect at the
  * current responsive breakpoint, rather than a fixed px value that would
  * look oversized on mobile and undersized on desktop.
+ *
+ * `emphasizeFirstLetter` (default true) can be turned off for a line that's
+ * been sized down to a small supporting label rather than a headline — a
+ * fixed +2.6667px bump reads as a subtle refinement at headline scale, but
+ * becomes a jarring, disproportionate size jump at ~14px (Oct 2026 "Two
+ * Front-End Corrections" follow-up: the "Gym in Georgetown, TX" line was
+ * demoted from headline to small location label). Uppercase + the
+ * aria-hidden/sr-only accessible-name pattern stay in effect either way.
  */
 const FIRST_LETTER_SIZE = "calc(1em + 2.6667px)";
 
@@ -24,10 +32,12 @@ export function FirstLetterEmphasis({
   text,
   highlightWords = [],
   highlightClassName = "",
+  emphasizeFirstLetter = true,
 }: {
   text: string;
   highlightWords?: string[];
   highlightClassName?: string;
+  emphasizeFirstLetter?: boolean;
 }) {
   const words = text.split(" ");
 
@@ -46,7 +56,11 @@ export function FirstLetterEmphasis({
               <span
                 className={`whitespace-nowrap ${highlighted ? highlightClassName : ""}`}
               >
-                <span style={{ fontSize: FIRST_LETTER_SIZE }}>{word.slice(0, 1)}</span>
+                {emphasizeFirstLetter ? (
+                  <span style={{ fontSize: FIRST_LETTER_SIZE }}>{word.slice(0, 1)}</span>
+                ) : (
+                  word.slice(0, 1)
+                )}
                 {word.slice(1)}
               </span>
               {!isLast ? " " : ""}

@@ -48,8 +48,8 @@ export default function HomePage() {
           treatment changed. */}
       <section className="relative flex h-[720px] items-center overflow-hidden md:h-[600px]">
         <ResponsiveImage
-          src="/images/training/coaching-session-leg-press.webp"
-          alt="A GetAgeFit trainer coaching a client through a leg-press machine at the studio"
+          src="/images/training/hero-strength-duo.webp"
+          alt="Two GetAgeFit clients celebrating their strength gains"
           placeholderLabel="Hero photo needed: warm trainer/client interaction"
           aspect="aspect-auto"
           imageClassName="object-center"
@@ -60,11 +60,17 @@ export default function HomePage() {
         </ResponsiveImage>
         <div className="relative z-10 mx-auto w-full max-w-content px-6 md:px-10">
           <Badge tone="plum">The 12-Week Transformation Experience</Badge>
-          <h1 className="mb-6 mt-5 max-w-2xl text-4xl leading-[1.08] text-sand-50 sm:text-5xl lg:text-[3.4rem]">
-            <span className="block">
-              <FirstLetterEmphasis text="Gym in Georgetown, TX" />
+          <h1 className="mb-6 mt-5 max-w-2xl text-sand-50">
+            {/* Small supporting location label, not a headline — reduced
+                from the original headline-scale treatment per direct
+                follow-up correction. Kept inside the same <h1> as the
+                actual headline below (rather than its own heading level)
+                since it's a location identifier for local SEO, not a
+                second page heading. */}
+            <span className="mb-1 block text-[13px] leading-snug tracking-wide sm:text-[15px]">
+              <FirstLetterEmphasis text="Gym in Georgetown, TX" emphasizeFirstLetter={false} />
             </span>
-            <span className="block">
+            <span className="block text-4xl leading-[1.08] sm:text-5xl lg:text-[3.4rem]">
               <FirstLetterEmphasis
                 text="Personal Training Personalized"
                 highlightWords={["Personalized"]}
@@ -106,17 +112,18 @@ export default function HomePage() {
         {/* This section previously reused the hero's own leg-press photo
             here too — the same image appeared twice in one scroll of the
             homepage (client-flagged repetition, see Task 3 photography
-            audit). No second real action/interaction photo exists in the
-            current asset library to replace it with honestly, so this
-            falls back to the on-brand photo placeholder (per
-            PhotoPlaceholder.tsx's own stated purpose) rather than reusing
-            the hero photo again or introducing a stock image. */}
+            audit). Client-supplied replacement photo now fills the gap
+            left when that duplicate was removed. */}
         <ResponsiveImage
-          alt="A real Get Age Fit client working with a trainer"
+          src="/images/training/client-trainer-recognition.jpg"
+          alt="A GetAgeFit client with her trainer at the Georgetown studio"
           placeholderLabel="Recognition photo needed: real client working with trainer"
           aspect="aspect-[16/9]"
+          imageClassName="object-top"
           className="mx-auto mb-12 max-w-2xl shadow-soft"
-        />
+        >
+          <div className="photo-tint-sage" />
+        </ResponsiveImage>
         <RecognitionList />
       </Section>
 
