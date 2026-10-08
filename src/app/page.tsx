@@ -47,13 +47,29 @@ export default function HomePage() {
           Demo #4 Part 2.1. Same hero copy/CTA as before; only the container
           treatment changed. */}
       <section className="relative flex h-[720px] items-center overflow-hidden md:h-[600px]">
+        {/* Art-directed crop: the wide banner crop that works on desktop
+            crams both people into a narrow sliver on a tall, narrow mobile
+            viewport. A separate, purpose-cropped portrait photo (both
+            faces framed properly) is swapped in below `md` instead of
+            just reframing the same wide image. */}
+        <ResponsiveImage
+          src="/images/training/hero-strength-duo-mobile.jpg"
+          alt="Two GetAgeFit clients celebrating their strength gains"
+          placeholderLabel="Hero photo needed: warm trainer/client interaction"
+          aspect="aspect-auto"
+          imageClassName="object-center"
+          className="!absolute !inset-0 !block !h-full !w-full !rounded-none md:!hidden"
+          priority
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-ink-900/90 via-ink-900/70 to-plum-900/60" />
+        </ResponsiveImage>
         <ResponsiveImage
           src="/images/training/hero-strength-duo.webp"
           alt="Two GetAgeFit clients celebrating their strength gains"
           placeholderLabel="Hero photo needed: warm trainer/client interaction"
           aspect="aspect-auto"
           imageClassName="object-center"
-          className="!absolute !inset-0 !h-full !w-full !rounded-none"
+          className="!absolute !inset-0 !hidden !h-full !w-full !rounded-none md:!block"
           priority
         >
           <div className="absolute inset-0 bg-gradient-to-r from-ink-900/90 via-ink-900/70 to-plum-900/60" />
