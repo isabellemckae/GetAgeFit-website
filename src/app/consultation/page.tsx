@@ -53,12 +53,11 @@ export default function ConsultationPage() {
             coaching partner for you.
           </p>
           <p className="mb-6 text-sm text-ink-500">
-            Have a few questions?{" "}
             <Link
               href="/faq"
               className="font-medium text-sage-700 underline decoration-1 underline-offset-2 hover:text-sage-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-600"
             >
-              Visit our FAQ page.
+              FAQ
             </Link>
           </p>
           <div className="flex items-center justify-center gap-3">
