@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { forwardToCrm } from "@/lib/crm";
 import { upsertGenericLead, PRODUCT_INTEREST_ESSENTIALS } from "@/lib/airtableClient";
+import { syncWaitlistSubscriber } from "@/lib/klaviyoClient";
 
 // Maps this route's `source` values (set by each form component's fetch
 // call — see ContactForm.tsx and SupplementTeaser.tsx) to the exact
@@ -53,6 +54,20 @@ function logLeadWriteFailure(input: {
   // src/lib/airtableClient.ts), so this line doesn't need to repeat them.
   console.error(
     `[LeadSubmission] integration=airtable status=${input.status} reason=${input.reason ?? "n/a"} persisted=false source=${input.source} crmForwarded=${input.crmForwarded}`,
+  );
+}
+
+// Same structured-log convention as logLeadWriteFailure above, for the
+// Klaviyo sync specifically. Klaviyo is additive/fire-and-forget relative
+// to the Airtable write (see the call site): this log is the only signal
+// an operator gets when Airtable succeeds but Klaviyo didn't, or vice
+// versa — the HTTP response to the browser never reports Klaviyo status
+// as if it were guaranteed, and a Klaviyo failure never changes what the
+// browser is told about the Airtable write.
+function logKlaviyoOutcome(input: { status: string; reason?: string; airtableStatus: string }) {
+  if (input.status === "synced") return;
+  console.error(
+    `[LeadSubmission] integration=klaviyo status=${input.status} reason=${input.reason ?? "n/a"} airtableStatus=${input.airtableStatus}`,
   );
 }
 
@@ -160,6 +175,35 @@ export async function POST(req: NextRequest) {
     productInterest,
   });
 
+  // Klaviyo sync — supplement waitlist only (never Contact-form or any
+  // other source; consultation/Calendly leads are never synced to Klaviyo
+  // at all, per explicit direction). Fire-and-forget relative to the
+  // Airtable write above: Airtable stays the sole system of record and
+  // the sole determinant of the HTTP response below. A Klaviyo failure is
+  // logged, never surfaced to the visitor as if their Airtable-recorded
+  // signup had failed, and never silently reported as a success either —
+  // see klaviyoStatus in each response branch below.
+  const klaviyoResult = isSupplementWaitlist
+    ? await syncWaitlistSubscriber({
+        firstName,
+        lastName,
+        email,
+        phone,
+        emailConsent: emailConsent ?? false,
+        smsConsent: smsConsent ?? false,
+        productInterest: productInterest ?? PRODUCT_INTEREST_ESSENTIALS,
+        sourceDetail: detail,
+        submittedAt,
+      })
+    : null;
+  if (klaviyoResult) {
+    logKlaviyoOutcome({
+      status: klaviyoResult.status,
+      reason: "reason" in klaviyoResult ? klaviyoResult.reason : undefined,
+      airtableStatus: airtableResult.status,
+    });
+  }
+
   // Only "created" and "updated" mean the signup actually landed in
   // Airtable. Every other status — including "unavailable" (Airtable
   // unconfigured or unreachable) and "error" (a failed API call) — must
@@ -174,6 +218,7 @@ export async function POST(req: NextRequest) {
       forwarded,
       airtableWrite: true,
       airtableStatus: airtableResult.status,
+      klaviyoStatus: klaviyoResult?.status ?? "not_applicable",
     });
   }
 
@@ -183,6 +228,7 @@ export async function POST(req: NextRequest) {
       forwarded,
       airtableWrite: false,
       airtableStatus: "skipped_duplicate",
+      klaviyoStatus: klaviyoResult?.status ?? "not_applicable",
     });
   }
 

@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 
 const upsertGenericLead = vi.fn();
 const forwardToCrm = vi.fn();
+const syncWaitlistSubscriber = vi.fn();
 
 vi.mock("@/lib/airtableClient", () => ({
   upsertGenericLead: (...args: unknown[]) => upsertGenericLead(...args),
@@ -11,6 +12,10 @@ vi.mock("@/lib/airtableClient", () => ({
 
 vi.mock("@/lib/crm", () => ({
   forwardToCrm: (...args: unknown[]) => forwardToCrm(...args),
+}));
+
+vi.mock("@/lib/klaviyoClient", () => ({
+  syncWaitlistSubscriber: (...args: unknown[]) => syncWaitlistSubscriber(...args),
 }));
 
 // Imported after the mocks above so route.ts picks up the mocked modules.
@@ -46,6 +51,7 @@ describe("POST /api/lead — validation", () => {
     upsertGenericLead.mockReset();
     forwardToCrm.mockReset();
     forwardToCrm.mockResolvedValue({ forwarded: true });
+    syncWaitlistSubscriber.mockReset();
   });
 
   it("rejects an invalid email and never attempts the Airtable write", async () => {
@@ -85,6 +91,7 @@ describe("POST /api/lead — contact form submission", () => {
     upsertGenericLead.mockReset();
     forwardToCrm.mockReset();
     forwardToCrm.mockResolvedValue({ forwarded: true });
+    syncWaitlistSubscriber.mockReset();
   });
 
   it("classifies as the Contact Form source and never sends consent fields", async () => {
@@ -111,6 +118,14 @@ describe("POST /api/lead — contact form submission", () => {
     await POST(postRequest(validContact));
     expect(forwardToCrm).toHaveBeenCalledTimes(1);
   });
+
+  it("never calls the Klaviyo sync for a non-waitlist source", async () => {
+    upsertGenericLead.mockResolvedValue({ status: "created", recordId: "rec1" });
+    const res = await POST(postRequest(validContact));
+    const json = await res.json();
+    expect(syncWaitlistSubscriber).not.toHaveBeenCalled();
+    expect(json.klaviyoStatus).toBe("not_applicable");
+  });
 });
 
 describe("POST /api/lead — supplement waitlist submission", () => {
@@ -118,6 +133,14 @@ describe("POST /api/lead — supplement waitlist submission", () => {
     upsertGenericLead.mockReset();
     forwardToCrm.mockReset();
     forwardToCrm.mockResolvedValue({ forwarded: true });
+    syncWaitlistSubscriber.mockReset();
+    syncWaitlistSubscriber.mockResolvedValue({
+      status: "synced",
+      profileId: "prof_1",
+      emailAction: "subscribed",
+      smsAction: "subscribed",
+      eventTracked: true,
+    });
   });
 
   it("classifies as the waitlist source and sets consent + product interest", async () => {
@@ -149,6 +172,56 @@ describe("POST /api/lead — supplement waitlist submission", () => {
       expect.objectContaining({ emailConsent: true, smsConsent: false }),
     );
   });
+
+  it("calls the Klaviyo sync with the same consent values sent to Airtable, and reports its status", async () => {
+    upsertGenericLead.mockResolvedValue({ status: "created", recordId: "rec1" });
+
+    const res = await POST(postRequest(validWaitlist));
+    const json = await res.json();
+
+    expect(syncWaitlistSubscriber).toHaveBeenCalledWith(
+      expect.objectContaining({
+        emailConsent: true,
+        smsConsent: true,
+        productInterest: "GetAgeFit Essentials (ageLIFT + ageFUEL)",
+        sourceDetail: "GetAgeFit Essentials Waitlist",
+      }),
+    );
+    expect(json.klaviyoStatus).toBe("synced");
+  });
+
+  it("reports the Airtable write as successful even when Klaviyo fails (Airtable succeeds / Klaviyo fails)", async () => {
+    upsertGenericLead.mockResolvedValue({ status: "created", recordId: "rec1" });
+    syncWaitlistSubscriber.mockResolvedValue({ status: "error", reason: "subscribe_failed_401" });
+
+    const res = await POST(postRequest(validWaitlist));
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json).toMatchObject({ ok: true, airtableWrite: true, klaviyoStatus: "error" });
+  });
+
+  it("still reports Airtable's real failure even when Klaviyo succeeds (Klaviyo succeeds / Airtable fails)", async () => {
+    upsertGenericLead.mockResolvedValue({ status: "error", reason: "create_failed_500" });
+    syncWaitlistSubscriber.mockResolvedValue({
+      status: "synced",
+      profileId: "prof_1",
+      emailAction: "subscribed",
+      smsAction: "subscribed",
+      eventTracked: true,
+    });
+
+    const res = await POST(postRequest(validWaitlist));
+    const json = await res.json();
+
+    // The response body must never claim overall success just because
+    // Klaviyo succeeded — Airtable's failure still drives ok:false, and
+    // Klaviyo's own status is not even included in this error shape (see
+    // the failure branch in route.ts), so it can't be misread as "both ok".
+    expect(res.ok).toBe(false);
+    expect(json.ok).toBe(false);
+    expect(json.klaviyoStatus).toBeUndefined();
+  });
 });
 
 describe("POST /api/lead — honest success/failure reporting", () => {
@@ -156,6 +229,14 @@ describe("POST /api/lead — honest success/failure reporting", () => {
     upsertGenericLead.mockReset();
     forwardToCrm.mockReset();
     forwardToCrm.mockResolvedValue({ forwarded: true });
+    syncWaitlistSubscriber.mockReset();
+    syncWaitlistSubscriber.mockResolvedValue({
+      status: "synced",
+      profileId: "prof_1",
+      emailAction: "subscribed",
+      smsAction: "subscribed",
+      eventTracked: true,
+    });
   });
 
   it("returns a distinct, non-2xx-free needs-review response on a duplicate collision", async () => {
