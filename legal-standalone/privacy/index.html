@@ -8,13 +8,14 @@
 <!--
   Sibling to ../index.html (Mobile Messaging Terms) in this same standalone
   project. Content is based on a direct audit of this codebase's actual
-  data-collection points and integrations (see the internal review notice
-  below and the commit message for the full audit) — NOT a generic
-  boilerplate policy. Retention periods, security guarantees, and rights
-  procedures that are not actually implemented anywhere in this codebase
-  are explicitly flagged as requiring business/legal input, never asserted.
+  data-collection points and integrations (see the commit history for the
+  full audit) — NOT a generic boilerplate policy. Where this codebase has
+  no implemented retention period, security claim, or formal rights
+  procedure, the policy text below says so plainly rather than inventing
+  one.
 
-  NOT deployed anywhere yet.
+  Finalized for publication: internal reviewer notice removed, placeholders
+  filled (legal entity name, business address, effective date).
 -->
 <style>
   :root {
@@ -23,8 +24,6 @@
     --ink-700: #3A3F37;
     --plum-600: #684369;
     --sage-700: #374F31;
-    --amber-bg: #FEF3C7;
-    --amber-border: #D97706;
   }
   * { box-sizing: border-box; }
   body {
@@ -45,20 +44,6 @@
   p, li { margin: 0 0 16px; }
   .meta { font-size: 0.85rem; color: #7a8075; margin-bottom: 8px; }
   a { color: var(--plum-600); }
-  .notice {
-    border: 2px solid var(--amber-border); background: var(--amber-bg);
-    border-radius: 12px; padding: 18px 20px; margin-bottom: 32px; font-size: 0.92rem;
-  }
-  .notice p:first-child {
-    margin-top: 0; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.05em; color: var(--amber-border);
-  }
-  .notice ul { margin: 0; padding-left: 20px; }
-  .notice li { margin-bottom: 8px; }
-  mark {
-    background: var(--amber-bg); border: 1px solid var(--amber-border);
-    border-radius: 4px; padding: 0 4px; font-weight: 600; color: var(--ink-900);
-  }
   .end-note { margin-top: 40px; font-size: 0.9rem; font-style: italic; color: #8a8f85; }
 </style>
 </head>
@@ -67,46 +52,8 @@
   <p class="eyebrow">Legal</p>
   <h1>Get Age Fit Privacy Policy</h1>
 
-  <div class="notice">
-    <p>Internal review notice — not yet approved to publish</p>
-    <p>This draft is based on a direct audit of the actual website codebase (every form, API route,
-      and third-party integration as currently implemented and currently configured) — not a
-      generic template. Before publishing, business/legal review is needed on:</p>
-    <ul>
-      <li><strong>Data retention periods:</strong> no retention or automatic-deletion period is
-        implemented anywhere in this codebase today. Section 6 below says so plainly rather than
-        inventing a number — a real retention policy needs to be decided and then reflected here.</li>
-      <li><strong>Security practices:</strong> Section 7 states only what's independently verifiable
-        (data in transit is encrypted via HTTPS, a byproduct of the Vercel/Airtable/Klaviyo/Calendly
-        platforms all being HTTPS-only). No claim is made about encryption at rest, access controls,
-        audit logging, or any certification (e.g. SOC 2) — add only if actually true and confirmed.</li>
-      <li><strong>Data subject rights procedure:</strong> there is no self-serve data-access/deletion
-        mechanism implemented. Section 8 describes the only mechanisms that actually exist today
-        (SMS STOP, emailing support) — confirm whether a more formal access/deletion request process
-        is required (e.g. for CCPA/CPRA if California residents are a meaningful audience) and, if so,
-        what that process actually is before publishing.</li>
-      <li><strong>Support inbox monitoring:</strong> same open item as the Mobile Terms — confirm
-        info@getagefit.com is actively monitored for privacy/data requests.</li>
-      <li><strong>Cookies/analytics:</strong> Google Analytics 4 and Microsoft Clarity exist in the
-        codebase but are NOT currently active in any deployed environment (no measurement/project ID
-        is configured anywhere) — Section 5 states this as currently inactive, not hypothetically
-        planned. No cookie-consent banner exists in the codebase today either. If/when GA4 or Clarity
-        are turned on, this section and a cookie-consent mechanism both need to be revisited together,
-        not after the fact.</li>
-      <li><strong>CRM webhook and Calendly-to-Airtable automation:</strong> both exist in code but have
-        no credentials configured in any environment, so neither is currently receiving any data —
-        Section 4 states this precisely rather than describing them as active integrations.</li>
-      <li><strong>Legal characterization of consent</strong> for the Contact, Qualification Quiz, and
-        Consultation forms: these collect contact/health-adjacent information (e.g. injury details) to
-        respond to the visitor's own inquiry, with no separate marketing-consent checkbox (unlike the
-        SMS waitlist checkbox). Section 3's description of this is a factual account of what the code
-        does, not a legal conclusion about the appropriate basis for processing — that characterization
-        should come from counsel.</li>
-    </ul>
-  </div>
-
-  <p class="meta">Effective Date: <mark>[DATE OF ACTUAL PUBLICATION]</mark></p>
-  <p class="meta">Last Updated: <mark>[DATE OF ACTUAL PUBLICATION]</mark></p>
+  <p class="meta">Effective Date: October 13, 2026</p>
+  <p class="meta">Last Updated: October 13, 2026</p>
 
   <h2>1. Introduction</h2>
   <p>This Privacy Policy describes how Get Age Fit, LLC, doing business as Get Age Fit (&ldquo;Get Age
@@ -197,10 +144,10 @@
   activated, this section and an appropriate consent mechanism will need to be updated together.</p>
 
   <h2>6. Data Retention</h2>
-  <p><mark>[REQUIRES BUSINESS/LEGAL INPUT]</mark> We do not currently have a defined retention period
-  for the information described above, and no automatic deletion process is implemented in our systems
-  today. A specific retention policy needs to be decided and reflected here before this section can be
-  considered complete.</p>
+  <p>We do not currently apply a fixed retention period to the information described above. We keep it
+  for as long as reasonably necessary to operate the program you signed up for and to respond to your
+  inquiry, or until you ask us to delete it. You may contact us at any time, using the information in
+  Section 11, to ask what information we hold about you or to request that it be deleted.</p>
 
   <h2>7. Security</h2>
   <p>Information submitted through this website is transmitted over an encrypted (HTTPS) connection.
@@ -214,10 +161,8 @@
   <a href="/">Mobile Messaging Terms of Service</a>. For any other question about your information,
   including requesting to know what we have on file or asking us to delete it, you may contact us at
   <a href="mailto:info@getagefit.com">info@getagefit.com</a>.</p>
-  <p><mark>[REQUIRES BUSINESS/LEGAL INPUT]</mark> We do not currently have a formal, documented
-  access/deletion request process beyond responding to that inbox directly. If a more formal process is
-  legally required for your audience (for example, under state privacy laws), it should be defined and
-  described here.</p>
+  <p>We do not currently operate a separate, formal access or deletion request process beyond
+  responding directly to requests sent to the email address above.</p>
 
   <h2>9. Children&rsquo;s Privacy</h2>
   <p>Our SMS program is intended only for individuals who are at least 18 years old, as described in our

@@ -13,35 +13,37 @@ use in Klaviyo's SMS registration.
 - `privacy/index.html` — Privacy Policy (serves at `/privacy`), linked from
   the Mobile Terms' Section 8.
 
-**This has not been published anywhere.** No Vercel project has been
-created for it yet.
+**Both pages are finalized**: internal reviewer banners removed,
+placeholders filled (legal entity name "Get Age Fit, LLC", business
+address "3626 Williams Dr, Floor 2, Georgetown, TX 78628", effective date
+October 13, 2026). **Still not deployed anywhere** — no Vercel project has
+been created for this folder yet.
 
-## Before publishing
+## Open items — not page placeholders, but still real business decisions
 
-Legal entity name ("Get Age Fit, LLC") and business address ("3626 Williams
-Dr, Floor 2, Georgetown, TX 78628") are confirmed and filled in on both
-pages. The getagefit.com/privacy and /terms URLs are confirmed 404 (checked
-directly in a browser) — the Mobile Terms' Privacy Policy link now points
-to the sibling `/privacy` page here instead.
+These aren't blank fields left in the page text; they're operational/legal
+questions the published pages are honest about but don't resolve:
 
-Resolve every remaining item in each page's own "Internal review notice"
-before publishing:
+- **Support inbox monitoring**: both pages list `info@getagefit.com` as the
+  contact for SMS opt-out/HELP and privacy requests. Confirm it's actively
+  monitored with a response time appropriate for consumer requests.
+- **Data retention / data-rights procedure** (Privacy Policy, Sections 6 and
+  8): the published text accurately states that no fixed retention period
+  and no formal access/deletion process exist today — it does not invent
+  either. If a formal policy or process is wanted (e.g. for state privacy
+  law compliance), that's a business/legal decision for later, and these
+  sections would need a deliberate update at that point, not a quiet edit.
+- **Cookies/analytics** (Privacy Policy, Section 5): Google Analytics 4 and
+  Microsoft Clarity exist in the main site's code but are not configured or
+  active anywhere today; the policy says so. If either is ever turned on, a
+  cookie-consent mechanism and this section both need revisiting together.
+- **CRM webhook / Calendly-to-Airtable automation** (Privacy Policy, Section
+  4): both exist in code, neither has credentials configured anywhere, so
+  neither is currently receiving data — stated as such, not as active.
 
-- **Mobile Terms** (`index.html`): support-inbox monitoring, the effective-
-  date placeholder.
-- **Privacy Policy** (`privacy/index.html`): this draft was built from a
-  direct audit of the actual codebase (every form and every third-party
-  integration, checked against what's actually configured in Vercel today,
-  not just what exists in code) — see the commit message for the full
-  audit. Still needs business/legal input on: data retention period
-  (none implemented today), security claims (only HTTPS-in-transit is
-  stated; nothing further), a formal data subject access/deletion
-  procedure (none implemented beyond emailing support today), and the
-  same support-inbox monitoring question as the Mobile Terms.
-
-The same items are flagged in the `src/app/mobile-terms/page.tsx` version
-in the main app, so keep both in sync if either changes. Get explicit
-approval to publish before doing anything below.
+None of the above blocks publishing a page that's honest about current
+practice — they're flagged here as things to revisit later, not things
+required before these specific pages can go out.
 
 ## How to turn this into a public page (once approved)
 
@@ -60,21 +62,12 @@ project:
    point of a separate project: its protection settings are independent.
 5. Deploy. The resulting public URLs will be
    `https://<the-project-name-you-chose>.vercel.app/` (Mobile Terms) and
-   `.../privacy` (Privacy Policy) — e.g. naming it `getagefit-mobile-terms`
-   gives `https://getagefit-mobile-terms.vercel.app/` and
-   `https://getagefit-mobile-terms.vercel.app/privacy`. Confirm the
-   `/privacy` path resolves correctly once deployed (it should, by Vercel's
-   standard static directory-index convention, but verify rather than
-   assume before submitting it anywhere).
+   `.../privacy` (Privacy Policy).
 6. Once that real URL is known, go back and replace the
    `[STANDALONE LEGAL SITE URL]/privacy` placeholder in
-   `src/app/mobile-terms/page.tsx` with the real link.
+   `src/app/mobile-terms/page.tsx` (the main-app copy, still unpublished)
+   with the real link.
 7. Optionally attach a real subdomain you control (e.g.
    `legal.getagefit.com`) to this new project afterward for a branded URL —
    not required for Klaviyo's registration, which accepts any public HTTPS
    URL.
-
-Once deployed, delete the "Internal review notice" block from both
-`index.html` and `privacy/index.html` (reviewer-only notes, not part of
-the legal text) and redeploy before actually submitting either URL to
-Klaviyo or any carrier.
