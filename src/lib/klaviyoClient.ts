@@ -31,7 +31,22 @@
  * exists yet in any environment this code has run in. Treat the exact
  * request/response shapes as "implemented per documentation, pending a
  * real sandbox call" until that's been done.
+ *
+ * Phone numbers: Airtable keeps whatever the visitor typed, verbatim —
+ * that's a separate write this file never touches (see upsertGenericLead
+ * in airtableClient.ts). Klaviyo is different: it expects E.164
+ * (+15125551234), and this module normalizes a SEPARATE copy of the
+ * number for Klaviyo's wire format only, via libphonenumber-js (a
+ * maintained port of Google's libphonenumber — not a hand-rolled regex).
+ * "US" is used as the assumed region only when the input has no explicit
+ * country code, matching this form's real, current audience; a number
+ * that still doesn't parse as valid is never guessed at further — SMS
+ * subscription is simply skipped for that submission (see
+ * normalizeToE164 below), and that never blocks the email side or the
+ * Airtable write.
  */
+
+import { parsePhoneNumberFromString } from "libphonenumber-js";
 
 const KLAVIYO_API_ROOT = "https://a.klaviyo.com/api";
 // Pinned, not "latest" — an API revision change should be a deliberate,
@@ -90,7 +105,27 @@ export type WaitlistSyncInput = {
 
 type ChannelConsentStatus = "SUBSCRIBED" | "UNSUBSCRIBED" | "NEVER_SUBSCRIBED" | "unknown";
 
-type ChannelAction = "subscribed" | "unchanged" | "skipped_previously_unsubscribed" | "not_requested";
+type ChannelAction =
+  | "subscribed"
+  | "unchanged"
+  | "skipped_previously_unsubscribed"
+  | "skipped_invalid_phone"
+  | "not_requested";
+
+/**
+ * Normalizes a phone number to E.164 for Klaviyo's wire format only — the
+ * value Airtable stores is a separate, untouched copy (see this file's
+ * doc comment). Returns null for anything missing or that doesn't parse
+ * as a genuinely valid number, rather than guessing at a country code or
+ * forcing a shape on it; the caller treats null as "cannot SMS-subscribe
+ * this submission," never as a reason to fail the whole sync.
+ */
+export function normalizeToE164(phone: string | undefined): string | null {
+  if (!phone) return null;
+  const parsed = parsePhoneNumberFromString(phone, "US");
+  if (!parsed || !parsed.isValid()) return null;
+  return parsed.number; // always E.164 when isValid() is true
+}
 
 export type WaitlistSyncResult =
   | { status: "unavailable"; reason: string }
@@ -151,13 +186,16 @@ async function findProfileByEmail(
 
 async function upsertProfileAttributes(
   input: WaitlistSyncInput,
+  klaviyoPhone: string | null,
   existingId: string | undefined,
   config: KlaviyoConfig,
 ): Promise<{ status: "ok"; id: string } | { status: "error"; reason: string }> {
-  const fullName = `${input.firstName ?? ""} ${input.lastName ?? ""}`.trim();
   const attributes: Record<string, unknown> = {
     email: input.email,
-    ...(input.phone ? { phone_number: input.phone } : {}),
+    // Only ever the normalized E.164 value, never the raw input — an
+    // unparseable number is omitted entirely rather than sent as-is,
+    // since Klaviyo may itself reject a non-E.164 phone_number.
+    ...(klaviyoPhone ? { phone_number: klaviyoPhone } : {}),
     ...(input.firstName ? { first_name: input.firstName } : {}),
     ...(input.lastName ? { last_name: input.lastName } : {}),
     properties: {
@@ -201,6 +239,7 @@ async function upsertProfileAttributes(
 
 async function subscribeChannels(
   input: WaitlistSyncInput,
+  klaviyoPhone: string | null,
   channels: { email: boolean; sms: boolean },
   config: KlaviyoConfig,
 ): Promise<{ status: "ok" } | { status: "error"; reason: string }> {
@@ -210,7 +249,11 @@ async function subscribeChannels(
 
   const profile: Record<string, unknown> = {
     type: "profile",
-    attributes: { email: input.email, ...(input.phone ? { phone_number: input.phone } : {}), subscriptions },
+    attributes: {
+      email: input.email,
+      ...(klaviyoPhone ? { phone_number: klaviyoPhone } : {}),
+      subscriptions,
+    },
   };
 
   const body: Record<string, unknown> = {
@@ -299,17 +342,26 @@ export async function syncWaitlistSubscriber(input: WaitlistSyncInput): Promise<
     }
 
     const existingId = lookup.status === "found" ? lookup.id : undefined;
+    const klaviyoPhone = normalizeToE164(input.phone);
 
     const emailAction: ChannelAction = !input.emailConsent
       ? "not_requested"
       : lookup.status === "found" && lookup.emailConsent === "UNSUBSCRIBED"
         ? "skipped_previously_unsubscribed"
         : "subscribed";
+    // SMS consent alone is never enough to subscribe — a visitor who
+    // checked the box but typed a number that doesn't parse as valid
+    // must not be SMS-subscribed off whatever Klaviyo would otherwise do
+    // with a malformed phone_number. This check runs before the
+    // previously-unsubscribed check so an invalid number is reported as
+    // exactly that, not misattributed to a prior unsubscribe.
     const smsAction: ChannelAction = !input.smsConsent
       ? "not_requested"
-      : lookup.status === "found" && lookup.smsConsent === "UNSUBSCRIBED"
-        ? "skipped_previously_unsubscribed"
-        : "subscribed";
+      : !klaviyoPhone
+        ? "skipped_invalid_phone"
+        : lookup.status === "found" && lookup.smsConsent === "UNSUBSCRIBED"
+          ? "skipped_previously_unsubscribed"
+          : "subscribed";
 
     // These three calls are mutually independent (none needs another's
     // result — Subscribe Profiles and the event call identify the profile
@@ -324,10 +376,11 @@ export async function syncWaitlistSubscriber(input: WaitlistSyncInput): Promise<
     // function's duration budget instead of relying on a generous timeout.
     const needsSubscribeCall = emailAction === "subscribed" || smsAction === "subscribed";
     const [attributesResult, subscribeResult, eventTracked] = await Promise.all([
-      upsertProfileAttributes(input, existingId, config),
+      upsertProfileAttributes(input, klaviyoPhone, existingId, config),
       needsSubscribeCall
         ? subscribeChannels(
             input,
+            klaviyoPhone,
             { email: emailAction === "subscribed", sms: smsAction === "subscribed" },
             config,
           )

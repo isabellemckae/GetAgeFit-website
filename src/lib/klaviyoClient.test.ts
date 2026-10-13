@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { syncWaitlistSubscriber } from "@/lib/klaviyoClient";
+import { normalizeToE164, syncWaitlistSubscriber } from "@/lib/klaviyoClient";
 
 // All Klaviyo calls go through global fetch, mocked here — these tests
 // never touch the real Klaviyo API. They verify this module's OWN
@@ -264,5 +264,223 @@ describe("syncWaitlistSubscriber", () => {
     const result = await syncWaitlistSubscriber(baseInput);
 
     expect(result).toEqual({ status: "error", reason: "subscribe_failed_403" });
+  });
+});
+
+describe("normalizeToE164", () => {
+  it("converts a US number typed with common formatting into E.164", () => {
+    expect(normalizeToE164("(512) 555-1234")).toBe("+15125551234");
+    expect(normalizeToE164("512-555-1234")).toBe("+15125551234");
+    expect(normalizeToE164("512.555.1234")).toBe("+15125551234");
+  });
+
+  it("leaves an already-E.164 US number unchanged", () => {
+    expect(normalizeToE164("+15125551234")).toBe("+15125551234");
+  });
+
+  it("parses a non-US number that includes its own explicit country code", () => {
+    // UK number, explicit +44 — never assumed, only ever trusted because
+    // the input itself specifies the country code.
+    expect(normalizeToE164("+442071838750")).toBe("+442071838750");
+  });
+
+  it("does not guess a country code for an ambiguous international-shaped number with no +", () => {
+    // Looks like a UK local number, but with no country code present this
+    // is only ever parsed against the US default — which correctly fails
+    // rather than silently guessing at a different region.
+    expect(normalizeToE164("020 7183 8750")).toBeNull();
+  });
+
+  it("returns null for a string that is not a valid phone number at all", () => {
+    expect(normalizeToE164("call-me-maybe")).toBeNull();
+    expect(normalizeToE164("12345")).toBeNull();
+  });
+
+  it("returns null for a missing phone number", () => {
+    expect(normalizeToE164(undefined)).toBeNull();
+    expect(normalizeToE164("")).toBeNull();
+  });
+});
+
+describe("syncWaitlistSubscriber — phone handling and consent independence", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = { ...originalEnv };
+  });
+
+  it("email-only submission (no phone, no SMS consent) never touches phone_number and still subscribes email", async () => {
+    setConfigured();
+    let attributesSent: Record<string, unknown> | undefined;
+    let subscriptionsSent: Record<string, unknown> | undefined;
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("/profiles/?filter=")) return jsonResponse({ data: [] });
+      if (url.endsWith("/profiles/") && init?.method === "POST") {
+        attributesSent = JSON.parse(init.body as string).data.attributes;
+        return jsonResponse({ data: { id: "prof_email_only" } });
+      }
+      if (url.endsWith("/profile-subscription-bulk-create-jobs/")) {
+        subscriptionsSent = JSON.parse(init!.body as string).data.attributes.profiles.data[0].attributes
+          .subscriptions;
+        return jsonResponse({}, true, 202);
+      }
+      if (url.endsWith("/events/")) return jsonResponse({}, true, 202);
+      throw new Error(`Unexpected fetch call: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { phone, smsConsent, ...emailOnlyInput } = baseInput;
+    const result = await syncWaitlistSubscriber({ ...emailOnlyInput, smsConsent: false });
+
+    expect(result).toMatchObject({ emailAction: "subscribed", smsAction: "not_requested" });
+    expect(attributesSent).not.toHaveProperty("phone_number");
+    expect(subscriptionsSent).toEqual({ email: { marketing: { consent: "SUBSCRIBED" } } });
+  });
+
+  it("SMS-consented submission with a valid phone sends the normalized E.164 value to both calls", async () => {
+    setConfigured();
+    let attributesPhone: unknown;
+    let subscribePhone: unknown;
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("/profiles/?filter=")) return jsonResponse({ data: [] });
+      if (url.endsWith("/profiles/") && init?.method === "POST") {
+        attributesPhone = JSON.parse(init.body as string).data.attributes.phone_number;
+        return jsonResponse({ data: { id: "prof_sms" } });
+      }
+      if (url.endsWith("/profile-subscription-bulk-create-jobs/")) {
+        subscribePhone = JSON.parse(init!.body as string).data.attributes.profiles.data[0].attributes
+          .phone_number;
+        return jsonResponse({}, true, 202);
+      }
+      if (url.endsWith("/events/")) return jsonResponse({}, true, 202);
+      throw new Error(`Unexpected fetch call: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await syncWaitlistSubscriber({ ...baseInput, phone: "(512) 555-1234" });
+
+    expect(result).toMatchObject({ smsAction: "subscribed" });
+    expect(attributesPhone).toBe("+15125551234");
+    expect(subscribePhone).toBe("+15125551234");
+  });
+
+  it("SMS consent with an invalid phone number skips SMS subscription but still allows the email signup to succeed", async () => {
+    setConfigured();
+    let subscribeCalled = false;
+    let attributesSent: Record<string, unknown> | undefined;
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("/profiles/?filter=")) return jsonResponse({ data: [] });
+      if (url.endsWith("/profiles/") && init?.method === "POST") {
+        attributesSent = JSON.parse(init.body as string).data.attributes;
+        return jsonResponse({ data: { id: "prof_bad_phone" } });
+      }
+      if (url.endsWith("/profile-subscription-bulk-create-jobs/")) {
+        subscribeCalled = true;
+        const subs = JSON.parse(init!.body as string).data.attributes.profiles.data[0].attributes.subscriptions;
+        expect(subs).not.toHaveProperty("sms");
+        return jsonResponse({}, true, 202);
+      }
+      if (url.endsWith("/events/")) return jsonResponse({}, true, 202);
+      throw new Error(`Unexpected fetch call: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await syncWaitlistSubscriber({ ...baseInput, phone: "12345" });
+
+    expect(result).toMatchObject({ status: "synced", emailAction: "subscribed", smsAction: "skipped_invalid_phone" });
+    expect(attributesSent).not.toHaveProperty("phone_number");
+    // Email was still subscribed, so the job call does happen — just never carrying an sms block.
+    expect(subscribeCalled).toBe(true);
+  });
+
+  it("SMS consent with a missing phone number is treated the same as an invalid one, not a crash", async () => {
+    setConfigured();
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes("/profiles/?filter=")) return jsonResponse({ data: [] });
+      if (url.endsWith("/profiles/")) return jsonResponse({ data: { id: "prof_no_phone" } });
+      if (url.endsWith("/profile-subscription-bulk-create-jobs/")) return jsonResponse({}, true, 202);
+      if (url.endsWith("/events/")) return jsonResponse({}, true, 202);
+      throw new Error(`Unexpected fetch call: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { phone, ...noPhoneInput } = baseInput;
+    const result = await syncWaitlistSubscriber({ ...noPhoneInput, smsConsent: true });
+
+    expect(result).toMatchObject({ smsAction: "skipped_invalid_phone" });
+  });
+
+  it("an international number with its own country code can still be SMS-subscribed", async () => {
+    setConfigured();
+    let subscribePhone: unknown;
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("/profiles/?filter=")) return jsonResponse({ data: [] });
+      if (url.endsWith("/profiles/") && init?.method === "POST") return jsonResponse({ data: { id: "prof_intl" } });
+      if (url.endsWith("/profile-subscription-bulk-create-jobs/")) {
+        subscribePhone = JSON.parse(init!.body as string).data.attributes.profiles.data[0].attributes.phone_number;
+        return jsonResponse({}, true, 202);
+      }
+      if (url.endsWith("/events/")) return jsonResponse({}, true, 202);
+      throw new Error(`Unexpected fetch call: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await syncWaitlistSubscriber({ ...baseInput, phone: "+442071838750" });
+
+    expect(result).toMatchObject({ smsAction: "subscribed" });
+    expect(subscribePhone).toBe("+442071838750");
+  });
+});
+
+describe("syncWaitlistSubscriber — concurrent operations fail independently", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = { ...originalEnv };
+  });
+
+  it("a failed (best-effort) event-tracking call does not fail the overall sync or block the subscribe result", async () => {
+    setConfigured();
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes("/profiles/?filter=")) return jsonResponse({ data: [] });
+      if (url.endsWith("/profiles/")) return jsonResponse({ data: { id: "prof_event_fails" } });
+      if (url.endsWith("/profile-subscription-bulk-create-jobs/")) return jsonResponse({}, true, 202);
+      if (url.endsWith("/events/")) return jsonResponse({ error: "server_error" }, false, 500);
+      throw new Error(`Unexpected fetch call: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await syncWaitlistSubscriber(baseInput);
+
+    expect(result).toMatchObject({
+      status: "synced",
+      emailAction: "subscribed",
+      smsAction: "subscribed",
+      eventTracked: false,
+    });
+  });
+
+  it("a failed subscribe call is reported even though the profile-attribute upsert succeeded concurrently", async () => {
+    setConfigured();
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes("/profiles/?filter=")) return jsonResponse({ data: [] });
+      if (url.endsWith("/profiles/")) return jsonResponse({ data: { id: "prof_subscribe_fails" } });
+      if (url.endsWith("/profile-subscription-bulk-create-jobs/")) {
+        return jsonResponse({ error: "server_error" }, false, 500);
+      }
+      if (url.endsWith("/events/")) return jsonResponse({}, true, 202);
+      throw new Error(`Unexpected fetch call: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await syncWaitlistSubscriber(baseInput);
+
+    expect(result).toEqual({ status: "error", reason: "subscribe_failed_500" });
   });
 });
