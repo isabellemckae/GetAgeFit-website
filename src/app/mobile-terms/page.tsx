@@ -49,13 +49,14 @@ export default function MobileTermsPage() {
               publishing — not assumed here.
             </li>
             <li>
-              <strong>Linked Privacy Policy:</strong> Section 8 links to{" "}
-              <code>https://getagefit.com/privacy</code>. I was unable to verify what currently
-              lives at that live URL — this session&rsquo;s network policy blocks outbound requests to
-              arbitrary external domains (confirmed against a known-public test domain, not
-              specific to this one). Someone with direct access needs to confirm that page is
-              real, accessible, and adequately covers SMS-related data practices before this Mobile
-              Terms page is used in any carrier-facing registration.
+              <strong>Linked Privacy Policy:</strong> confirmed getagefit.com/privacy returns a 404,
+              so Section 8 below now links to a placeholder (highlighted) instead of that broken URL.
+              A real Privacy Policy now exists in the separate standalone project
+              (<code>legal-standalone/privacy/index.html</code>, audited directly from this
+              codebase&rsquo;s actual data practices) — once that project is deployed, replace the
+              placeholder with its real URL (e.g. <code>https://&lt;standalone-project&gt;.vercel.app/privacy</code>).
+              This main-app page and the standalone one are on different domains, so a relative link
+              can&rsquo;t be used here the way it can between the two standalone pages.
             </li>
             <li>
               <strong>SMS sending number:</strong> Sections 5 and 6 reference replying STOP/HELP
@@ -241,9 +242,9 @@ export default function MobileTermsPage() {
         <p className="mb-4 leading-relaxed text-ink-600">
           For additional information about our data practices and your privacy rights, please
           review our Privacy Policy:{" "}
-          <a href="https://getagefit.com/privacy" className="underline hover:text-ink-700">
-            https://getagefit.com/privacy
-          </a>
+          <mark className="rounded bg-amber-200 px-1 font-semibold text-ink-900">
+            [STANDALONE LEGAL SITE URL]/privacy
+          </mark>
         </p>
 
         <h2 className="mb-3 mt-8 font-display text-xl text-ink-900">
