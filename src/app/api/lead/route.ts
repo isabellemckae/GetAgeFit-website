@@ -3,6 +3,15 @@ import { forwardToCrm } from "@/lib/crm";
 import { upsertGenericLead, PRODUCT_INTEREST_ESSENTIALS } from "@/lib/airtableClient";
 import { syncWaitlistSubscriber } from "@/lib/klaviyoClient";
 
+// This route can now make up to ~7 sequential/parallel external HTTP calls
+// in one request (CRM webhook, Airtable lookup + create/update, and — for
+// the waitlist source — Klaviyo's profile lookup plus its parallelized
+// attribute/subscribe/event calls). Vercel's Node.js serverless default is
+// too tight a margin for that once any one dependency is slow; this is a
+// deliberate buffer, not a sign any single call is expected to take long.
+// Has no effect beyond whatever ceiling the Vercel plan itself allows.
+export const maxDuration = 15;
+
 // Maps this route's `source` values (set by each form component's fetch
 // call — see ContactForm.tsx and SupplementTeaser.tsx) to the exact
 // "Source" single-select option configured on the Coaching OS Leads table,

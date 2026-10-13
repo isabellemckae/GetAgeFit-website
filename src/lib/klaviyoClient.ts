@@ -311,24 +311,36 @@ export async function syncWaitlistSubscriber(input: WaitlistSyncInput): Promise<
         ? "skipped_previously_unsubscribed"
         : "subscribed";
 
-    const attributesResult = await upsertProfileAttributes(input, existingId, config);
+    // These three calls are mutually independent (none needs another's
+    // result — Subscribe Profiles and the event call identify the profile
+    // by email, not by the Klaviyo-internal id the attribute upsert
+    // returns), so they run concurrently rather than as four sequential
+    // round trips. This matters specifically on Vercel: this project has
+    // no `after()`/background-execution API enabled (see next.config.mjs),
+    // so every one of these calls sits in the critical path of the HTTP
+    // response the visitor is waiting on, stacked on top of the Airtable
+    // and CRM-webhook calls this same request also makes. Running them in
+    // parallel is what keeps this comfortably inside a serverless
+    // function's duration budget instead of relying on a generous timeout.
+    const needsSubscribeCall = emailAction === "subscribed" || smsAction === "subscribed";
+    const [attributesResult, subscribeResult, eventTracked] = await Promise.all([
+      upsertProfileAttributes(input, existingId, config),
+      needsSubscribeCall
+        ? subscribeChannels(
+            input,
+            { email: emailAction === "subscribed", sms: smsAction === "subscribed" },
+            config,
+          )
+        : Promise.resolve<{ status: "ok" }>({ status: "ok" }),
+      trackWaitlistEvent(input, config),
+    ]);
+
     if (attributesResult.status === "error") {
       return { status: "error", reason: attributesResult.reason };
     }
-
-    const needsSubscribeCall = emailAction === "subscribed" || smsAction === "subscribed";
-    if (needsSubscribeCall) {
-      const subscribeResult = await subscribeChannels(
-        input,
-        { email: emailAction === "subscribed", sms: smsAction === "subscribed" },
-        config,
-      );
-      if (subscribeResult.status === "error") {
-        return { status: "error", reason: subscribeResult.reason };
-      }
+    if (subscribeResult.status === "error") {
+      return { status: "error", reason: subscribeResult.reason };
     }
-
-    const eventTracked = await trackWaitlistEvent(input, config);
 
     return {
       status: "synced",
