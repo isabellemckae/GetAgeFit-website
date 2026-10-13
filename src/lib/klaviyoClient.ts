@@ -44,6 +44,27 @@
  * subscription is simply skipped for that submission (see
  * normalizeToE164 below), and that never blocks the email side or the
  * Airtable write.
+ *
+ * Channel independence: email and SMS are subscribed via two SEPARATE
+ * Subscribe Profiles calls (subscribeEmail/subscribeSms below), not one
+ * shared call. This matters because Klaviyo validates a Subscribe
+ * Profiles job atomically — a live account-side SMS rejection (e.g. no
+ * sending number configured for the phone's region) would otherwise fail
+ * the entire job, taking the unrelated email subscription down with it.
+ * Each channel's outcome is tracked and reported independently
+ * (ChannelAction, including a dedicated "error" value for a channel-level
+ * subscribe failure), and the overall sync is still reported as "synced"
+ * as long as the profile attribute upsert itself succeeded — a failure
+ * subscribing one channel never masks or blocks the other.
+ *
+ * Reconciliation: every profile upsert also writes a durable
+ * `airtable_sync_status` property (the caller's already-computed, closed-
+ * set Airtable result status — never a raw error body) so a Klaviyo
+ * profile can be cross-checked against Airtable from within Klaviyo itself
+ * (segments/exports), without depending on ephemeral server logs. The
+ * complementary direction — flagging a Klaviyo channel failure back onto
+ * the Airtable Lead — is handled by the caller via
+ * appendKlaviyoReconciliationNote() in airtableClient.ts, not from here.
  */
 
 import { parsePhoneNumberFromString } from "libphonenumber-js";
@@ -101,6 +122,17 @@ export type WaitlistSyncInput = {
   /** Human-readable source, for the Klaviyo profile property + tracked event — e.g. "GetAgeFit Essentials Waitlist". */
   sourceDetail: string;
   submittedAt: string;
+  /**
+   * The Airtable write's own already-computed result status for this same
+   * submission (e.g. "created", "updated", "skipped_duplicate",
+   * "unavailable", "error") — a closed, internal enum value, never a raw
+   * error body. Written verbatim onto the Klaviyo profile as a durable
+   * `airtable_sync_status` property so the two systems can be reconciled
+   * from within Klaviyo itself. The caller (route.ts) computes this before
+   * calling syncWaitlistSubscriber, since the Airtable write always
+   * completes first.
+   */
+  airtableStatus: string;
 };
 
 type ChannelConsentStatus = "SUBSCRIBED" | "UNSUBSCRIBED" | "NEVER_SUBSCRIBED" | "unknown";
@@ -110,7 +142,8 @@ type ChannelAction =
   | "unchanged"
   | "skipped_previously_unsubscribed"
   | "skipped_invalid_phone"
-  | "not_requested";
+  | "not_requested"
+  | "error";
 
 /**
  * Normalizes a phone number to E.164 for Klaviyo's wire format only — the
@@ -201,6 +234,9 @@ async function upsertProfileAttributes(
     properties: {
       product_interest: input.productInterest,
       waitlist_source: input.sourceDetail,
+      // Durable cross-system reconciliation marker — see this file's doc
+      // comment and WaitlistSyncInput.airtableStatus above.
+      airtable_sync_status: input.airtableStatus,
     },
   };
 
@@ -237,29 +273,17 @@ async function upsertProfileAttributes(
   }
 }
 
-async function subscribeChannels(
-  input: WaitlistSyncInput,
-  klaviyoPhone: string | null,
-  channels: { email: boolean; sms: boolean },
+async function postSubscribeJob(
+  profileAttributes: Record<string, unknown>,
   config: KlaviyoConfig,
+  logLabel: string,
 ): Promise<{ status: "ok" } | { status: "error"; reason: string }> {
-  const subscriptions: Record<string, unknown> = {};
-  if (channels.email) subscriptions.email = { marketing: { consent: "SUBSCRIBED" } };
-  if (channels.sms) subscriptions.sms = { marketing: { consent: "SUBSCRIBED" } };
-
-  const profile: Record<string, unknown> = {
-    type: "profile",
-    attributes: {
-      email: input.email,
-      ...(klaviyoPhone ? { phone_number: klaviyoPhone } : {}),
-      subscriptions,
-    },
-  };
-
   const body: Record<string, unknown> = {
     data: {
       type: "profile-subscription-bulk-create-job",
-      attributes: { profiles: { data: [profile] } },
+      attributes: {
+        profiles: { data: [{ type: "profile", attributes: profileAttributes }] },
+      },
       ...(config.listId
         ? { relationships: { list: { data: { type: "list", id: config.listId } } } }
         : {}),
@@ -275,14 +299,54 @@ async function subscribeChannels(
     // Klaviyo returns 202 Accepted for this job endpoint.
     if (!res.ok && res.status !== 202) {
       const text = await safeReadText(res);
-      console.error(`[KlaviyoClient] Subscribe Profiles failed: ${res.status} ${res.statusText}`, text);
+      console.error(`[KlaviyoClient] ${logLabel} subscribe failed: ${res.status} ${res.statusText}`, text);
       return { status: "error", reason: `subscribe_failed_${res.status}` };
     }
     return { status: "ok" };
   } catch (err) {
-    console.error("[KlaviyoClient] Unexpected error during subscribe call:", err);
+    console.error(`[KlaviyoClient] Unexpected error during ${logLabel} subscribe call:`, err);
     return { status: "error", reason: "unexpected_exception" };
   }
+}
+
+// Two SEPARATE Subscribe Profiles calls, one per channel — deliberately
+// not one shared call. Klaviyo validates a Subscribe Profiles job
+// atomically, so a single bundled call means an account-side SMS-only
+// rejection (e.g. no sending number configured for the phone's region —
+// exactly what happened on 2026-10-13's test submission) fails the WHOLE
+// job, taking the unrelated email subscription down with it. Splitting
+// them means each channel's Klaviyo-side outcome is independent of the
+// other's, on top of the independence already provided by this file's own
+// phone-validity/consent checks.
+
+async function subscribeEmail(
+  input: WaitlistSyncInput,
+  config: KlaviyoConfig,
+): Promise<{ status: "ok" } | { status: "error"; reason: string }> {
+  return postSubscribeJob(
+    {
+      email: input.email,
+      subscriptions: { email: { marketing: { consent: "SUBSCRIBED" } } },
+    },
+    config,
+    "email",
+  );
+}
+
+async function subscribeSms(
+  input: WaitlistSyncInput,
+  klaviyoPhone: string,
+  config: KlaviyoConfig,
+): Promise<{ status: "ok" } | { status: "error"; reason: string }> {
+  return postSubscribeJob(
+    {
+      email: input.email,
+      phone_number: klaviyoPhone,
+      subscriptions: { sms: { marketing: { consent: "SUBSCRIBED" } } },
+    },
+    config,
+    "sms",
+  );
 }
 
 async function trackWaitlistEvent(input: WaitlistSyncInput, config: KlaviyoConfig): Promise<boolean> {
@@ -363,10 +427,10 @@ export async function syncWaitlistSubscriber(input: WaitlistSyncInput): Promise<
           ? "skipped_previously_unsubscribed"
           : "subscribed";
 
-    // These three calls are mutually independent (none needs another's
-    // result — Subscribe Profiles and the event call identify the profile
-    // by email, not by the Klaviyo-internal id the attribute upsert
-    // returns), so they run concurrently rather than as four sequential
+    // These calls are mutually independent (none needs another's result —
+    // every Subscribe Profiles call and the event call identify the
+    // profile by email, not by the Klaviyo-internal id the attribute
+    // upsert returns), so they run concurrently rather than as sequential
     // round trips. This matters specifically on Vercel: this project has
     // no `after()`/background-execution API enabled (see next.config.mjs),
     // so every one of these calls sits in the critical path of the HTTP
@@ -374,32 +438,41 @@ export async function syncWaitlistSubscriber(input: WaitlistSyncInput): Promise<
     // and CRM-webhook calls this same request also makes. Running them in
     // parallel is what keeps this comfortably inside a serverless
     // function's duration budget instead of relying on a generous timeout.
-    const needsSubscribeCall = emailAction === "subscribed" || smsAction === "subscribed";
-    const [attributesResult, subscribeResult, eventTracked] = await Promise.all([
+    //
+    // Email and SMS are two SEPARATE calls (subscribeEmail/subscribeSms)
+    // so a Klaviyo-side failure in one (account config, region
+    // restrictions, anything) can never prevent the other from succeeding
+    // — see this file's doc comment.
+    const [attributesResult, emailSubscribeResult, smsSubscribeResult, eventTracked] = await Promise.all([
       upsertProfileAttributes(input, klaviyoPhone, existingId, config),
-      needsSubscribeCall
-        ? subscribeChannels(
-            input,
-            klaviyoPhone,
-            { email: emailAction === "subscribed", sms: smsAction === "subscribed" },
-            config,
-          )
+      emailAction === "subscribed"
+        ? subscribeEmail(input, config)
+        : Promise.resolve<{ status: "ok" }>({ status: "ok" }),
+      smsAction === "subscribed"
+        ? subscribeSms(input, klaviyoPhone as string, config)
         : Promise.resolve<{ status: "ok" }>({ status: "ok" }),
       trackWaitlistEvent(input, config),
     ]);
 
+    // The profile itself failing to upsert is the one case that means
+    // nothing was synced at all — everything else (a single channel's
+    // subscribe call failing) is reported per-channel below instead of
+    // forcing the whole result to "error", so one channel's failure can
+    // never mask or block the other's success.
     if (attributesResult.status === "error") {
       return { status: "error", reason: attributesResult.reason };
     }
-    if (subscribeResult.status === "error") {
-      return { status: "error", reason: subscribeResult.reason };
-    }
+
+    const finalEmailAction: ChannelAction =
+      emailAction === "subscribed" && emailSubscribeResult.status === "error" ? "error" : emailAction;
+    const finalSmsAction: ChannelAction =
+      smsAction === "subscribed" && smsSubscribeResult.status === "error" ? "error" : smsAction;
 
     return {
       status: "synced",
       profileId: attributesResult.id,
-      emailAction,
-      smsAction,
+      emailAction: finalEmailAction,
+      smsAction: finalSmsAction,
       eventTracked,
     };
   } catch (err) {

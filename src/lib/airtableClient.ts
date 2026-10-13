@@ -604,6 +604,66 @@ export async function upsertConsultationBookedLead(
   }
 }
 
+/**
+ * Appends a short, non-sensitive reconciliation note to a Lead's Notes
+ * field when the Klaviyo sync for that same submission reports a
+ * channel-level subscribe failure (see syncWaitlistSubscriber's
+ * emailAction/smsAction in klaviyoClient.ts) despite Airtable itself having
+ * successfully captured the lead. Only ever called with a recordId this
+ * same request just created/updated via upsertGenericLead — never
+ * re-looks-up by email — so it can never touch an unrelated Lead or race
+ * with the duplicate-collision skip.
+ *
+ * `note` must already be a short, closed-set, human-written message — this
+ * function never accepts or forwards a raw provider error body, so a
+ * Klaviyo-side failure detail (which could describe account configuration)
+ * can never leak into Airtable.
+ *
+ * Never throws; this is a best-effort annotation on an already-successful
+ * Lead capture, so a failure here is logged and otherwise ignored rather
+ * than risking anything about the capture that already succeeded.
+ */
+export async function appendKlaviyoReconciliationNote(
+  recordId: string,
+  note: string,
+): Promise<{ status: "ok" } | { status: "error"; reason: string }> {
+  const config = getConfig();
+  if (!config) {
+    return { status: "error", reason: "not_configured" };
+  }
+
+  try {
+    const url = `${AIRTABLE_API_ROOT}/${config.baseId}/${config.tableId}/${recordId}`;
+    const getRes = await fetch(url, {
+      headers: { Authorization: `Bearer ${config.token}` },
+    });
+    if (!getRes.ok) {
+      const body = await safeReadText(getRes);
+      console.error(
+        `[AirtableClient] Failed to read Lead ${recordId} before reconciliation note: ${getRes.status} ${getRes.statusText}`,
+        body,
+      );
+      return { status: "error", reason: `read_failed_${getRes.status}` };
+    }
+    const json = (await getRes.json()) as { fields: Record<string, unknown> };
+    const updatedNotes = appendNote(json.fields["Notes"], note);
+
+    const res = await airtablePatch(recordId, { Notes: updatedNotes }, config);
+    if (!res.ok) {
+      const body = await safeReadText(res);
+      console.error(
+        `[AirtableClient] Failed to append reconciliation note to Lead ${recordId}: ${res.status} ${res.statusText}`,
+        body,
+      );
+      return { status: "error", reason: `update_failed_${res.status}` };
+    }
+    return { status: "ok" };
+  } catch (err) {
+    console.error("[AirtableClient] Unexpected error appending reconciliation note:", err);
+    return { status: "error", reason: "unexpected_exception" };
+  }
+}
+
 export async function upsertQualificationLead(
   input: QualificationLeadInput,
 ): Promise<UpsertLeadResult> {

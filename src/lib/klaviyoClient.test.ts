@@ -4,9 +4,10 @@ import { normalizeToE164, syncWaitlistSubscriber } from "@/lib/klaviyoClient";
 // All Klaviyo calls go through global fetch, mocked here — these tests
 // never touch the real Klaviyo API. They verify this module's OWN
 // consent-safety logic (never resubscribe an UNSUBSCRIBED channel, never
-// create a duplicate profile for an existing email), not Klaviyo's API
-// behavior itself, which has not been exercised against a real account —
-// see klaviyoClient.ts's own doc comment.
+// create a duplicate profile for an existing email) and channel
+// independence (one channel's Subscribe Profiles failure never blocks or
+// masks the other's), not Klaviyo's API behavior itself — see
+// klaviyoClient.ts's own doc comment.
 
 const originalEnv = { ...process.env };
 
@@ -30,6 +31,14 @@ function jsonResponse(body: unknown, ok = true, status = 200) {
   } as Response;
 }
 
+function subscribeJobBody(init: RequestInit | undefined) {
+  return JSON.parse(init!.body as string).data.attributes.profiles.data[0].attributes as {
+    email: string;
+    phone_number?: string;
+    subscriptions: Record<string, unknown>;
+  };
+}
+
 const baseInput = {
   firstName: "Jane",
   lastName: "Doe",
@@ -40,6 +49,9 @@ const baseInput = {
   productInterest: "GetAgeFit Essentials (ageLIFT + ageFUEL)",
   sourceDetail: "GetAgeFit Essentials Waitlist",
   submittedAt: "2026-10-13T00:00:00.000Z",
+  // Closed-set Airtable result status for this same submission — see
+  // WaitlistSyncInput.airtableStatus in klaviyoClient.ts.
+  airtableStatus: "created",
 };
 
 describe("syncWaitlistSubscriber", () => {
@@ -63,10 +75,10 @@ describe("syncWaitlistSubscriber", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("creates a new profile, subscribes both channels, and tracks the event for a brand-new email", async () => {
+  it("creates a new profile, subscribes both channels via two separate calls, and tracks the event for a brand-new email", async () => {
     setConfigured();
     let createBody: Record<string, unknown> | undefined;
-    let subscribeBody: Record<string, unknown> | undefined;
+    const subscribeBodies: ReturnType<typeof subscribeJobBody>[] = [];
     const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
       if (url.includes("/profiles/?filter=")) {
         return jsonResponse({ data: [] });
@@ -76,7 +88,7 @@ describe("syncWaitlistSubscriber", () => {
         return jsonResponse({ data: { id: "prof_new" } });
       }
       if (url.endsWith("/profile-subscription-bulk-create-jobs/")) {
-        subscribeBody = JSON.parse(init!.body as string);
+        subscribeBodies.push(subscribeJobBody(init));
         return jsonResponse({}, true, 202);
       }
       if (url.endsWith("/events/")) {
@@ -99,12 +111,22 @@ describe("syncWaitlistSubscriber", () => {
       type: "profile",
       attributes: expect.objectContaining({
         email: "jane@example.com",
-        properties: { product_interest: baseInput.productInterest, waitlist_source: baseInput.sourceDetail },
+        properties: {
+          product_interest: baseInput.productInterest,
+          waitlist_source: baseInput.sourceDetail,
+          airtable_sync_status: "created",
+        },
       }),
     });
-    const subscriptions = (subscribeBody?.data as any).attributes.profiles.data[0].attributes.subscriptions;
-    expect(subscriptions.email.marketing.consent).toBe("SUBSCRIBED");
-    expect(subscriptions.sms.marketing.consent).toBe("SUBSCRIBED");
+
+    // Two SEPARATE Subscribe Profiles calls, not one bundled call.
+    expect(subscribeBodies).toHaveLength(2);
+    const emailCall = subscribeBodies.find((b) => "email" in b.subscriptions);
+    const smsCall = subscribeBodies.find((b) => "sms" in b.subscriptions);
+    expect((emailCall?.subscriptions as any).email.marketing.consent).toBe("SUBSCRIBED");
+    expect(emailCall).not.toHaveProperty("phone_number");
+    expect((smsCall?.subscriptions as any).sms.marketing.consent).toBe("SUBSCRIBED");
+    expect(smsCall?.phone_number).toBe("+15125551234");
   });
 
   it("updates the existing profile in place rather than creating a duplicate (repeat/duplicate submission)", async () => {
@@ -198,7 +220,7 @@ describe("syncWaitlistSubscriber", () => {
 
   it("subscribes the channel the submission asked about that is still NEVER_SUBSCRIBED, while skipping the one that's UNSUBSCRIBED", async () => {
     setConfigured();
-    let subscriptionsSent: Record<string, unknown> | undefined;
+    const subscribeBodies: ReturnType<typeof subscribeJobBody>[] = [];
     const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
       if (url.includes("/profiles/?filter=")) {
         return jsonResponse({
@@ -219,8 +241,7 @@ describe("syncWaitlistSubscriber", () => {
         return jsonResponse({ data: { id: "prof_mixed" } });
       }
       if (url.endsWith("/profile-subscription-bulk-create-jobs/")) {
-        subscriptionsSent = JSON.parse(init!.body as string).data.attributes.profiles.data[0].attributes
-          .subscriptions;
+        subscribeBodies.push(subscribeJobBody(init));
         return jsonResponse({}, true, 202);
       }
       if (url.endsWith("/events/")) {
@@ -236,7 +257,9 @@ describe("syncWaitlistSubscriber", () => {
       emailAction: "skipped_previously_unsubscribed",
       smsAction: "subscribed",
     });
-    expect(subscriptionsSent).toEqual({ sms: { marketing: { consent: "SUBSCRIBED" } } });
+    // Only the SMS call happens — email is skipped entirely, never even attempted.
+    expect(subscribeBodies).toHaveLength(1);
+    expect(subscribeBodies[0].subscriptions).toEqual({ sms: { marketing: { consent: "SUBSCRIBED" } } });
   });
 
   it("returns an error status (never throws) when the profile lookup fails", async () => {
@@ -249,21 +272,30 @@ describe("syncWaitlistSubscriber", () => {
     expect(result).toEqual({ status: "error", reason: "lookup_failed_401" });
   });
 
-  it("returns an error status when the Subscribe Profiles call fails, without throwing", async () => {
+  it("reports a channel-level error (not an overall sync failure) when only the SMS subscribe call fails", async () => {
     setConfigured();
-    const fetchMock = vi.fn(async (url: string) => {
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
       if (url.includes("/profiles/?filter=")) return jsonResponse({ data: [] });
       if (url.endsWith("/profiles/")) return jsonResponse({ data: { id: "prof_new" } });
       if (url.endsWith("/profile-subscription-bulk-create-jobs/")) {
-        return jsonResponse({ error: "forbidden" }, false, 403);
+        const body = subscribeJobBody(init);
+        if ("sms" in body.subscriptions) {
+          return jsonResponse({ error: "forbidden" }, false, 403);
+        }
+        return jsonResponse({}, true, 202);
       }
+      if (url.endsWith("/events/")) return jsonResponse({}, true, 202);
       throw new Error(`Unexpected fetch call: ${url}`);
     });
     vi.stubGlobal("fetch", fetchMock);
 
     const result = await syncWaitlistSubscriber(baseInput);
 
-    expect(result).toEqual({ status: "error", reason: "subscribe_failed_403" });
+    expect(result).toMatchObject({
+      status: "synced",
+      emailAction: "subscribed",
+      smsAction: "error",
+    });
   });
 });
 
@@ -315,7 +347,7 @@ describe("syncWaitlistSubscriber — phone handling and consent independence", (
   it("email-only submission (no phone, no SMS consent) never touches phone_number and still subscribes email", async () => {
     setConfigured();
     let attributesSent: Record<string, unknown> | undefined;
-    let subscriptionsSent: Record<string, unknown> | undefined;
+    const subscribeBodies: ReturnType<typeof subscribeJobBody>[] = [];
     const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
       if (url.includes("/profiles/?filter=")) return jsonResponse({ data: [] });
       if (url.endsWith("/profiles/") && init?.method === "POST") {
@@ -323,8 +355,7 @@ describe("syncWaitlistSubscriber — phone handling and consent independence", (
         return jsonResponse({ data: { id: "prof_email_only" } });
       }
       if (url.endsWith("/profile-subscription-bulk-create-jobs/")) {
-        subscriptionsSent = JSON.parse(init!.body as string).data.attributes.profiles.data[0].attributes
-          .subscriptions;
+        subscribeBodies.push(subscribeJobBody(init));
         return jsonResponse({}, true, 202);
       }
       if (url.endsWith("/events/")) return jsonResponse({}, true, 202);
@@ -337,13 +368,15 @@ describe("syncWaitlistSubscriber — phone handling and consent independence", (
 
     expect(result).toMatchObject({ emailAction: "subscribed", smsAction: "not_requested" });
     expect(attributesSent).not.toHaveProperty("phone_number");
-    expect(subscriptionsSent).toEqual({ email: { marketing: { consent: "SUBSCRIBED" } } });
+    expect(subscribeBodies).toHaveLength(1);
+    expect(subscribeBodies[0]).not.toHaveProperty("phone_number");
+    expect(subscribeBodies[0].subscriptions).toEqual({ email: { marketing: { consent: "SUBSCRIBED" } } });
   });
 
   it("SMS-consented submission with a valid phone sends the normalized E.164 value to both calls", async () => {
     setConfigured();
     let attributesPhone: unknown;
-    let subscribePhone: unknown;
+    const subscribeBodies: ReturnType<typeof subscribeJobBody>[] = [];
     const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
       if (url.includes("/profiles/?filter=")) return jsonResponse({ data: [] });
       if (url.endsWith("/profiles/") && init?.method === "POST") {
@@ -351,8 +384,7 @@ describe("syncWaitlistSubscriber — phone handling and consent independence", (
         return jsonResponse({ data: { id: "prof_sms" } });
       }
       if (url.endsWith("/profile-subscription-bulk-create-jobs/")) {
-        subscribePhone = JSON.parse(init!.body as string).data.attributes.profiles.data[0].attributes
-          .phone_number;
+        subscribeBodies.push(subscribeJobBody(init));
         return jsonResponse({}, true, 202);
       }
       if (url.endsWith("/events/")) return jsonResponse({}, true, 202);
@@ -364,12 +396,16 @@ describe("syncWaitlistSubscriber — phone handling and consent independence", (
 
     expect(result).toMatchObject({ smsAction: "subscribed" });
     expect(attributesPhone).toBe("+15125551234");
-    expect(subscribePhone).toBe("+15125551234");
+    const smsCall = subscribeBodies.find((b) => "sms" in b.subscriptions);
+    expect(smsCall?.phone_number).toBe("+15125551234");
+    // The email call must never carry phone_number — only the SMS call does.
+    const emailCall = subscribeBodies.find((b) => "email" in b.subscriptions);
+    expect(emailCall).not.toHaveProperty("phone_number");
   });
 
   it("SMS consent with an invalid phone number skips SMS subscription but still allows the email signup to succeed", async () => {
     setConfigured();
-    let subscribeCalled = false;
+    const subscribeBodies: ReturnType<typeof subscribeJobBody>[] = [];
     let attributesSent: Record<string, unknown> | undefined;
     const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
       if (url.includes("/profiles/?filter=")) return jsonResponse({ data: [] });
@@ -378,9 +414,7 @@ describe("syncWaitlistSubscriber — phone handling and consent independence", (
         return jsonResponse({ data: { id: "prof_bad_phone" } });
       }
       if (url.endsWith("/profile-subscription-bulk-create-jobs/")) {
-        subscribeCalled = true;
-        const subs = JSON.parse(init!.body as string).data.attributes.profiles.data[0].attributes.subscriptions;
-        expect(subs).not.toHaveProperty("sms");
+        subscribeBodies.push(subscribeJobBody(init));
         return jsonResponse({}, true, 202);
       }
       if (url.endsWith("/events/")) return jsonResponse({}, true, 202);
@@ -392,8 +426,9 @@ describe("syncWaitlistSubscriber — phone handling and consent independence", (
 
     expect(result).toMatchObject({ status: "synced", emailAction: "subscribed", smsAction: "skipped_invalid_phone" });
     expect(attributesSent).not.toHaveProperty("phone_number");
-    // Email was still subscribed, so the job call does happen — just never carrying an sms block.
-    expect(subscribeCalled).toBe(true);
+    // Only the email call happens — SMS is never attempted for an invalid phone.
+    expect(subscribeBodies).toHaveLength(1);
+    expect(subscribeBodies[0].subscriptions).not.toHaveProperty("sms");
   });
 
   it("SMS consent with a missing phone number is treated the same as an invalid one, not a crash", async () => {
@@ -415,12 +450,12 @@ describe("syncWaitlistSubscriber — phone handling and consent independence", (
 
   it("an international number with its own country code can still be SMS-subscribed", async () => {
     setConfigured();
-    let subscribePhone: unknown;
+    const subscribeBodies: ReturnType<typeof subscribeJobBody>[] = [];
     const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
       if (url.includes("/profiles/?filter=")) return jsonResponse({ data: [] });
       if (url.endsWith("/profiles/") && init?.method === "POST") return jsonResponse({ data: { id: "prof_intl" } });
       if (url.endsWith("/profile-subscription-bulk-create-jobs/")) {
-        subscribePhone = JSON.parse(init!.body as string).data.attributes.profiles.data[0].attributes.phone_number;
+        subscribeBodies.push(subscribeJobBody(init));
         return jsonResponse({}, true, 202);
       }
       if (url.endsWith("/events/")) return jsonResponse({}, true, 202);
@@ -431,7 +466,39 @@ describe("syncWaitlistSubscriber — phone handling and consent independence", (
     const result = await syncWaitlistSubscriber({ ...baseInput, phone: "+442071838750" });
 
     expect(result).toMatchObject({ smsAction: "subscribed" });
-    expect(subscribePhone).toBe("+442071838750");
+    const smsCall = subscribeBodies.find((b) => "sms" in b.subscriptions);
+    expect(smsCall?.phone_number).toBe("+442071838750");
+  });
+});
+
+describe("syncWaitlistSubscriber — durable Airtable reconciliation marker", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = { ...originalEnv };
+  });
+
+  it("writes the caller-supplied airtableStatus onto the Klaviyo profile's properties verbatim", async () => {
+    setConfigured();
+    let propertiesSent: Record<string, unknown> | undefined;
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("/profiles/?filter=")) return jsonResponse({ data: [] });
+      if (url.endsWith("/profiles/") && init?.method === "POST") {
+        propertiesSent = JSON.parse(init.body as string).data.attributes.properties;
+        return jsonResponse({ data: { id: "prof_reconcile" } });
+      }
+      if (url.endsWith("/profile-subscription-bulk-create-jobs/")) return jsonResponse({}, true, 202);
+      if (url.endsWith("/events/")) return jsonResponse({}, true, 202);
+      throw new Error(`Unexpected fetch call: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await syncWaitlistSubscriber({ ...baseInput, airtableStatus: "skipped_duplicate" });
+
+    expect(propertiesSent).toMatchObject({ airtable_sync_status: "skipped_duplicate" });
   });
 });
 
@@ -466,7 +533,7 @@ describe("syncWaitlistSubscriber — concurrent operations fail independently", 
     });
   });
 
-  it("a failed subscribe call is reported even though the profile-attribute upsert succeeded concurrently", async () => {
+  it("the profile attribute upsert still succeeds, and the overall sync still reports 'synced', even when BOTH subscribe calls fail", async () => {
     setConfigured();
     const fetchMock = vi.fn(async (url: string) => {
       if (url.includes("/profiles/?filter=")) return jsonResponse({ data: [] });
@@ -481,6 +548,47 @@ describe("syncWaitlistSubscriber — concurrent operations fail independently", 
 
     const result = await syncWaitlistSubscriber(baseInput);
 
-    expect(result).toEqual({ status: "error", reason: "subscribe_failed_500" });
+    // Channel subscribe failures are no longer treated as a whole-sync
+    // failure — the profile itself still synced, each channel independently
+    // reports its own "error".
+    expect(result).toMatchObject({
+      status: "synced",
+      profileId: "prof_subscribe_fails",
+      emailAction: "error",
+      smsAction: "error",
+    });
+  });
+
+  it("a failed SMS subscribe call does not prevent the email subscribe call from succeeding, or vice versa", async () => {
+    setConfigured();
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("/profiles/?filter=")) return jsonResponse({ data: [] });
+      if (url.endsWith("/profiles/")) return jsonResponse({ data: { id: "prof_mixed_result" } });
+      if (url.endsWith("/profile-subscription-bulk-create-jobs/")) {
+        const body = subscribeJobBody(init);
+        // Simulate the real-world failure mode this fix addresses: Klaviyo
+        // rejects the SMS channel (e.g. unsupported region for the
+        // account's SMS configuration) while the email channel succeeds.
+        if ("sms" in body.subscriptions) {
+          return jsonResponse(
+            { errors: [{ detail: "Phone number is valid but is not in a supported region for this account." }] },
+            false,
+            400,
+          );
+        }
+        return jsonResponse({}, true, 202);
+      }
+      if (url.endsWith("/events/")) return jsonResponse({}, true, 202);
+      throw new Error(`Unexpected fetch call: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await syncWaitlistSubscriber(baseInput);
+
+    expect(result).toMatchObject({
+      status: "synced",
+      emailAction: "subscribed",
+      smsAction: "error",
+    });
   });
 });

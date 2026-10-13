@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { upsertGenericLead } from "@/lib/airtableClient";
+import { upsertGenericLead, appendKlaviyoReconciliationNote } from "@/lib/airtableClient";
 
 // upsertGenericLead talks directly to api.airtable.com via global fetch —
 // mocked here so these tests never touch a real Airtable base, per the
@@ -173,5 +173,66 @@ describe("upsertGenericLead", () => {
     expect(patchBody).not.toHaveProperty("Email Consent");
     expect(patchBody).not.toHaveProperty("SMS Consent");
     expect(patchBody).not.toHaveProperty("Product Interest");
+  });
+});
+
+describe("appendKlaviyoReconciliationNote", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = { ...originalEnv };
+  });
+
+  it("appends the note to the record's existing Notes rather than overwriting it", async () => {
+    setConfigured();
+    let patchedNotes: unknown;
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
+      if (!init || init.method === undefined) {
+        return jsonResponse({ fields: { Notes: "existing note" } });
+      }
+      if (init.method === "PATCH") {
+        patchedNotes = JSON.parse(init.body as string).fields["Notes"];
+        return jsonResponse({ id: "recEXISTING" });
+      }
+      throw new Error(`Unexpected fetch call: ${init.method}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await appendKlaviyoReconciliationNote("recEXISTING", "[2026-01-01] note text");
+
+    expect(result).toEqual({ status: "ok" });
+    expect(patchedNotes).toBe("existing note\n[2026-01-01] note text");
+  });
+
+  it("returns unavailable (and never calls fetch) when Airtable is not configured", async () => {
+    clearConfig();
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await appendKlaviyoReconciliationNote("recEXISTING", "note text");
+
+    expect(result).toEqual({ status: "error", reason: "not_configured" });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("returns an error status (never throws) when the patch fails", async () => {
+    setConfigured();
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
+      if (!init || init.method === undefined) {
+        return jsonResponse({ fields: {} });
+      }
+      if (init.method === "PATCH") {
+        return jsonResponse({ error: "INVALID_REQUEST" }, false, 422);
+      }
+      throw new Error(`Unexpected fetch call: ${init.method}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await appendKlaviyoReconciliationNote("recEXISTING", "note text");
+
+    expect(result).toEqual({ status: "error", reason: "update_failed_422" });
   });
 });

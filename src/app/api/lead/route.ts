@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { forwardToCrm } from "@/lib/crm";
-import { upsertGenericLead, PRODUCT_INTEREST_ESSENTIALS } from "@/lib/airtableClient";
+import {
+  upsertGenericLead,
+  appendKlaviyoReconciliationNote,
+  PRODUCT_INTEREST_ESSENTIALS,
+} from "@/lib/airtableClient";
 import { syncWaitlistSubscriber } from "@/lib/klaviyoClient";
 
 // This route can now make up to ~7 sequential/parallel external HTTP calls
@@ -73,10 +77,23 @@ function logLeadWriteFailure(input: {
 // versa — the HTTP response to the browser never reports Klaviyo status
 // as if it were guaranteed, and a Klaviyo failure never changes what the
 // browser is told about the Airtable write.
-function logKlaviyoOutcome(input: { status: string; reason?: string; airtableStatus: string }) {
-  if (input.status === "synced") return;
+//
+// Since email/SMS subscribe failures are now independent (see
+// klaviyoClient.ts), an overall "synced" result can still carry a
+// channel-level "error" in emailAction/smsAction — that must still be
+// logged even though the top-level status looks healthy, so a one-channel
+// failure is never silently invisible to an operator.
+function logKlaviyoOutcome(input: {
+  status: string;
+  reason?: string;
+  airtableStatus: string;
+  emailAction?: string;
+  smsAction?: string;
+}) {
+  const channelFailed = input.emailAction === "error" || input.smsAction === "error";
+  if (input.status === "synced" && !channelFailed) return;
   console.error(
-    `[LeadSubmission] integration=klaviyo status=${input.status} reason=${input.reason ?? "n/a"} airtableStatus=${input.airtableStatus}`,
+    `[LeadSubmission] integration=klaviyo status=${input.status} reason=${input.reason ?? "n/a"} airtableStatus=${input.airtableStatus} emailAction=${input.emailAction ?? "n/a"} smsAction=${input.smsAction ?? "n/a"}`,
   );
 }
 
@@ -203,14 +220,51 @@ export async function POST(req: NextRequest) {
         productInterest: productInterest ?? PRODUCT_INTEREST_ESSENTIALS,
         sourceDetail: detail,
         submittedAt,
+        // Durable Klaviyo-side reconciliation marker — see
+        // WaitlistSyncInput.airtableStatus in klaviyoClient.ts.
+        airtableStatus: airtableResult.status,
       })
     : null;
   if (klaviyoResult) {
+    const emailAction = "emailAction" in klaviyoResult ? klaviyoResult.emailAction : undefined;
+    const smsAction = "smsAction" in klaviyoResult ? klaviyoResult.smsAction : undefined;
     logKlaviyoOutcome({
       status: klaviyoResult.status,
       reason: "reason" in klaviyoResult ? klaviyoResult.reason : undefined,
       airtableStatus: airtableResult.status,
+      emailAction,
+      smsAction,
     });
+
+    // Durable Airtable-side reconciliation marker, complementing the
+    // Klaviyo-side one above: only fires when Airtable actually captured
+    // this Lead (so there's a real recordId to annotate — never the
+    // duplicate-collision skip path, which must not be touched) AND a
+    // specific Klaviyo channel failed to subscribe. The note is a short,
+    // closed-set message — never a raw Klaviyo error body — so nothing
+    // about Klaviyo's account configuration can leak into Airtable.
+    // Best-effort: its own failure is logged and never affects the
+    // response already being sent to the visitor.
+    if (
+      (airtableResult.status === "created" || airtableResult.status === "updated") &&
+      (emailAction === "error" || smsAction === "error")
+    ) {
+      const failedChannels = [
+        emailAction === "error" ? "email" : null,
+        smsAction === "error" ? "SMS" : null,
+      ]
+        .filter(Boolean)
+        .join(" and ");
+      const noteResult = await appendKlaviyoReconciliationNote(
+        airtableResult.recordId,
+        `[${submittedAt}] Klaviyo sync note: ${failedChannels} subscription needs reconciliation (see Klaviyo profile for the waitlist-signup event and current consent state).`,
+      );
+      if (noteResult.status === "error") {
+        console.error(
+          `[LeadSubmission] integration=airtable-reconciliation-note status=error reason=${noteResult.reason} recordId=${airtableResult.recordId}`,
+        );
+      }
+    }
   }
 
   // Only "created" and "updated" mean the signup actually landed in

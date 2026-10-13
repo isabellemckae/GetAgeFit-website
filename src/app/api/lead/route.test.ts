@@ -2,11 +2,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 
 const upsertGenericLead = vi.fn();
+const appendKlaviyoReconciliationNote = vi.fn();
 const forwardToCrm = vi.fn();
 const syncWaitlistSubscriber = vi.fn();
 
 vi.mock("@/lib/airtableClient", () => ({
   upsertGenericLead: (...args: unknown[]) => upsertGenericLead(...args),
+  appendKlaviyoReconciliationNote: (...args: unknown[]) => appendKlaviyoReconciliationNote(...args),
   PRODUCT_INTEREST_ESSENTIALS: "GetAgeFit Essentials (ageLIFT + ageFUEL)",
 }));
 
@@ -52,6 +54,8 @@ describe("POST /api/lead — validation", () => {
     forwardToCrm.mockReset();
     forwardToCrm.mockResolvedValue({ forwarded: true });
     syncWaitlistSubscriber.mockReset();
+    appendKlaviyoReconciliationNote.mockReset();
+    appendKlaviyoReconciliationNote.mockResolvedValue({ status: "ok" });
   });
 
   it("rejects an invalid email and never attempts the Airtable write", async () => {
@@ -92,6 +96,8 @@ describe("POST /api/lead — contact form submission", () => {
     forwardToCrm.mockReset();
     forwardToCrm.mockResolvedValue({ forwarded: true });
     syncWaitlistSubscriber.mockReset();
+    appendKlaviyoReconciliationNote.mockReset();
+    appendKlaviyoReconciliationNote.mockResolvedValue({ status: "ok" });
   });
 
   it("classifies as the Contact Form source and never sends consent fields", async () => {
@@ -134,6 +140,8 @@ describe("POST /api/lead — supplement waitlist submission", () => {
     forwardToCrm.mockReset();
     forwardToCrm.mockResolvedValue({ forwarded: true });
     syncWaitlistSubscriber.mockReset();
+    appendKlaviyoReconciliationNote.mockReset();
+    appendKlaviyoReconciliationNote.mockResolvedValue({ status: "ok" });
     syncWaitlistSubscriber.mockResolvedValue({
       status: "synced",
       profileId: "prof_1",
@@ -185,6 +193,10 @@ describe("POST /api/lead — supplement waitlist submission", () => {
         smsConsent: true,
         productInterest: "GetAgeFit Essentials (ageLIFT + ageFUEL)",
         sourceDetail: "GetAgeFit Essentials Waitlist",
+        // Airtable's own result status for this submission is passed
+        // through so Klaviyo can write a durable reconciliation marker —
+        // see WaitlistSyncInput.airtableStatus in klaviyoClient.ts.
+        airtableStatus: "created",
       }),
     );
     expect(json.klaviyoStatus).toBe("synced");
@@ -199,6 +211,59 @@ describe("POST /api/lead — supplement waitlist submission", () => {
 
     expect(res.status).toBe(200);
     expect(json).toMatchObject({ ok: true, airtableWrite: true, klaviyoStatus: "error" });
+  });
+
+  it("appends a durable, safe reconciliation note to the Airtable Lead when a Klaviyo channel subscribe fails despite Airtable capturing the lead", async () => {
+    upsertGenericLead.mockResolvedValue({ status: "created", recordId: "rec1" });
+    syncWaitlistSubscriber.mockResolvedValue({
+      status: "synced",
+      profileId: "prof_1",
+      emailAction: "subscribed",
+      smsAction: "error",
+      eventTracked: true,
+    });
+
+    await POST(postRequest(validWaitlist));
+
+    expect(appendKlaviyoReconciliationNote).toHaveBeenCalledTimes(1);
+    const [recordId, note] = appendKlaviyoReconciliationNote.mock.calls[0];
+    expect(recordId).toBe("rec1");
+    expect(note).toContain("SMS");
+    // Never leaks a raw provider error body (account config, etc.) into Airtable.
+    expect(note).not.toMatch(/not in a supported region|phone_number|40[0-9]/);
+  });
+
+  it("never appends a reconciliation note when both Klaviyo channels succeed", async () => {
+    upsertGenericLead.mockResolvedValue({ status: "created", recordId: "rec1" });
+    syncWaitlistSubscriber.mockResolvedValue({
+      status: "synced",
+      profileId: "prof_1",
+      emailAction: "subscribed",
+      smsAction: "subscribed",
+      eventTracked: true,
+    });
+
+    await POST(postRequest(validWaitlist));
+
+    expect(appendKlaviyoReconciliationNote).not.toHaveBeenCalled();
+  });
+
+  it("never appends a reconciliation note when Airtable did not capture the lead (e.g. duplicate collision), even if a Klaviyo channel also failed", async () => {
+    upsertGenericLead.mockResolvedValue({
+      status: "skipped_duplicate",
+      matchedRecordIds: ["recA", "recB"],
+    });
+    syncWaitlistSubscriber.mockResolvedValue({
+      status: "synced",
+      profileId: "prof_1",
+      emailAction: "subscribed",
+      smsAction: "error",
+      eventTracked: true,
+    });
+
+    await POST(postRequest(validWaitlist));
+
+    expect(appendKlaviyoReconciliationNote).not.toHaveBeenCalled();
   });
 
   it("still reports Airtable's real failure even when Klaviyo succeeds (Klaviyo succeeds / Airtable fails)", async () => {
@@ -230,6 +295,8 @@ describe("POST /api/lead — honest success/failure reporting", () => {
     forwardToCrm.mockReset();
     forwardToCrm.mockResolvedValue({ forwarded: true });
     syncWaitlistSubscriber.mockReset();
+    appendKlaviyoReconciliationNote.mockReset();
+    appendKlaviyoReconciliationNote.mockResolvedValue({ status: "ok" });
     syncWaitlistSubscriber.mockResolvedValue({
       status: "synced",
       profileId: "prof_1",
