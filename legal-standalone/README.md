@@ -14,12 +14,22 @@ created for it yet.
 
 ## Before publishing
 
-Resolve every item in the "Internal review notice" at the top of
-`index.html` (legal entity name, business address, linked Privacy Policy
-content, effective date) — the same items are flagged in the
+Legal entity name ("Get Age Fit, LLC") and business address ("3626 Williams
+Dr, Floor 2, Georgetown, TX 78628") are now confirmed and filled in.
+Resolve every remaining item in the "Internal review notice" at the top of
+`index.html` — support-inbox monitoring, linked Privacy Policy content
+(unverified; outbound web access from this session is blocked, see below),
+and the effective-date placeholder. The same items are flagged in the
 `src/app/mobile-terms/page.tsx` version in the main app, so keep both in
 sync if either changes. Get explicit approval to publish before doing
 anything below.
+
+Note on the linked Privacy Policy: this content review could not confirm
+whether `https://getagefit.com/privacy` and `https://getagefit.com/terms`
+are live and adequate — outbound requests to arbitrary external domains
+are blocked by this session's network policy (confirmed against a
+known-public test domain, so this isn't specific to getagefit.com). Verify
+directly before publishing.
 
 ## How to turn this into a public page (once approved)
 

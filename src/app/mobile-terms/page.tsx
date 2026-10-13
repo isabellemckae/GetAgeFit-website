@@ -7,13 +7,17 @@ import { siteConfig } from "@/lib/site-config";
 // reproduced verbatim except for house-style markup (e.g. &rsquo;/&trade;)
 // — no legal substance has been added, removed, or reworded.
 //
-// NOT YET READY TO PUBLISH. See the reviewer notice immediately below the
-// page heading for the specific placeholders and conflicting business
-// details (legal entity name, business address) that still need
-// confirmation before this goes live anywhere — on this domain or on the
-// separate, minimal standalone project prepared alongside it. `robots:
-// noindex` is intentional and should stay in place until that
-// confirmation happens and this page is actually linked from the site.
+// Legal entity name ("Get Age Fit, LLC") and business address ("3626
+// Williams Dr, Floor 2, Georgetown, TX 78628") below are now the
+// business-confirmed values — previously these had three conflicting
+// versions across this draft, site-config, and the Klaviyo account; see
+// git history for that prior state if needed.
+//
+// STILL NOT READY TO PUBLISH. See the reviewer notice immediately below
+// the page heading for what remains open (support-inbox monitoring,
+// linked Privacy Policy adequacy, effective date, SMS sending number).
+// `robots: noindex` is intentional and should stay in place until that's
+// resolved and this page is actually linked from the site.
 export const metadata: Metadata = {
   title: "Mobile Messaging Terms of Service",
   description: `Mobile messaging (SMS) terms of service for the ${siteConfig.name} Essentials text messaging program.`,
@@ -38,18 +42,20 @@ export default function MobileTermsPage() {
           <p className="mb-2">This page is not linked from site navigation and is marked noindex. Before publishing anywhere, confirm:</p>
           <ul className="list-disc space-y-1 pl-5">
             <li>
-              <strong>Legal entity name:</strong> the opening paragraph still has an unfilled
-              placeholder (highlighted below), but Section 12 of the same draft states &ldquo;Get Age
-              Fit, LLC&rdquo; — and the site&rsquo;s own existing config lists the legal name simply as
-              &ldquo;GetAgeFit&rdquo; (no suffix), itself flagged elsewhere as unconfirmed. These three
-              values need to be reconciled into one confirmed legal name before publishing.
+              <strong>Support inbox monitoring:</strong> this page lists{" "}
+              <code>{siteConfig.nap.email}</code> as the support contact for SMS opt-out/HELP
+              requests. Confirm this inbox is actively monitored with a response time appropriate
+              for consumer support requests (not just general business inquiries) before
+              publishing — not assumed here.
             </li>
             <li>
-              <strong>Business address:</strong> this draft uses &ldquo;3626 Williams Drive, Georgetown,
-              TX 78628&rdquo; (no suite/floor). The site&rsquo;s existing NAP data uses &ldquo;3626 Williams
-              Drive, <strong>Suite 200</strong>&rdquo;, and the connected Klaviyo account lists &ldquo;3626
-              Williams dr <strong>FL 2</strong>&rdquo;. Three different unit designators — please confirm
-              the correct one before publishing.
+              <strong>Linked Privacy Policy:</strong> Section 8 links to{" "}
+              <code>https://getagefit.com/privacy</code>. I was unable to verify what currently
+              lives at that live URL — this session&rsquo;s network policy blocks outbound requests to
+              arbitrary external domains (confirmed against a known-public test domain, not
+              specific to this one). Someone with direct access needs to confirm that page is
+              real, accessible, and adequately covers SMS-related data practices before this Mobile
+              Terms page is used in any carrier-facing registration.
             </li>
             <li>
               <strong>SMS sending number:</strong> Sections 5 and 6 reference replying STOP/HELP
@@ -59,31 +65,29 @@ export default function MobileTermsPage() {
               operating yet regardless of this page&rsquo;s publication status.
             </li>
             <li>
-              <strong>Linked Privacy Policy:</strong> Section 8 links to{" "}
-              <code>https://getagefit.com/privacy</code>. The equivalent page in this (unlaunched)
-              codebase is still a content placeholder. Confirm what currently lives at that live
-              URL today, and that it adequately covers SMS-related data practices, before using
-              this page in any carrier-facing registration.
-            </li>
-            <li>
-              <strong>Effective/Last Updated dates:</strong> both currently read October 13, 2026
-              (today, in this session) — confirm whether these should instead reflect the actual
-              publish date.
+              <strong>Effective/Last Updated dates:</strong> left as an explicit placeholder below
+              (not a guessed date) — fill in the real date when this page is actually published.
             </li>
           </ul>
         </div>
 
-        <p className="mb-4 text-sm text-ink-400">Effective Date: October 13, 2026</p>
-        <p className="mb-6 text-sm text-ink-400">Last Updated: October 13, 2026</p>
+        <p className="mb-4 text-sm text-ink-400">
+          Effective Date:{" "}
+          <mark className="rounded bg-amber-200 px-1 font-semibold text-ink-900">
+            [DATE OF ACTUAL PUBLICATION]
+          </mark>
+        </p>
+        <p className="mb-6 text-sm text-ink-400">
+          Last Updated:{" "}
+          <mark className="rounded bg-amber-200 px-1 font-semibold text-ink-900">
+            [DATE OF ACTUAL PUBLICATION]
+          </mark>
+        </p>
 
         <p className="mb-6 leading-relaxed text-ink-600">
           These Mobile Messaging Terms of Service (&ldquo;Mobile Terms&rdquo;) govern the text
-          messaging program operated by{" "}
-          <mark className="rounded bg-amber-200 px-1 font-semibold text-ink-900">
-            [INSERT FULL LEGAL BUSINESS NAME]
-          </mark>
-          , doing business as Get Age Fit (&ldquo;Get Age Fit,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or
-          &ldquo;our&rdquo;).
+          messaging program operated by Get Age Fit, LLC, doing business as Get Age Fit
+          (&ldquo;Get Age Fit,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;).
         </p>
         <p className="mb-8 leading-relaxed text-ink-600">
           By voluntarily enrolling in our SMS program, you agree to these Mobile Terms and
@@ -188,7 +192,7 @@ export default function MobileTermsPage() {
             https://getagefit.com
           </a>
           <br />
-          Business Address: 3626 Williams Drive, Georgetown, TX 78628
+          Business Address: 3626 Williams Dr, Floor 2, Georgetown, TX 78628
         </p>
         <p className="mb-4 leading-relaxed text-ink-600">
           Please allow a reasonable period for email support requests to be reviewed and processed.
@@ -294,7 +298,7 @@ export default function MobileTermsPage() {
           <br />
           Doing Business As: Get Age Fit
           <br />
-          3626 Williams Drive
+          3626 Williams Dr, Floor 2
           <br />
           Georgetown, TX 78628
           <br />
