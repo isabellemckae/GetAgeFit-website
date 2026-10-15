@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { trackEvent } from "@/lib/analytics";
+import { siteConfig } from "@/lib/site-config";
 import {
   InvestmentMindset,
   PrimaryGoal,
@@ -52,12 +53,24 @@ const readinessOptions = [
 
 const ageRangeOptions = ["40–49", "50–59", "60–69", "70–79", "80+"];
 
+// Same pattern as /api/qualify/route.ts's EMAIL_PATTERN (and /api/lead's) —
+// validating here too means a malformed email is caught at the step where
+// it can actually be fixed, rather than surfacing as a generic submission
+// failure at the very end of the quiz.
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Four distinct outcomes a submission attempt can land in, each shown with
+// its own accurate message — collapsing them into one generic "error" was
+// the root cause of a real incident: a genuine backend/Airtable failure was
+// indistinguishable from a client-side network blip, and the shown copy
+// claimed answers were "saved locally" when nothing is persisted anywhere
+// outside this component's in-memory state.
+type SubmitStatus = "idle" | "submitting" | "done" | "network_error" | "invalid" | "server_error";
+
 export function QualifyQuiz() {
   const [stepIndex, setStepIndex] = useState(0);
   const [form, setForm] = useState<FormState>({});
-  const [submitStatus, setSubmitStatus] = useState<"idle" | "submitting" | "done" | "error">(
-    "idle",
-  );
+  const [submitStatus, setSubmitStatus] = useState<SubmitStatus>("idle");
   // Tracks the raw Airtable upsert status so a duplicate-email collision
   // (submission not actually recorded in the CRM — see upsertQualificationLead()
   // in src/lib/airtableClient.ts) can be surfaced distinctly, without
@@ -86,19 +99,42 @@ export function QualifyQuiz() {
   async function submitQualification() {
     if (!result) return;
     setSubmitStatus("submitting");
+
+    let res: Response;
     try {
-      const res = await fetch("/api/qualify", {
+      res = await fetch("/api/qualify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, result, source: "qualify_page" }),
       });
-      if (!res.ok) throw new Error("Request failed");
+    } catch (err) {
+      // fetch() itself threw: the request never reached the server at all
+      // (offline, DNS failure, connection reset) — genuinely distinct from
+      // the server responding with a failure, see below.
+      console.error("[QualifyQuiz] Network error submitting qualification:", err);
+      setSubmitStatus("network_error");
+      return;
+    }
+
+    if (!res.ok) {
+      // The request DID reach the server, which deliberately rejected it —
+      // a 4xx means our own request was invalid (shouldn't normally happen
+      // now that email is validated client-side; defends against drift), a
+      // 5xx means the server/Airtable write genuinely failed. Neither is a
+      // network problem, and neither means anything was saved.
+      console.error(`[QualifyQuiz] Submission rejected: ${res.status} ${res.statusText}`);
+      setSubmitStatus(res.status >= 500 ? "server_error" : "invalid");
+      return;
+    }
+
+    try {
       const json: { airtableStatus?: string } = await res.json();
       setAirtableStatus(json.airtableStatus ?? null);
       setSubmitStatus("done");
       trackEvent({ name: "qualify_complete", result });
-    } catch {
-      setSubmitStatus("error");
+    } catch (err) {
+      console.error("[QualifyQuiz] Failed to parse a successful response:", err);
+      setSubmitStatus("server_error");
     }
   }
 
@@ -123,7 +159,13 @@ export function QualifyQuiz() {
   const canAdvance = useMemo(() => {
     switch (stepIndex) {
       case 0:
-        return !!(form.firstName && form.lastName && form.email && form.ageRange);
+        return !!(
+          form.firstName &&
+          form.lastName &&
+          form.email &&
+          EMAIL_PATTERN.test(form.email) &&
+          form.ageRange
+        );
       case 1:
         return !!(form.primaryGoal && form.primaryGoal.length > 0 && form.trainingFrequency);
       case 2:
@@ -177,13 +219,18 @@ export function QualifyQuiz() {
               />
             </div>
             <div className="grid gap-5 sm:grid-cols-2">
-              <TextField
-                label="Email"
-                type="email"
-                value={form.email || ""}
-                onChange={(v) => setForm((f) => ({ ...f, email: v }))}
-                autoComplete="email"
-              />
+              <div>
+                <TextField
+                  label="Email"
+                  type="email"
+                  value={form.email || ""}
+                  onChange={(v) => setForm((f) => ({ ...f, email: v }))}
+                  autoComplete="email"
+                />
+                {!!form.email && !EMAIL_PATTERN.test(form.email) && (
+                  <p className="mt-1 text-xs text-red-700">Enter a valid email address.</p>
+                )}
+              </div>
               <TextField
                 label="Phone"
                 type="tel"
@@ -347,11 +394,71 @@ export function QualifyQuiz() {
             <p className="mx-auto mb-8 max-w-xl leading-relaxed text-ink-600">
               {resultCopy[result].body}
             </p>
-            {submitStatus === "error" && (
-              <p role="alert" className="mb-4 text-sm text-red-700">
-                We saved your answers locally, but couldn&rsquo;t reach our server.
-                Please continue: a team member can follow up manually.
+            {submitStatus === "submitting" && (
+              <p role="status" className="mb-4 text-sm text-ink-500">
+                Saving your answers&hellip;
               </p>
+            )}
+            {submitStatus === "network_error" && (
+              <div className="mb-6">
+                <p role="alert" className="mb-3 text-sm text-red-700">
+                  We couldn&rsquo;t reach our server to save your answers &mdash;
+                  this usually means a connection issue. Your answers are
+                  still filled in below; please try again.
+                </p>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={submitQualification}
+                  trackCta="Retry Submission"
+                  trackLocation="qualify-results-network-error"
+                >
+                  Try again
+                </Button>
+              </div>
+            )}
+            {submitStatus === "server_error" && (
+              <div className="mb-6">
+                <p role="alert" className="mb-3 text-sm text-red-700">
+                  We received your answers, but ran into a problem saving
+                  them on our end. Nothing has been lost &mdash; please try
+                  again, or reach us directly at{" "}
+                  <a
+                    href={`tel:${siteConfig.nap.phone.replace(/[^+\d]/g, "")}`}
+                    className="font-semibold text-plum-700 underline"
+                  >
+                    {siteConfig.nap.phone}
+                  </a>{" "}
+                  and we&rsquo;ll get you sorted.
+                </p>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={submitQualification}
+                  trackCta="Retry Submission"
+                  trackLocation="qualify-results-server-error"
+                >
+                  Try again
+                </Button>
+              </div>
+            )}
+            {submitStatus === "invalid" && (
+              <div className="mb-6">
+                <p role="alert" className="mb-3 text-sm text-red-700">
+                  We couldn&rsquo;t process your answers &mdash; something in
+                  your information may not be valid. Please check your
+                  answers, especially your email address, and try again.
+                </p>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setStepIndex(0)}
+                  trackCta="Edit Answers"
+                  trackLocation="qualify-results-invalid"
+                >
+                  Edit my answers
+                </Button>
+              </div>
             )}
             {submitStatus === "done" && airtableStatus === "skipped_duplicate" && (
               <p role="alert" className="mb-4 text-sm text-plum-700">

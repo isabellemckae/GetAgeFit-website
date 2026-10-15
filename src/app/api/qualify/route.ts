@@ -3,6 +3,22 @@ import { forwardToCrm } from "@/lib/crm";
 import { upsertQualificationLead } from "@/lib/airtableClient";
 import { PrimaryGoal, primaryGoalValues, routeQualification } from "@/lib/qualification";
 
+// Same pattern as /api/lead/route.ts's EMAIL_PATTERN — stricter than a bare
+// "@" check (requires a dot in the domain part). Kept here rather than
+// imported so this route's validation never silently drifts if that file's
+// pattern changes for Contact-form-specific reasons.
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function logQualificationWriteFailure(input: { status: string; reason?: string }) {
+  // Same structured-log convention as logLeadWriteFailure in
+  // /api/lead/route.ts — the only signal an operator has that a
+  // qualification submission was NOT captured, since this route now
+  // correctly reports that to the browser as a failure rather than a 200.
+  console.error(
+    `[QualificationSubmission] integration=airtable status=${input.status} reason=${input.reason ?? "n/a"} persisted=false`,
+  );
+}
+
 export async function POST(req: NextRequest) {
   let body: Record<string, unknown>;
   try {
@@ -12,7 +28,7 @@ export async function POST(req: NextRequest) {
   }
 
   const email = typeof body.email === "string" ? body.email : "";
-  if (!email || !email.includes("@")) {
+  if (!email || !EMAIL_PATTERN.test(email)) {
     return NextResponse.json({ error: "A valid email is required" }, { status: 400 });
   }
 
@@ -80,17 +96,37 @@ export async function POST(req: NextRequest) {
   const airtableWrite =
     airtableResult.status === "created" || airtableResult.status === "updated";
 
-  // See src/app/api/lead/route.ts for why this is exposed alongside the
-  // created/updated boolean above: lets the frontend distinguish a
-  // duplicate-email collision (submission not captured in the CRM) from
-  // every other non-write reason, instead of treating them all the same.
-  return NextResponse.json({
-    ok: true,
-    result,
-    forwarded,
-    airtableWrite,
-    airtableStatus: airtableResult.status,
+  // Only "created"/"updated" mean the submission actually landed in
+  // Airtable. "skipped_duplicate" is a deliberate non-write the frontend
+  // already has a distinct state for (see QualifyQuiz.tsx), so it still
+  // gets a 200 — but "unavailable"/"error" must NOT be reported as
+  // success. Previously this always returned 200 regardless of
+  // airtableResult.status, meaning a genuine Airtable failure was shown
+  // to the visitor as a successful submission while nothing was actually
+  // captured — exactly the silent-failure bug this fixes, mirroring the
+  // same fix already applied to /api/lead/route.ts.
+  if (airtableWrite || airtableResult.status === "skipped_duplicate") {
+    return NextResponse.json({
+      ok: true,
+      result,
+      forwarded,
+      airtableWrite,
+      airtableStatus: airtableResult.status,
+    });
+  }
+
+  logQualificationWriteFailure({
+    status: airtableResult.status,
+    reason: "reason" in airtableResult ? airtableResult.reason : undefined,
   });
+  return NextResponse.json(
+    {
+      ok: false,
+      result,
+      error: "We couldn't save your answers. Please try again shortly.",
+    },
+    { status: 502 },
+  );
 }
 
 function asString(v: unknown): string | undefined {
