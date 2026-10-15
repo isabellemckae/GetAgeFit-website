@@ -95,13 +95,13 @@ export default function HomePage() {
             </span>
           </h1>
           <p className="mb-4 max-w-xl text-lg leading-relaxed text-sand-100 sm:text-xl">
-            You have a lot of life ahead of you. Let&rsquo;s make sure
-            you&rsquo;re strong enough to enjoy it.
+            Custom, age-appropriate workouts to look better, feel stronger,
+            live longer.
           </p>
           <p className="mb-9 max-w-xl text-lg leading-relaxed text-sand-200/90">
-            A guided 12-week transformation built especially for brand-new
-            clients, ages 40 to 80 and beyond: real strength, healthy
-            aging, and independence you can feel in daily life.
+            We specialize in guided 12-week transformations built especially
+            for brand-new clients, ages 40 to 80 and beyond: real strength,
+            healthy aging, and independence you can feel in daily life.
           </p>
           <Button
             href="/consultation"
@@ -131,11 +131,10 @@ export default function HomePage() {
             audit). Client-supplied replacement photo now fills the gap
             left when that duplicate was removed. */}
         <ResponsiveImage
-          src="/images/training/client-trainer-recognition.jpg"
-          alt="A GetAgeFit client with her trainer at the Georgetown studio"
+          src="/images/training/trainer-assisted-barbell-session.jpg"
+          alt="A GetAgeFit client in a lunge pressing a weight plate overhead while her trainer spots her with a barbell at the Georgetown studio"
           placeholderLabel="Recognition photo needed: real client working with trainer"
           aspect="aspect-[16/9]"
-          imageClassName="object-top"
           className="mx-auto mb-12 max-w-2xl shadow-soft"
         >
           <div className="photo-tint-sage" />

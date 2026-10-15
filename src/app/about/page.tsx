@@ -123,7 +123,7 @@ export default function AboutPage() {
               A roomy &amp; intimate space built for coaching, not crowds.
             </h2>
             <p className="mb-3 text-lg leading-relaxed text-ink-600">
-              GetAgeFit trains out of a flagship Georgetown studio designed
+              GetAgeFit operates out of a flagship Georgetown studio designed
               around one-on-one and 1:2 coaching rather than open gym floor
               access. You&rsquo;re with your trainer 100% of the time.
             </p>
