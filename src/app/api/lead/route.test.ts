@@ -266,7 +266,7 @@ describe("POST /api/lead — supplement waitlist submission", () => {
     expect(appendKlaviyoReconciliationNote).not.toHaveBeenCalled();
   });
 
-  it("still reports Airtable's real failure even when Klaviyo succeeds (Klaviyo succeeds / Airtable fails)", async () => {
+  it("reports success when Klaviyo confirms enrollment even if Airtable itself hard-failed (explicit policy: never show a technical CRM error once Klaviyo has confirmed)", async () => {
     upsertGenericLead.mockResolvedValue({ status: "error", reason: "create_failed_500" });
     syncWaitlistSubscriber.mockResolvedValue({
       status: "synced",
@@ -279,13 +279,86 @@ describe("POST /api/lead — supplement waitlist submission", () => {
     const res = await POST(postRequest(validWaitlist));
     const json = await res.json();
 
-    // The response body must never claim overall success just because
-    // Klaviyo succeeded — Airtable's failure still drives ok:false, and
-    // Klaviyo's own status is not even included in this error shape (see
-    // the failure branch in route.ts), so it can't be misread as "both ok".
-    expect(res.ok).toBe(false);
-    expect(json.ok).toBe(false);
-    expect(json.klaviyoStatus).toBeUndefined();
+    expect(res.ok).toBe(true);
+    expect(json).toMatchObject({
+      ok: true,
+      enrolled: true,
+      airtableWrite: false,
+      airtableStatus: "error",
+      klaviyoStatus: "synced",
+    });
+    // The real Airtable failure is never surfaced to the visitor.
+    expect(JSON.stringify(json)).not.toContain("create_failed_500");
+  });
+
+  it("reports success with enrolled:true when Klaviyo confirms despite an Airtable duplicate collision — the exact scenario from the 2026-10-17 live test", async () => {
+    upsertGenericLead.mockResolvedValue({
+      status: "skipped_duplicate",
+      matchedRecordIds: ["recA", "recB"],
+      reviewRecordId: "recREVIEW",
+    });
+    syncWaitlistSubscriber.mockResolvedValue({
+      status: "synced",
+      profileId: "prof_1",
+      emailAction: "subscribed",
+      smsAction: "subscribed",
+      eventTracked: true,
+    });
+
+    const res = await POST(postRequest(validWaitlist));
+    const json = await res.json();
+
+    expect(res.ok).toBe(true);
+    expect(json).toMatchObject({ ok: true, enrolled: true, suppressed: false, airtableWrite: false });
+  });
+
+  it("reports suppressed:true (never enrolled) when Klaviyo correctly declines a previously-unsubscribed profile", async () => {
+    upsertGenericLead.mockResolvedValue({ status: "created", recordId: "rec1" });
+    syncWaitlistSubscriber.mockResolvedValue({
+      status: "synced",
+      profileId: "prof_1",
+      emailAction: "skipped_previously_unsubscribed",
+      smsAction: "not_requested",
+      eventTracked: true,
+    });
+
+    const res = await POST(postRequest(validWaitlist));
+    const json = await res.json();
+
+    expect(json).toMatchObject({ ok: true, enrolled: false, suppressed: true });
+  });
+
+  it("reports enrolled:false, suppressed:false (the honest 'pending' case) when Klaviyo fails outright but Airtable still captured the lead", async () => {
+    upsertGenericLead.mockResolvedValue({ status: "created", recordId: "rec1" });
+    syncWaitlistSubscriber.mockResolvedValue({ status: "error", reason: "subscribe_failed_401" });
+
+    const res = await POST(postRequest(validWaitlist));
+    const json = await res.json();
+
+    expect(res.ok).toBe(true);
+    expect(json).toMatchObject({ ok: true, enrolled: false, suppressed: false, airtableWrite: true });
+  });
+
+  it("appends a reconciliation note to the duplicate-review record (not the ambiguous matches) when a Klaviyo channel fails alongside a duplicate collision", async () => {
+    upsertGenericLead.mockResolvedValue({
+      status: "skipped_duplicate",
+      matchedRecordIds: ["recA", "recB"],
+      reviewRecordId: "recREVIEW",
+    });
+    syncWaitlistSubscriber.mockResolvedValue({
+      status: "synced",
+      profileId: "prof_1",
+      emailAction: "subscribed",
+      smsAction: "error",
+      eventTracked: true,
+    });
+
+    await POST(postRequest(validWaitlist));
+
+    expect(appendKlaviyoReconciliationNote).toHaveBeenCalledTimes(1);
+    const [recordId, note] = appendKlaviyoReconciliationNote.mock.calls[0];
+    expect(recordId).toBe("recREVIEW");
+    expect(note).toContain("SMS");
   });
 });
 
@@ -319,8 +392,14 @@ describe("POST /api/lead — honest success/failure reporting", () => {
     expect(json).toMatchObject({ ok: true, airtableWrite: false, airtableStatus: "skipped_duplicate" });
   });
 
-  it("does NOT report success when the Airtable write errors, and leaks no internal detail", async () => {
+  it("does NOT report success when the Airtable write errors AND Klaviyo never confirmed enrollment either, and leaks no internal detail", async () => {
     upsertGenericLead.mockResolvedValue({ status: "error", reason: "create_failed_500" });
+    // Override this describe block's default (synced/subscribed) — this
+    // test is specifically about the case where NEITHER system captured
+    // the submission; see the dedicated enrolled-override tests above for
+    // the case where Klaviyo alone confirms despite this exact Airtable
+    // failure.
+    syncWaitlistSubscriber.mockResolvedValue({ status: "unavailable", reason: "not_configured" });
 
     const res = await POST(postRequest(validWaitlist));
     const json = await res.json();
@@ -331,8 +410,9 @@ describe("POST /api/lead — honest success/failure reporting", () => {
     expect(JSON.stringify(json)).not.toContain("airtableStatus");
   });
 
-  it("does NOT report success when Airtable is unavailable/unconfigured", async () => {
+  it("does NOT report success when Airtable is unavailable/unconfigured AND Klaviyo never confirmed enrollment either", async () => {
     upsertGenericLead.mockResolvedValue({ status: "unavailable", reason: "not_configured" });
+    syncWaitlistSubscriber.mockResolvedValue({ status: "unavailable", reason: "not_configured" });
 
     const res = await POST(postRequest(validWaitlist));
     const json = await res.json();

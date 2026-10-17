@@ -196,7 +196,20 @@ export type QualificationLeadInput = {
 export type UpsertLeadResult =
   | { status: "created"; recordId: string }
   | { status: "updated"; recordId: string }
-  | { status: "skipped_duplicate"; matchedRecordIds: string[] }
+  | {
+      status: "skipped_duplicate";
+      matchedRecordIds: string[];
+      /**
+       * The ID of a NEW Lead record created to traceably capture this
+       * specific submission, when the duplicate-collision review record
+       * below was itself created successfully. Never set on
+       * upsertQualificationLead()/upsertConsultationBookedLead() — only
+       * upsertGenericLead() creates this review record. Absent if even
+       * that creation failed (network/API error) — the collision is then
+       * only visible via the server log, exactly as before.
+       */
+      reviewRecordId?: string;
+    }
   | { status: "unavailable"; reason: string }
   | { status: "error"; reason: string };
 
@@ -289,8 +302,15 @@ function buildGenericNote(input: {
  *   overwritten on an existing record, so a repeat form submission can
  *   never regress or overwrite a Lead's CRM history. "Lead Name" and
  *   "Phone" are filled in only if currently blank.
- * - More than one existing Lead matches → skip create/update entirely
- *   (see upsertQualificationLead's doc comment for why).
+ * - More than one existing Lead matches → never update/merge any of the
+ *   ambiguous matches (same policy as upsertQualificationLead, and why).
+ *   Unlike that function, this one still preserves the new submission:
+ *   it creates a NEW Lead record, shaped exactly like the normal "not
+ *   found" create path, with its Notes flagged "DUPLICATE REVIEW NEEDED"
+ *   and the matched record IDs listed. This never touches the ambiguous
+ *   existing records, but does mean the "New Lead Email Notification"
+ *   automation fires for this submission too, same as any other new
+ *   signup — see the "multiple" branch below.
  *
  * Never throws — callers can treat this as fire-and-forget alongside the
  * generic CRM_WEBHOOK_URL forward.
@@ -315,16 +335,57 @@ export async function upsertGenericLead(
       return { status: "unavailable", reason: lookup.reason };
     }
 
+    const leadName = `${input.firstName ?? ""} ${input.lastName ?? ""}`.trim();
+
     if (lookup.status === "multiple") {
       const matchedRecordIds = lookup.records.map((r) => r.id);
       console.error(
-        `[ALERT][duplicate-lead-collision] ${lookup.records.length} existing Leads match email "${normalizedEmail}" — submission NOT captured in Airtable. Source: "${input.source}" / "${input.sourceDetail}". Needs manual review (merge/dedupe the matched records, then have the lead resubmit or add them manually). Record IDs:`,
+        `[ALERT][duplicate-lead-collision] ${lookup.records.length} existing Leads match email "${normalizedEmail}" — the matched records were NOT modified. Source: "${input.source}" / "${input.sourceDetail}". Needs manual review (merge/dedupe the matched records). Record IDs:`,
         matchedRecordIds,
       );
-      return { status: "skipped_duplicate", matchedRecordIds };
+
+      // Never merge into or overwrite any of the ambiguous existing
+      // records — but also never silently drop this submission. Create a
+      // NEW, clearly-flagged Lead that preserves exactly what this visitor
+      // submitted, for manual reconciliation. As a deliberate side effect,
+      // this is a genuine new-record creation, so the existing "New Lead
+      // Email Notification" Airtable automation (fires on any record
+      // created in this table, no Source filter) still notifies the team —
+      // closing the gap where a duplicate-collision signup otherwise
+      // produced zero internal notification.
+      const reviewNote =
+        `⚠ DUPLICATE REVIEW NEEDED: ${matchedRecordIds.length} existing Lead record(s) already match this email and were NOT modified (ids: ${matchedRecordIds.join(", ")}). This record preserves the new submission below for manual reconciliation.\n` +
+        buildGenericNote(input);
+      const reviewFields: Record<string, unknown> = {
+        ...(leadName ? { "Lead Name": leadName } : {}),
+        Email: normalizedEmail,
+        ...(input.phone ? { Phone: input.phone } : {}),
+        Source: input.source,
+        "Source Detail": input.sourceDetail,
+        "Pipeline Stage": "New",
+        "Submitted At": input.submittedAt,
+        ...(input.emailConsent !== undefined ? { "Email Consent": input.emailConsent } : {}),
+        ...(input.smsConsent !== undefined ? { "SMS Consent": input.smsConsent } : {}),
+        ...(input.productInterest ? { "Product Interest": input.productInterest } : {}),
+        Notes: reviewNote,
+      };
+
+      const reviewRes = await airtableCreate(reviewFields, config);
+      if (!reviewRes.ok) {
+        const body = await safeReadText(reviewRes);
+        console.error(
+          `[AirtableClient] Failed to create duplicate-review Lead record for "${normalizedEmail}": ${reviewRes.status} ${reviewRes.statusText}`,
+          body,
+        );
+        return { status: "skipped_duplicate", matchedRecordIds };
+      }
+      const reviewJson = (await reviewRes.json()) as { id: string };
+      console.log(
+        `[AirtableClient] Created duplicate-review Lead ${reviewJson.id} for "${normalizedEmail}" (matched: ${matchedRecordIds.join(", ")})`,
+      );
+      return { status: "skipped_duplicate", matchedRecordIds, reviewRecordId: reviewJson.id };
     }
 
-    const leadName = `${input.firstName ?? ""} ${input.lastName ?? ""}`.trim();
     const noteAddition = buildGenericNote(input);
 
     if (lookup.status === "found") {

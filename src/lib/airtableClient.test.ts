@@ -117,7 +117,47 @@ describe("upsertGenericLead", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("skips the write and reports skipped_duplicate when multiple records match the email", async () => {
+  it("never updates/merges the matched records on a duplicate collision, but creates a new, traceable review record", async () => {
+    setConfigured();
+    let createBody: Record<string, unknown> | undefined;
+    const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
+      if (!init || init.method === undefined) {
+        return jsonResponse({
+          records: [
+            { id: "recA", fields: {} },
+            { id: "recB", fields: {} },
+          ],
+        });
+      }
+      if (init.method === "POST") {
+        createBody = JSON.parse(init.body as string).fields;
+        return jsonResponse({ id: "recREVIEW" });
+      }
+      throw new Error("Should never PATCH (update/merge) a matched duplicate record");
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await upsertGenericLead(baseInput);
+
+    expect(result).toEqual({
+      status: "skipped_duplicate",
+      matchedRecordIds: ["recA", "recB"],
+      reviewRecordId: "recREVIEW",
+    });
+    // Lookup + one create — never a PATCH against recA/recB.
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(createBody).toMatchObject({
+      Email: "jane.doe@example.com",
+      Source: "supp waitlist",
+      "Source Detail": "GetAgeFit Essentials Waitlist",
+      "Pipeline Stage": "New",
+    });
+    expect(createBody?.Notes).toContain("DUPLICATE REVIEW NEEDED");
+    expect(createBody?.Notes).toContain("recA");
+    expect(createBody?.Notes).toContain("recB");
+  });
+
+  it("still reports skipped_duplicate with no reviewRecordId if even the review-record creation fails", async () => {
     setConfigured();
     const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
       if (!init || init.method === undefined) {
@@ -128,7 +168,10 @@ describe("upsertGenericLead", () => {
           ],
         });
       }
-      throw new Error("Should not attempt a create/update on a duplicate collision");
+      if (init.method === "POST") {
+        return jsonResponse({ error: "INVALID_REQUEST" }, false, 422);
+      }
+      throw new Error("Should never PATCH (update/merge) a matched duplicate record");
     });
     vi.stubGlobal("fetch", fetchMock);
 
@@ -138,8 +181,6 @@ describe("upsertGenericLead", () => {
       status: "skipped_duplicate",
       matchedRecordIds: ["recA", "recB"],
     });
-    // Only the lookup call — no create/update was attempted.
-    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("never writes a consent field that this submission didn't ask about", async () => {

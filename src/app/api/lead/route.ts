@@ -225,9 +225,29 @@ export async function POST(req: NextRequest) {
         airtableStatus: airtableResult.status,
       })
     : null;
+  const emailAction = klaviyoResult && "emailAction" in klaviyoResult ? klaviyoResult.emailAction : undefined;
+  const smsAction = klaviyoResult && "smsAction" in klaviyoResult ? klaviyoResult.smsAction : undefined;
+
+  // "Enrolled" is the one signal the website is allowed to present as
+  // waitlist success: Klaviyo actually accepted the email-marketing
+  // Subscribe-Profiles request for this submission (the only confirmation
+  // available synchronously — the job itself finishes processing a short
+  // time later, exactly as observed in the 2026-10-17 live test; treating
+  // an accepted request as "confirmed" is the only non-polling signal this
+  // route has, and it's accurate in the overwhelming majority of cases).
+  // Deliberately excludes "unchanged"/idempotent re-subscribes implicitly,
+  // since the current klaviyoClient always reports a healthy re-subscribe
+  // as "subscribed" too — an already-subscribed visitor gets the same,
+  // accurate "you're on the list" answer.
+  // "Suppressed" is the other legitimate non-error outcome: Klaviyo
+  // correctly declined to subscribe someone who had previously
+  // unsubscribed — this must never be reported as enrollment, and must
+  // never be silently treated as a generic failure either.
+  const enrolled = isSupplementWaitlist && klaviyoResult?.status === "synced" && emailAction === "subscribed";
+  const suppressed =
+    isSupplementWaitlist && klaviyoResult?.status === "synced" && emailAction === "skipped_previously_unsubscribed";
+
   if (klaviyoResult) {
-    const emailAction = "emailAction" in klaviyoResult ? klaviyoResult.emailAction : undefined;
-    const smsAction = "smsAction" in klaviyoResult ? klaviyoResult.smsAction : undefined;
     logKlaviyoOutcome({
       status: klaviyoResult.status,
       reason: "reason" in klaviyoResult ? klaviyoResult.reason : undefined,
@@ -237,18 +257,22 @@ export async function POST(req: NextRequest) {
     });
 
     // Durable Airtable-side reconciliation marker, complementing the
-    // Klaviyo-side one above: only fires when Airtable actually captured
-    // this Lead (so there's a real recordId to annotate — never the
-    // duplicate-collision skip path, which must not be touched) AND a
+    // Klaviyo-side one above: fires whenever there's a real recordId to
+    // annotate — either the matched/created Lead, or (since duplicate
+    // collisions now create their own traceable review record — see
+    // upsertGenericLead in airtableClient.ts) that review record — AND a
     // specific Klaviyo channel failed to subscribe. The note is a short,
     // closed-set message — never a raw Klaviyo error body — so nothing
     // about Klaviyo's account configuration can leak into Airtable.
     // Best-effort: its own failure is logged and never affects the
     // response already being sent to the visitor.
-    if (
-      (airtableResult.status === "created" || airtableResult.status === "updated") &&
-      (emailAction === "error" || smsAction === "error")
-    ) {
+    const annotatableRecordId =
+      airtableResult.status === "created" || airtableResult.status === "updated"
+        ? airtableResult.recordId
+        : airtableResult.status === "skipped_duplicate"
+          ? airtableResult.reviewRecordId
+          : undefined;
+    if (annotatableRecordId && (emailAction === "error" || smsAction === "error")) {
       const failedChannels = [
         emailAction === "error" ? "email" : null,
         smsAction === "error" ? "SMS" : null,
@@ -256,50 +280,53 @@ export async function POST(req: NextRequest) {
         .filter(Boolean)
         .join(" and ");
       const noteResult = await appendKlaviyoReconciliationNote(
-        airtableResult.recordId,
+        annotatableRecordId,
         `[${submittedAt}] Klaviyo sync note: ${failedChannels} subscription needs reconciliation (see Klaviyo profile for the waitlist-signup event and current consent state).`,
       );
       if (noteResult.status === "error") {
         console.error(
-          `[LeadSubmission] integration=airtable-reconciliation-note status=error reason=${noteResult.reason} recordId=${airtableResult.recordId}`,
+          `[LeadSubmission] integration=airtable-reconciliation-note status=error reason=${noteResult.reason} recordId=${annotatableRecordId}`,
         );
       }
     }
   }
 
-  // Only "created" and "updated" mean the signup actually landed in
-  // Airtable. Every other status — including "unavailable" (Airtable
-  // unconfigured or unreachable) and "error" (a failed API call) — must
-  // NOT be reported to the browser as a success: that was the exact
-  // silent-failure bug this fix addresses. "skipped_duplicate" is its own
-  // case: it's not a confirmed success, but it's also not a server error
-  // needing a retry — the frontend already has a distinct "needs review"
-  // state for it, so it still gets a 200.
-  if (airtableResult.status === "created" || airtableResult.status === "updated") {
+  const airtableCaptured = airtableResult.status === "created" || airtableResult.status === "updated";
+
+  // Report success whenever EITHER system durably captured this
+  // submission: the normal Airtable Lead write/update, the duplicate-
+  // review record (still a real, traceable Airtable row), or — new per
+  // explicit direction — a confirmed Klaviyo enrollment on its own. That
+  // last case means a genuine Airtable outage/error is no longer shown to
+  // the visitor as a technical CRM failure once Klaviyo has confirmed
+  // they're on the waitlist; it's still logged below exactly like any
+  // other Airtable failure, so it stays fully visible to an operator.
+  if (airtableCaptured || airtableResult.status === "skipped_duplicate" || enrolled) {
+    if (!airtableCaptured && airtableResult.status !== "skipped_duplicate") {
+      logLeadWriteFailure({
+        source: rawSource,
+        status: airtableResult.status,
+        reason: airtableResult.reason,
+        crmForwarded: forwarded,
+      });
+    }
     return NextResponse.json({
       ok: true,
       forwarded,
-      airtableWrite: true,
+      airtableWrite: airtableCaptured,
       airtableStatus: airtableResult.status,
       klaviyoStatus: klaviyoResult?.status ?? "not_applicable",
+      enrolled,
+      suppressed,
     });
   }
 
-  if (airtableResult.status === "skipped_duplicate") {
-    return NextResponse.json({
-      ok: true,
-      forwarded,
-      airtableWrite: false,
-      airtableStatus: "skipped_duplicate",
-      klaviyoStatus: klaviyoResult?.status ?? "not_applicable",
-    });
-  }
-
-  // "unavailable" or "error": the submission was NOT persisted. Respond
-  // with a non-2xx status so the browser's existing `!res.ok` handling
-  // (already present in both NotifyMeForm and ContactForm) shows their
-  // existing error state — no frontend change needed for this to work.
-  // The response body stays generic on purpose (requirement: never return
+  // Neither system captured this submission: Airtable is "unavailable" or
+  // "error" AND Klaviyo did not confirm enrollment either. Respond with a
+  // non-2xx status so the browser's existing `!res.ok` handling (already
+  // present in both NotifyMeForm and ContactForm) shows their existing
+  // error state — no frontend change needed for this to work. The
+  // response body stays generic on purpose (requirement: never return
   // backend error details — Airtable status codes, reasons, etc. — to a
   // website visitor); the real detail goes only to the server log below.
   logLeadWriteFailure({

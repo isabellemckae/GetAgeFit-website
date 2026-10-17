@@ -303,7 +303,7 @@ export function SupplementTeaser() {
  */
 function NotifyMeForm() {
   const [status, setStatus] = useState<
-    "idle" | "submitting" | "success" | "needs_review" | "error"
+    "idle" | "submitting" | "success" | "suppressed" | "pending" | "error"
   >("idle");
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -326,14 +326,21 @@ function NotifyMeForm() {
         }),
       });
       if (!res.ok) throw new Error("Request failed");
-      const json: { airtableStatus?: string } = await res.json();
-      // See ContactForm.tsx for why this is checked separately from
-      // res.ok: a duplicate-email collision means this signup was NOT
-      // recorded in the CRM, so it needs its own, non-success state.
-      if (json.airtableStatus === "skipped_duplicate") {
-        setStatus("needs_review");
-      } else {
+      const json: { enrolled?: boolean; suppressed?: boolean } = await res.json();
+      // Unlike ContactForm.tsx (which has no Klaviyo involved and keys
+      // its own duplicate-collision state off airtableStatus directly),
+      // this form's confirmation is driven by whether Klaviyo actually
+      // confirmed the waitlist enrollment — an Airtable-only concern (a
+      // duplicate-record collision, or even an Airtable outage) is never
+      // shown to the visitor as a technical failure once Klaviyo has
+      // confirmed them; see the enrolled/suppressed fields computed in
+      // src/app/api/lead/route.ts for exactly what each one means.
+      if (json.enrolled) {
         setStatus("success");
+      } else if (json.suppressed) {
+        setStatus("suppressed");
+      } else {
+        setStatus("pending");
       }
       trackEvent({ name: "lead_captured", source: "supplement_waitlist" });
       form.reset();
@@ -345,21 +352,37 @@ function NotifyMeForm() {
   if (status === "success") {
     return (
       <p role="status" className="text-sm font-semibold text-sage-800">
-        You&rsquo;re on the list. We&rsquo;ll email you when ageLIFT&trade;
-        and ageFUEL&trade; are ready to order.
+        You&rsquo;re on the list! 💚 Thanks for joining the GetAgeFit
+        Essentials waitlist. Keep an eye on your inbox for a welcome email
+        and future updates about ageLIFT&trade; and ageFUEL&trade;.
       </p>
     );
   }
 
-  if (status === "needs_review") {
+  if (status === "suppressed") {
     return (
       <p role="status" className="text-sm font-semibold text-plum-800">
-        We got your signup, but couldn&rsquo;t automatically match it to
-        your record in our system. Reach out to{" "}
+        Thanks for your interest in GetAgeFit Essentials! It looks like
+        you&rsquo;ve previously opted out of our emails, so we haven&rsquo;t
+        added you back. If that was a mistake, email{" "}
         <a href={`mailto:${siteConfig.nap.email}`} className="underline">
           {siteConfig.nap.email}
         </a>{" "}
-        so we can confirm you&rsquo;re on the list.
+        and we&rsquo;ll make sure you&rsquo;re included.
+      </p>
+    );
+  }
+
+  if (status === "pending") {
+    return (
+      <p role="status" className="text-sm font-semibold text-plum-800">
+        We got your signup! We&rsquo;re finishing up your email
+        confirmation now — if you don&rsquo;t see a welcome email from us
+        soon, reach out to{" "}
+        <a href={`mailto:${siteConfig.nap.email}`} className="underline">
+          {siteConfig.nap.email}
+        </a>{" "}
+        and we&rsquo;ll make sure you&rsquo;re on the list.
       </p>
     );
   }
