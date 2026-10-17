@@ -690,6 +690,63 @@ describe("syncWaitlistSubscriber — consent-confirm-before-list-add sequencing 
     expect(subscribeJobRelationships).toBeUndefined();
   });
 
+  it("writes and confirms product_interest on the profile BEFORE the email consent request is ever issued (Essentials Waitlist Welcome v2 entry-filter race fix)", async () => {
+    setConfigured();
+    const callOrder: string[] = [];
+    let attributesPropertiesSent: Record<string, unknown> | undefined;
+    const lookup = sequencedLookup([NOT_FOUND, profileLookupBody("prof_order", "SUBSCRIBED")]);
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("/profiles/?filter=")) return lookup();
+      if (url.endsWith("/profiles/") && !url.includes("/relationships/") && init?.method === "POST") {
+        callOrder.push("attributes_upsert");
+        attributesPropertiesSent = JSON.parse(init.body as string).data.attributes.properties;
+        return jsonResponse({ data: { id: "prof_order" } });
+      }
+      if (url.endsWith("/profile-subscription-bulk-create-jobs/")) {
+        const body = subscribeJobBody(init);
+        if ("email" in body.subscriptions) callOrder.push("email_consent_request");
+        return jsonResponse({}, true, 202);
+      }
+      if (url.endsWith("/lists/LIST123/relationships/profiles/")) return jsonResponse({}, true, 204);
+      if (url.endsWith("/events/")) return jsonResponse({}, true, 202);
+      throw new Error(`Unexpected fetch call: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const resultPromise = syncWaitlistSubscriber({ ...baseInput, smsConsent: false });
+    await vi.advanceTimersByTimeAsync(10_000);
+    const result = await resultPromise;
+
+    expect(result).toMatchObject({ emailAction: "subscribed" });
+    // The attribute upsert (which writes product_interest) must be fully
+    // awaited and confirmed ok BEFORE the email consent request starts —
+    // never run concurrently with it.
+    expect(callOrder).toEqual(["attributes_upsert", "email_consent_request"]);
+    expect(attributesPropertiesSent).toMatchObject({ product_interest: baseInput.productInterest });
+  });
+
+  it("never issues the email consent request at all if the attribute upsert (product_interest write) itself fails", async () => {
+    setConfigured();
+    let subscribeJobCalled = false;
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("/profiles/?filter=")) return jsonResponse(NOT_FOUND);
+      if (url.endsWith("/profiles/") && !url.includes("/relationships/") && init?.method === "POST") {
+        return jsonResponse({ error: "server_error" }, false, 500);
+      }
+      if (url.endsWith("/profile-subscription-bulk-create-jobs/")) {
+        subscribeJobCalled = true;
+        return jsonResponse({}, true, 202);
+      }
+      throw new Error(`Unexpected fetch call: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await syncWaitlistSubscriber(baseInput);
+
+    expect(result).toEqual({ status: "error", reason: "create_failed_500" });
+    expect(subscribeJobCalled).toBe(false);
+  });
+
   it("waits out a genuinely asynchronous consent commit — confirms after a couple of bounded retries, then adds to the list", async () => {
     setConfigured();
     let listAddCalled = false;

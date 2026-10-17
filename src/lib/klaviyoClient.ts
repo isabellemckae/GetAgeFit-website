@@ -101,14 +101,22 @@
  * "pending_confirmation" ChannelAction (synced overall, honestly
  * unconfirmed for email) and the profile is deliberately NOT added to the
  * list in that request — exactly the race this fix removes, now simply
- * deferred rather than resolved. That means, as long as the welcome flow's
- * trigger stays "Added to List," a signup whose consent commits slower
- * than this bounded window will NOT automatically enter the flow. The
- * durable fix for THAT is changing the flow's trigger to Klaviyo's own
- * "Subscribed to Email Marketing" metric event instead of "Added to
- * List" — that event fires only once consent is actually committed, so
- * there is no race to bound a wait against at all. That is a live-flow
- * change outside this file's reach and needs separate approval.
+ * deferred rather than resolved.
+ *
+ * Essentials Waitlist Welcome v2 (planned, pending separate Klaviyo-side
+ * approval): the durable fix is a new flow triggered on Klaviyo's own
+ * "Subscribed to Email Marketing" metric instead of "Added to List" — that
+ * event only fires once consent is actually committed, so there is no race
+ * to bound a wait against at all. That flow's entry filter also checks the
+ * `product_interest` profile property (to scope it to Essentials signups
+ * only, since the metric itself is account-wide). For that filter to be
+ * race-free against the SAME metric event, the attribute upsert — which
+ * writes `product_interest` — is awaited and confirmed OK before the email
+ * consent request is even issued (see the sequencing in
+ * syncWaitlistSubscriber below): the attribute write is a plain, synchronous
+ * profile write, not an async bulk job, so a successful response from it
+ * means the property has already committed, long before the slow
+ * consent-commit step even begins.
  */
 
 import { parsePhoneNumberFromString } from "libphonenumber-js";
@@ -611,28 +619,17 @@ export async function syncWaitlistSubscriber(input: WaitlistSyncInput): Promise<
           ? "skipped_previously_unsubscribed"
           : "subscribed";
 
-    // These four run concurrently — none needs another's result (every
-    // call identifies the profile by email, not by the Klaviyo-internal id
-    // the attribute upsert returns). This matters specifically on Vercel:
-    // this project has no `after()`/background-execution API enabled (see
-    // next.config.mjs), so every one of these sits in the critical path of
-    // the HTTP response the visitor is waiting on, stacked on top of the
-    // Airtable and CRM-webhook calls this same request already made.
-    //
-    // resolveEmailEnrollment is itself internally sequential (consent →
-    // confirm → list-add, see its own doc comment and this file's
-    // top-of-file comment on the 2026-10-17 race) and bounded to a few
-    // seconds worst case — it does not block SMS or the attribute upsert,
-    // which is why it's one branch of this same Promise.all rather than
-    // something awaited beforehand.
-    const [attributesResult, emailAction, smsSubscribeResult, eventTracked] = await Promise.all([
-      upsertProfileAttributes(input, klaviyoPhone, existingId, config),
-      resolveEmailEnrollment(input, lookup, config),
-      smsAction === "subscribed"
-        ? subscribeSms(input, klaviyoPhone as string, config)
-        : Promise.resolve<{ status: "ok" }>({ status: "ok" }),
-      trackWaitlistEvent(input, config),
-    ]);
+    // Attributes are awaited FIRST, ahead of email consent — deliberately
+    // not run concurrently with it. product_interest is written here, and
+    // the planned Essentials Waitlist Welcome v2 flow's entry filter checks
+    // that same property against the "Subscribed to Email Marketing"
+    // metric event resolveEmailEnrollment triggers below. This call is a
+    // plain synchronous profile write (not an async bulk job), so by the
+    // time it returns ok, product_interest has already committed — long
+    // before the much slower consent-commit step even starts. Awaiting it
+    // first also means a failed attribute upsert now skips the subscribe
+    // calls entirely, rather than firing them and discarding the result.
+    const attributesResult = await upsertProfileAttributes(input, klaviyoPhone, existingId, config);
 
     // The profile itself failing to upsert is the one case that means
     // nothing was synced at all — everything else (a single channel's
@@ -642,6 +639,29 @@ export async function syncWaitlistSubscriber(input: WaitlistSyncInput): Promise<
     if (attributesResult.status === "error") {
       return { status: "error", reason: attributesResult.reason };
     }
+
+    // These three run concurrently — none needs another's result (every
+    // call identifies the profile by email, not by the Klaviyo-internal id
+    // the attribute upsert returned above). This matters specifically on
+    // Vercel: this project has no `after()`/background-execution API
+    // enabled (see next.config.mjs), so every one of these sits in the
+    // critical path of the HTTP response the visitor is waiting on, stacked
+    // on top of the Airtable and CRM-webhook calls this same request
+    // already made.
+    //
+    // resolveEmailEnrollment is itself internally sequential (consent →
+    // confirm → list-add, see its own doc comment and this file's
+    // top-of-file comment on the 2026-10-17 race) and bounded to a few
+    // seconds worst case — it does not block SMS, which is why it's one
+    // branch of this same Promise.all rather than something awaited
+    // beforehand.
+    const [emailAction, smsSubscribeResult, eventTracked] = await Promise.all([
+      resolveEmailEnrollment(input, lookup, config),
+      smsAction === "subscribed"
+        ? subscribeSms(input, klaviyoPhone as string, config)
+        : Promise.resolve<{ status: "ok" }>({ status: "ok" }),
+      trackWaitlistEvent(input, config),
+    ]);
 
     const finalSmsAction: ChannelAction =
       smsAction === "subscribed" && smsSubscribeResult.status === "error" ? "error" : smsAction;
