@@ -747,6 +747,40 @@ describe("syncWaitlistSubscriber — consent-confirm-before-list-add sequencing 
     expect(subscribeJobCalled).toBe(false);
   });
 
+  it("a resubmission for a profile that already exists still completes the idempotent email/list check, SMS, and event tracking even when the attribute-refresh PATCH itself fails (2026-10-17 cutover-test incident: an unrelated 409 duplicate_profile conflict — this phone number already attached to a different profile — must not silently abort the whole sync for an already-set-up profile)", async () => {
+    setConfigured();
+    let listAddCalled = false;
+    let eventCalled = false;
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes("/profiles/?filter=")) {
+        return jsonResponse(profileLookupBody("prof_existing_conflict", "SUBSCRIBED"));
+      }
+      if (url.includes("/profiles/prof_existing_conflict/")) {
+        return jsonResponse(
+          { errors: [{ detail: "duplicate_profile", status: 409 }] },
+          false,
+          409,
+        );
+      }
+      if (url.endsWith("/lists/LIST123/relationships/profiles/")) {
+        listAddCalled = true;
+        return jsonResponse({}, true, 204);
+      }
+      if (url.endsWith("/events/")) {
+        eventCalled = true;
+        return jsonResponse({}, true, 202);
+      }
+      throw new Error(`Unexpected fetch call: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await syncWaitlistSubscriber({ ...baseInput, smsConsent: false });
+
+    expect(result).toMatchObject({ status: "synced", profileId: "prof_existing_conflict", emailAction: "subscribed" });
+    expect(listAddCalled).toBe(true);
+    expect(eventCalled).toBe(true);
+  });
+
   it("waits out a genuinely asynchronous consent commit — confirms after a couple of bounded retries, then adds to the list", async () => {
     setConfigured();
     let listAddCalled = false;

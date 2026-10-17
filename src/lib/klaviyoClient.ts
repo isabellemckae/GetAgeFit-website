@@ -621,24 +621,29 @@ export async function syncWaitlistSubscriber(input: WaitlistSyncInput): Promise<
 
     // Attributes are awaited FIRST, ahead of email consent — deliberately
     // not run concurrently with it. product_interest is written here, and
-    // the planned Essentials Waitlist Welcome v2 flow's entry filter checks
+    // the live Essentials Waitlist Welcome v2 flow's entry filter checks
     // that same property against the "Subscribed to Email Marketing"
     // metric event resolveEmailEnrollment triggers below. This call is a
     // plain synchronous profile write (not an async bulk job), so by the
     // time it returns ok, product_interest has already committed — long
-    // before the much slower consent-commit step even starts. Awaiting it
-    // first also means a failed attribute upsert now skips the subscribe
-    // calls entirely, rather than firing them and discarding the result.
+    // before the much slower consent-commit step even starts.
     const attributesResult = await upsertProfileAttributes(input, klaviyoPhone, existingId, config);
 
-    // The profile itself failing to upsert is the one case that means
-    // nothing was synced at all — everything else (a single channel's
-    // subscribe call failing) is reported per-channel below instead of
-    // forcing the whole result to "error", so one channel's failure can
-    // never mask or block the other's success.
-    if (attributesResult.status === "error") {
+    // A CREATE failure (no existingId) means there is no profile at all to
+    // sync anything onto — nothing else can proceed. An UPDATE failure on a
+    // profile that already exists (existingId set) is a different case:
+    // the profile is still there with whatever correct state it already
+    // had (2026-10-17 cutover-test incident — a resubmission's attribute
+    // refresh PATCH hit an unrelated 409 duplicate_profile conflict, from
+    // this phone number already being attached to a different profile; the
+    // original code aborted the ENTIRE sync on that unrelated failure,
+    // silently skipping the idempotent email/list check, SMS, and event
+    // tracking for a profile that was otherwise already correctly set up).
+    // Only the pure-create case has nothing to fall back on.
+    if (attributesResult.status === "error" && !existingId) {
       return { status: "error", reason: attributesResult.reason };
     }
+    const profileId = attributesResult.status === "ok" ? attributesResult.id : existingId!;
 
     // These three run concurrently — none needs another's result (every
     // call identifies the profile by email, not by the Klaviyo-internal id
@@ -668,7 +673,7 @@ export async function syncWaitlistSubscriber(input: WaitlistSyncInput): Promise<
 
     return {
       status: "synced",
-      profileId: attributesResult.id,
+      profileId,
       emailAction,
       smsAction: finalSmsAction,
       eventTracked,
