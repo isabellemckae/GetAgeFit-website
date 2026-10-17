@@ -65,6 +65,50 @@
  * complementary direction — flagging a Klaviyo channel failure back onto
  * the Airtable Lead — is handled by the caller via
  * appendKlaviyoReconciliationNote() in airtableClient.ts, not from here.
+ *
+ * Consent-before-list-add sequencing (2026-10-17 incident): a live signup
+ * (missisakae@gmail.com) got a confirmed Klaviyo email subscription and
+ * list membership, but the "Added to List"-triggered welcome flow never
+ * fired. Root cause, confirmed from Klaviyo's own event timeline: the old
+ * code requested email consent AND list membership in ONE Subscribe
+ * Profiles bulk job call. Klaviyo processes a bulk job's consent-write and
+ * list-write as separate internal sub-steps, and the "Added to List" event
+ * (which the flow trigger evaluates against) can fire before the same
+ * job's consent sub-step has actually committed — a race, not a
+ * deterministic failure, which is why an earlier test of this same flow
+ * had worked. Separately confirmed: the plain "add profile to list"
+ * endpoint used here is effectively synchronous, while the bulk subscribe
+ * job's consent commit was observed taking anywhere from ~65 seconds to
+ * ~4 minutes in this account — so issuing the two calls back-to-back
+ * without confirming the first one actually landed does not fix the race,
+ * it just changes its odds.
+ *
+ * The fix: subscribeEmail() now requests ONLY consent (no list
+ * relationship). confirmEmailMarketingSubscribed() then polls the
+ * profile's own subscription state — the one thing Klaviyo's API actually
+ * exposes to confirm a write has committed, there being no job-status
+ * endpoint for this job type — with a short, bounded retry schedule (see
+ * EMAIL_CONFIRM_RETRY_DELAYS_MS below). Only once that confirms SUBSCRIBED
+ * does addProfileToList() ever run, so the "Added to List" event can only
+ * fire once the flow's own entry filter (email consent subscribed) is
+ * already true.
+ *
+ * This bounded wait (a few seconds) is far shorter than the multi-minute
+ * commit times observed live, so it will often time out rather than
+ * confirm — by design: per explicit instruction, this code must never
+ * report a pending consent as a completed enrollment, and must never run
+ * indefinitely inside a Vercel function. A timeout is reported as the
+ * "pending_confirmation" ChannelAction (synced overall, honestly
+ * unconfirmed for email) and the profile is deliberately NOT added to the
+ * list in that request — exactly the race this fix removes, now simply
+ * deferred rather than resolved. That means, as long as the welcome flow's
+ * trigger stays "Added to List," a signup whose consent commits slower
+ * than this bounded window will NOT automatically enter the flow. The
+ * durable fix for THAT is changing the flow's trigger to Klaviyo's own
+ * "Subscribed to Email Marketing" metric event instead of "Added to
+ * List" — that event fires only once consent is actually committed, so
+ * there is no race to bound a wait against at all. That is a live-flow
+ * change outside this file's reach and needs separate approval.
  */
 
 import { parsePhoneNumberFromString } from "libphonenumber-js";
@@ -143,6 +187,15 @@ type ChannelAction =
   | "skipped_previously_unsubscribed"
   | "skipped_invalid_phone"
   | "not_requested"
+  /**
+   * Email consent was requested but could not be confirmed as committed
+   * within the bounded retry window (see confirmEmailMarketingSubscribed
+   * below) — the profile was deliberately NOT added to the list, so this
+   * is honestly reported as neither success nor an error. Never produced
+   * for SMS (no equivalent confirm-before-list step exists for that
+   * channel — see this file's doc comment on why SMS stays unchanged).
+   */
+  | "pending_confirmation"
   | "error";
 
 /**
@@ -277,6 +330,7 @@ async function postSubscribeJob(
   profileAttributes: Record<string, unknown>,
   config: KlaviyoConfig,
   logLabel: string,
+  options: { includeList: boolean },
 ): Promise<{ status: "ok" } | { status: "error"; reason: string }> {
   const body: Record<string, unknown> = {
     data: {
@@ -284,7 +338,7 @@ async function postSubscribeJob(
       attributes: {
         profiles: { data: [{ type: "profile", attributes: profileAttributes }] },
       },
-      ...(config.listId
+      ...(options.includeList && config.listId
         ? { relationships: { list: { data: { type: "list", id: config.listId } } } }
         : {}),
     },
@@ -318,6 +372,15 @@ async function postSubscribeJob(
 // them means each channel's Klaviyo-side outcome is independent of the
 // other's, on top of the independence already provided by this file's own
 // phone-validity/consent checks.
+//
+// The email call also never bundles the list relationship (see this
+// file's doc comment on the 2026-10-17 consent/list-trigger race) — list
+// membership for email is added separately, only after consent is
+// confirmed committed (see addProfileToList / confirmEmailMarketingSubscribed
+// and resolveEmailEnrollment below). SMS keeps its original, unchanged
+// behavior (still bundles the list relationship in the same call) per
+// explicit instruction — SMS has no equivalent "Added to List"-triggered
+// flow today, so there is nothing for it to race against.
 
 async function subscribeEmail(
   input: WaitlistSyncInput,
@@ -330,6 +393,7 @@ async function subscribeEmail(
     },
     config,
     "email",
+    { includeList: false },
   );
 }
 
@@ -346,7 +410,132 @@ async function subscribeSms(
     },
     config,
     "sms",
+    { includeList: true },
   );
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Bounded, short retry schedule for confirmEmailMarketingSubscribed below.
+// Deliberately NOT sized to reliably outlast the multi-minute commit times
+// observed live (see this file's doc comment) — it only needs to be long
+// enough to catch the common fast-committing case without risking a
+// Vercel function timeout. Total worst-case added latency: ~3.4s.
+const EMAIL_CONFIRM_RETRY_DELAYS_MS = [300, 600, 1000, 1500];
+
+/**
+ * Confirms — via Klaviyo's own profile-lookup endpoint, the only
+ * documented way to check this, since the Subscribe-Profiles bulk job
+ * exposes no job-status endpoint — that a just-requested email consent
+ * has actually committed, before anything (specifically, list membership)
+ * is made to depend on it. Polls with the bounded schedule above; never
+ * polls indefinitely.
+ *
+ * Also treats a confirmed UNSUBSCRIBED state as its own outcome rather
+ * than a bug: if the profile unsubscribed in the brief window between the
+ * initial lookup and this confirmation (vanishingly rare, but possible),
+ * this must still never be reported as a subscribe success.
+ */
+async function confirmEmailMarketingSubscribed(
+  email: string,
+  config: KlaviyoConfig,
+): Promise<
+  | { status: "confirmed"; profileId: string }
+  | { status: "unsubscribed" }
+  | { status: "timeout" }
+  | { status: "error"; reason: string }
+> {
+  for (let attempt = 0; attempt <= EMAIL_CONFIRM_RETRY_DELAYS_MS.length; attempt++) {
+    if (attempt > 0) {
+      await sleep(EMAIL_CONFIRM_RETRY_DELAYS_MS[attempt - 1]);
+    }
+    const lookup = await findProfileByEmail(email, config);
+    if (lookup.status === "error") return { status: "error", reason: lookup.reason };
+    if (lookup.status === "found") {
+      if (lookup.emailConsent === "SUBSCRIBED") return { status: "confirmed", profileId: lookup.id };
+      if (lookup.emailConsent === "UNSUBSCRIBED") return { status: "unsubscribed" };
+    }
+    // "not_found" or found-but-still-NEVER_SUBSCRIBED/unknown: the write
+    // hasn't committed yet (or isn't indexed for lookup yet) — keep polling.
+  }
+  return { status: "timeout" };
+}
+
+/**
+ * Adds an already-consent-confirmed profile to the waitlist list. Never
+ * called except after confirmEmailMarketingSubscribed() (or the
+ * already-subscribed idempotent fast path below) reports SUBSCRIBED —
+ * this is what makes the "Added to List" event only ever fire for a
+ * profile the welcome flow's entry filter will actually match.
+ */
+async function addProfileToList(
+  profileId: string,
+  listId: string,
+  config: KlaviyoConfig,
+): Promise<{ status: "ok" } | { status: "error"; reason: string }> {
+  try {
+    const res = await fetch(`${KLAVIYO_API_ROOT}/lists/${listId}/relationships/profiles/`, {
+      method: "POST",
+      headers: authHeaders(config),
+      body: JSON.stringify({ data: [{ type: "profile", id: profileId }] }),
+    });
+    if (!res.ok) {
+      const text = await safeReadText(res);
+      console.error(`[KlaviyoClient] Add-to-list failed: ${res.status} ${res.statusText}`, text);
+      return { status: "error", reason: `list_add_failed_${res.status}` };
+    }
+    return { status: "ok" };
+  } catch (err) {
+    console.error("[KlaviyoClient] Unexpected error adding profile to list:", err);
+    return { status: "error", reason: "unexpected_exception" };
+  }
+}
+
+/**
+ * Resolves the full email-channel outcome for one submission: consent
+ * request → confirm it committed → only then add to the list. See this
+ * file's doc comment for why these three steps must run in this order and
+ * cannot be collapsed back into one call.
+ *
+ * Idempotent: a submission for a profile that's already confirmed
+ * SUBSCRIBED (e.g. a duplicate/resubmitted signup) skips straight to
+ * ensuring list membership — no redundant consent request, no needless
+ * wait. A submission for a profile already UNSUBSCRIBED never requests
+ * consent or touches the list at all, preserving the existing
+ * never-silently-resubscribe guarantee this file has always had.
+ */
+async function resolveEmailEnrollment(
+  input: WaitlistSyncInput,
+  lookup:
+    | { status: "found"; id: string; emailConsent: ChannelConsentStatus; smsConsent: ChannelConsentStatus }
+    | { status: "not_found" },
+  config: KlaviyoConfig,
+): Promise<ChannelAction> {
+  if (!input.emailConsent) return "not_requested";
+
+  if (lookup.status === "found" && lookup.emailConsent === "UNSUBSCRIBED") {
+    return "skipped_previously_unsubscribed";
+  }
+
+  if (lookup.status === "found" && lookup.emailConsent === "SUBSCRIBED") {
+    if (!config.listId) return "subscribed";
+    const listResult = await addProfileToList(lookup.id, config.listId, config);
+    return listResult.status === "ok" ? "subscribed" : "error";
+  }
+
+  const subscribeResult = await subscribeEmail(input, config);
+  if (subscribeResult.status === "error") return "error";
+
+  const confirm = await confirmEmailMarketingSubscribed(input.email, config);
+  if (confirm.status === "error") return "error";
+  if (confirm.status === "unsubscribed") return "skipped_previously_unsubscribed";
+  if (confirm.status === "timeout") return "pending_confirmation";
+
+  if (!config.listId) return "subscribed";
+  const listResult = await addProfileToList(confirm.profileId, config.listId, config);
+  return listResult.status === "ok" ? "subscribed" : "error";
 }
 
 async function trackWaitlistEvent(input: WaitlistSyncInput, config: KlaviyoConfig): Promise<boolean> {
@@ -408,11 +597,6 @@ export async function syncWaitlistSubscriber(input: WaitlistSyncInput): Promise<
     const existingId = lookup.status === "found" ? lookup.id : undefined;
     const klaviyoPhone = normalizeToE164(input.phone);
 
-    const emailAction: ChannelAction = !input.emailConsent
-      ? "not_requested"
-      : lookup.status === "found" && lookup.emailConsent === "UNSUBSCRIBED"
-        ? "skipped_previously_unsubscribed"
-        : "subscribed";
     // SMS consent alone is never enough to subscribe — a visitor who
     // checked the box but typed a number that doesn't parse as valid
     // must not be SMS-subscribed off whatever Klaviyo would otherwise do
@@ -427,27 +611,23 @@ export async function syncWaitlistSubscriber(input: WaitlistSyncInput): Promise<
           ? "skipped_previously_unsubscribed"
           : "subscribed";
 
-    // These calls are mutually independent (none needs another's result —
-    // every Subscribe Profiles call and the event call identify the
-    // profile by email, not by the Klaviyo-internal id the attribute
-    // upsert returns), so they run concurrently rather than as sequential
-    // round trips. This matters specifically on Vercel: this project has
-    // no `after()`/background-execution API enabled (see next.config.mjs),
-    // so every one of these calls sits in the critical path of the HTTP
-    // response the visitor is waiting on, stacked on top of the Airtable
-    // and CRM-webhook calls this same request also makes. Running them in
-    // parallel is what keeps this comfortably inside a serverless
-    // function's duration budget instead of relying on a generous timeout.
+    // These four run concurrently — none needs another's result (every
+    // call identifies the profile by email, not by the Klaviyo-internal id
+    // the attribute upsert returns). This matters specifically on Vercel:
+    // this project has no `after()`/background-execution API enabled (see
+    // next.config.mjs), so every one of these sits in the critical path of
+    // the HTTP response the visitor is waiting on, stacked on top of the
+    // Airtable and CRM-webhook calls this same request already made.
     //
-    // Email and SMS are two SEPARATE calls (subscribeEmail/subscribeSms)
-    // so a Klaviyo-side failure in one (account config, region
-    // restrictions, anything) can never prevent the other from succeeding
-    // — see this file's doc comment.
-    const [attributesResult, emailSubscribeResult, smsSubscribeResult, eventTracked] = await Promise.all([
+    // resolveEmailEnrollment is itself internally sequential (consent →
+    // confirm → list-add, see its own doc comment and this file's
+    // top-of-file comment on the 2026-10-17 race) and bounded to a few
+    // seconds worst case — it does not block SMS or the attribute upsert,
+    // which is why it's one branch of this same Promise.all rather than
+    // something awaited beforehand.
+    const [attributesResult, emailAction, smsSubscribeResult, eventTracked] = await Promise.all([
       upsertProfileAttributes(input, klaviyoPhone, existingId, config),
-      emailAction === "subscribed"
-        ? subscribeEmail(input, config)
-        : Promise.resolve<{ status: "ok" }>({ status: "ok" }),
+      resolveEmailEnrollment(input, lookup, config),
       smsAction === "subscribed"
         ? subscribeSms(input, klaviyoPhone as string, config)
         : Promise.resolve<{ status: "ok" }>({ status: "ok" }),
@@ -463,15 +643,13 @@ export async function syncWaitlistSubscriber(input: WaitlistSyncInput): Promise<
       return { status: "error", reason: attributesResult.reason };
     }
 
-    const finalEmailAction: ChannelAction =
-      emailAction === "subscribed" && emailSubscribeResult.status === "error" ? "error" : emailAction;
     const finalSmsAction: ChannelAction =
       smsAction === "subscribed" && smsSubscribeResult.status === "error" ? "error" : smsAction;
 
     return {
       status: "synced",
       profileId: attributesResult.id,
-      emailAction: finalEmailAction,
+      emailAction,
       smsAction: finalSmsAction,
       eventTracked,
     };

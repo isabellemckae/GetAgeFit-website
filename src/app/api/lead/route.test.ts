@@ -339,6 +339,42 @@ describe("POST /api/lead — supplement waitlist submission", () => {
     expect(json).toMatchObject({ ok: true, enrolled: false, suppressed: false, airtableWrite: true });
   });
 
+  it("reports enrolled:false, suppressed:false (the honest 'pending' case, not a false success) when email consent has not yet confirmed (2026-10-17 async-consent fix)", async () => {
+    upsertGenericLead.mockResolvedValue({ status: "created", recordId: "rec1" });
+    syncWaitlistSubscriber.mockResolvedValue({
+      status: "synced",
+      profileId: "prof_1",
+      emailAction: "pending_confirmation",
+      smsAction: "subscribed",
+      eventTracked: true,
+    });
+
+    const res = await POST(postRequest(validWaitlist));
+    const json = await res.json();
+
+    expect(res.ok).toBe(true);
+    expect(json).toMatchObject({ ok: true, enrolled: false, suppressed: false, airtableWrite: true });
+  });
+
+  it("appends a reconciliation note distinguishing a not-yet-confirmed consent from a hard failure when emailAction is pending_confirmation", async () => {
+    upsertGenericLead.mockResolvedValue({ status: "created", recordId: "rec1" });
+    syncWaitlistSubscriber.mockResolvedValue({
+      status: "synced",
+      profileId: "prof_1",
+      emailAction: "pending_confirmation",
+      smsAction: "subscribed",
+      eventTracked: true,
+    });
+
+    await POST(postRequest(validWaitlist));
+
+    expect(appendKlaviyoReconciliationNote).toHaveBeenCalledTimes(1);
+    const [recordId, note] = appendKlaviyoReconciliationNote.mock.calls[0];
+    expect(recordId).toBe("rec1");
+    expect(note).toContain("consent not yet confirmed");
+    expect(note).not.toContain("SMS");
+  });
+
   it("appends a reconciliation note to the duplicate-review record (not the ambiguous matches) when a Klaviyo channel fails alongside a duplicate collision", async () => {
     upsertGenericLead.mockResolvedValue({
       status: "skipped_duplicate",

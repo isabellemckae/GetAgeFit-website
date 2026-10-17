@@ -7,14 +7,17 @@ import {
 } from "@/lib/airtableClient";
 import { syncWaitlistSubscriber } from "@/lib/klaviyoClient";
 
-// This route can now make up to ~7 sequential/parallel external HTTP calls
+// This route can now make up to ~9 sequential/parallel external HTTP calls
 // in one request (CRM webhook, Airtable lookup + create/update, and — for
 // the waitlist source — Klaviyo's profile lookup plus its parallelized
-// attribute/subscribe/event calls). Vercel's Node.js serverless default is
-// too tight a margin for that once any one dependency is slow; this is a
-// deliberate buffer, not a sign any single call is expected to take long.
-// Has no effect beyond whatever ceiling the Vercel plan itself allows.
-export const maxDuration = 15;
+// attribute/SMS/event calls, one of which — the email channel — is itself
+// a short sequential subscribe→confirm→list-add chain bounded to ~3.4s of
+// added latency; see confirmEmailMarketingSubscribed in klaviyoClient.ts).
+// Vercel's Node.js serverless default is too tight a margin for that once
+// any one dependency is slow; this is a deliberate buffer, not a sign any
+// single call is expected to take long. Has no effect beyond whatever
+// ceiling the Vercel plan itself allows.
+export const maxDuration = 25;
 
 // Maps this route's `source` values (set by each form component's fetch
 // call — see ContactForm.tsx and SupplementTeaser.tsx) to the exact
@@ -90,7 +93,10 @@ function logKlaviyoOutcome(input: {
   emailAction?: string;
   smsAction?: string;
 }) {
-  const channelFailed = input.emailAction === "error" || input.smsAction === "error";
+  const channelFailed =
+    input.emailAction === "error" ||
+    input.emailAction === "pending_confirmation" ||
+    input.smsAction === "error";
   if (input.status === "synced" && !channelFailed) return;
   console.error(
     `[LeadSubmission] integration=klaviyo status=${input.status} reason=${input.reason ?? "n/a"} airtableStatus=${input.airtableStatus} emailAction=${input.emailAction ?? "n/a"} smsAction=${input.smsAction ?? "n/a"}`,
@@ -229,20 +235,25 @@ export async function POST(req: NextRequest) {
   const smsAction = klaviyoResult && "smsAction" in klaviyoResult ? klaviyoResult.smsAction : undefined;
 
   // "Enrolled" is the one signal the website is allowed to present as
-  // waitlist success: Klaviyo actually accepted the email-marketing
-  // Subscribe-Profiles request for this submission (the only confirmation
-  // available synchronously — the job itself finishes processing a short
-  // time later, exactly as observed in the 2026-10-17 live test; treating
-  // an accepted request as "confirmed" is the only non-polling signal this
-  // route has, and it's accurate in the overwhelming majority of cases).
-  // Deliberately excludes "unchanged"/idempotent re-subscribes implicitly,
-  // since the current klaviyoClient always reports a healthy re-subscribe
-  // as "subscribed" too — an already-subscribed visitor gets the same,
-  // accurate "you're on the list" answer.
+  // waitlist success: klaviyoClient.ts now actually polls Klaviyo's own
+  // profile-lookup endpoint and confirms the email consent write has
+  // committed — not merely that the request was accepted — before it
+  // ever reports "subscribed" (see resolveEmailEnrollment /
+  // confirmEmailMarketingSubscribed there, added after the 2026-10-17
+  // incident where an accepted-but-uncommitted consent write raced the
+  // "Added to List" flow trigger). "subscribed" here always means
+  // genuinely confirmed, including the idempotent already-subscribed
+  // case (a duplicate/resubmitted signup gets the same, accurate "you're
+  // on the list" answer without re-requesting consent).
   // "Suppressed" is the other legitimate non-error outcome: Klaviyo
   // correctly declined to subscribe someone who had previously
   // unsubscribed — this must never be reported as enrollment, and must
-  // never be silently treated as a generic failure either.
+  // never be silently treated as a generic failure either. A third,
+  // equally legitimate outcome — emailAction "pending_confirmation" —
+  // falls through to neither enrolled nor suppressed below, which is
+  // exactly right: the existing "pending" frontend copy ("we're finishing
+  // up your email confirmation now...") already describes this case
+  // honestly without any further changes needed here.
   const enrolled = isSupplementWaitlist && klaviyoResult?.status === "synced" && emailAction === "subscribed";
   const suppressed =
     isSupplementWaitlist && klaviyoResult?.status === "synced" && emailAction === "skipped_previously_unsubscribed";
@@ -272,11 +283,19 @@ export async function POST(req: NextRequest) {
         : airtableResult.status === "skipped_duplicate"
           ? airtableResult.reviewRecordId
           : undefined;
-    if (annotatableRecordId && (emailAction === "error" || smsAction === "error")) {
-      const failedChannels = [
-        emailAction === "error" ? "email" : null,
-        smsAction === "error" ? "SMS" : null,
-      ]
+    if (
+      annotatableRecordId &&
+      (emailAction === "error" ||
+        emailAction === "pending_confirmation" ||
+        smsAction === "error")
+    ) {
+      const emailIssue =
+        emailAction === "error"
+          ? "email"
+          : emailAction === "pending_confirmation"
+            ? "email (consent not yet confirmed as of this request — check Klaviyo before resolving)"
+            : null;
+      const failedChannels = [emailIssue, smsAction === "error" ? "SMS" : null]
         .filter(Boolean)
         .join(" and ");
       const noteResult = await appendKlaviyoReconciliationNote(
