@@ -76,13 +76,6 @@ describe("POST /api/lead — validation", () => {
     expect(upsertGenericLead).not.toHaveBeenCalled();
   });
 
-  it("rejects SMS consent with no phone number", async () => {
-    const { phone, ...withoutPhone } = validWaitlist;
-    const res = await POST(postRequest({ ...withoutPhone, smsConsent: true }));
-    expect(res.status).toBe(400);
-    expect(upsertGenericLead).not.toHaveBeenCalled();
-  });
-
   it("rejects an unrecognized lead source", async () => {
     const res = await POST(postRequest({ ...validContact, source: "totally_made_up" }));
     expect(res.status).toBe(400);
@@ -395,6 +388,115 @@ describe("POST /api/lead — supplement waitlist submission", () => {
     const [recordId, note] = appendKlaviyoReconciliationNote.mock.calls[0];
     expect(recordId).toBe("recREVIEW");
     expect(note).toContain("SMS");
+  });
+});
+
+// SMS/email consent independence audit (2026-10-19): SMS marketing is
+// optional and must never gate email enrollment or welcome-email
+// eligibility. Each scenario below maps directly to one requirement from
+// that audit.
+describe("POST /api/lead — SMS/email consent independence", () => {
+  beforeEach(() => {
+    upsertGenericLead.mockReset();
+    upsertGenericLead.mockResolvedValue({ status: "created", recordId: "rec1" });
+    forwardToCrm.mockReset();
+    forwardToCrm.mockResolvedValue({ forwarded: true });
+    syncWaitlistSubscriber.mockReset();
+    appendKlaviyoReconciliationNote.mockReset();
+    appendKlaviyoReconciliationNote.mockResolvedValue({ status: "ok" });
+  });
+
+  it("(A) SMS unchecked + phone provided: email still enrolls, SMS is not requested", async () => {
+    syncWaitlistSubscriber.mockResolvedValue({
+      status: "synced",
+      profileId: "prof_1",
+      emailAction: "subscribed",
+      smsAction: "not_requested",
+      eventTracked: true,
+    });
+
+    const res = await POST(postRequest({ ...validWaitlist, smsConsent: false }));
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json).toMatchObject({ ok: true, enrolled: true });
+    expect(syncWaitlistSubscriber).toHaveBeenCalledWith(
+      expect.objectContaining({ emailConsent: true, smsConsent: false }),
+    );
+  });
+
+  it("(B) SMS checked + phone provided: email still enrolls, SMS is subscribed independently", async () => {
+    syncWaitlistSubscriber.mockResolvedValue({
+      status: "synced",
+      profileId: "prof_1",
+      emailAction: "subscribed",
+      smsAction: "subscribed",
+      eventTracked: true,
+    });
+
+    const res = await POST(postRequest({ ...validWaitlist, smsConsent: true }));
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json).toMatchObject({ ok: true, enrolled: true });
+  });
+
+  it("(C) no phone number at all (email-only signup): succeeds without ever requiring a phone", async () => {
+    const { phone, smsConsent, ...emailOnly } = validWaitlist;
+
+    syncWaitlistSubscriber.mockResolvedValue({
+      status: "synced",
+      profileId: "prof_1",
+      emailAction: "subscribed",
+      smsAction: "not_requested",
+      eventTracked: true,
+    });
+
+    const res = await POST(postRequest(emailOnly));
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json).toMatchObject({ ok: true, enrolled: true });
+    expect(upsertGenericLead).toHaveBeenCalledWith(
+      expect.objectContaining({ phone: undefined }),
+    );
+  });
+
+  it("(B-edge) SMS checked with NO phone number: no longer hard-rejected — email enrolls, SMS is gracefully skipped", async () => {
+    const { phone, ...withoutPhone } = validWaitlist;
+
+    syncWaitlistSubscriber.mockResolvedValue({
+      status: "synced",
+      profileId: "prof_1",
+      emailAction: "subscribed",
+      smsAction: "skipped_invalid_phone",
+      eventTracked: true,
+    });
+
+    const res = await POST(postRequest({ ...withoutPhone, smsConsent: true }));
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json).toMatchObject({ ok: true, enrolled: true });
+    expect(upsertGenericLead).toHaveBeenCalled();
+    expect(syncWaitlistSubscriber).toHaveBeenCalledWith(
+      expect.objectContaining({ emailConsent: true, smsConsent: true, phone: undefined }),
+    );
+  });
+
+  it("(D) previously-unsubscribed email, SMS checked: email is never resubscribed regardless of SMS consent", async () => {
+    syncWaitlistSubscriber.mockResolvedValue({
+      status: "synced",
+      profileId: "prof_1",
+      emailAction: "skipped_previously_unsubscribed",
+      smsAction: "subscribed",
+      eventTracked: true,
+    });
+
+    const res = await POST(postRequest({ ...validWaitlist, smsConsent: true }));
+    const json = await res.json();
+
+    expect(json).toMatchObject({ ok: true, enrolled: false, suppressed: true });
   });
 });
 

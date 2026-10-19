@@ -130,18 +130,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Enter a valid phone number" }, { status: 400 });
   }
 
-  // SMS consent without a phone number is meaningless (there's nothing to
-  // text), and was never possible via the approved form UI — but this is
-  // the API boundary, so it's validated here rather than trusted from the
-  // client. Checked against the request's own smsConsent value, before
-  // that value is gated to the supplement waitlist below, so this rule
-  // holds regardless of source.
-  if (body.smsConsent === true && !phone) {
-    return NextResponse.json(
-      { error: "A phone number is required to opt in to text updates" },
-      { status: 400 },
-    );
-  }
+  // SMS consent without a phone number can't actually be honored (there's
+  // nothing to text) — but that is a reason to skip the SMS subscribe, not
+  // a reason to reject the whole submission. syncWaitlistSubscriber already
+  // handles exactly this case gracefully (normalizeToE164 returns null for
+  // a missing/unparseable phone, reported as the "skipped_invalid_phone"
+  // channel action — see klaviyoClient.ts), leaving email enrollment
+  // completely unaffected. A hard 400 here used to block email too, which
+  // made SMS a de facto requirement for a subset of waitlist signups —
+  // exactly what this form must never do (see SMS/email consent
+  // independence audit, 2026-10-19).
 
   const rawSourceInput = typeof body.source === "string" ? body.source : undefined;
   if (rawSourceInput !== undefined && !(rawSourceInput in SOURCE_OPTIONS)) {
