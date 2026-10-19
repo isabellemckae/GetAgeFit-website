@@ -933,3 +933,381 @@ describe("syncWaitlistSubscriber — consent-confirm-before-list-add sequencing 
     expect(result).toMatchObject({ status: "synced", emailAction: "error" });
   });
 });
+
+// Duplicate-phone profile CREATE conflict (2026-10-19 incident): a brand-new
+// email whose submitted phone number already belongs to a different,
+// unrelated Klaviyo profile got a 409 duplicate_profile on profile CREATE,
+// which aborted the entire sync — no profile, no consent, no welcome email —
+// even though the email itself was never the conflicting identifier. See
+// klaviyoClient.ts's 2026-10-19 doc comment and upsertProfileAttributes/
+// postProfileCreate/isDuplicateProfileConflict for the fix.
+describe("syncWaitlistSubscriber — duplicate-phone profile CREATE conflict (2026-10-19 fix)", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    vi.useFakeTimers();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    process.env = { ...originalEnv };
+  });
+
+  it("new email, no phone: creates normally, untouched by the conflict-retry path", async () => {
+    setConfigured();
+    let createCallCount = 0;
+    let attributesSent: Record<string, unknown> | undefined;
+    const lookup = sequencedLookup([NOT_FOUND, profileLookupBody("prof_nophone", "SUBSCRIBED")]);
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("/profiles/?filter=")) return lookup();
+      if (url.endsWith("/profiles/") && !url.includes("/relationships/") && init?.method === "POST") {
+        createCallCount += 1;
+        attributesSent = JSON.parse(init.body as string).data.attributes;
+        return jsonResponse({ data: { id: "prof_nophone" } });
+      }
+      if (url.endsWith("/profile-subscription-bulk-create-jobs/")) return jsonResponse({}, true, 202);
+      if (url.endsWith("/lists/LIST123/relationships/profiles/")) return jsonResponse({}, true, 204);
+      if (url.endsWith("/events/")) return jsonResponse({}, true, 202);
+      throw new Error(`Unexpected fetch call: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { phone, smsConsent, ...noPhoneInput } = baseInput;
+    const resultPromise = syncWaitlistSubscriber({ ...noPhoneInput, smsConsent: false });
+    await vi.advanceTimersByTimeAsync(10_000);
+    const result = await resultPromise;
+
+    expect(result).toMatchObject({ emailAction: "subscribed", smsAction: "not_requested" });
+    expect(createCallCount).toBe(1);
+    expect(attributesSent).not.toHaveProperty("phone_number");
+  });
+
+  it("new email, unique (non-conflicting) phone: creates normally in one call", async () => {
+    setConfigured();
+    let createCallCount = 0;
+    const lookup = sequencedLookup([NOT_FOUND, profileLookupBody("prof_unique", "SUBSCRIBED")]);
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("/profiles/?filter=")) return lookup();
+      if (url.endsWith("/profiles/") && !url.includes("/relationships/") && init?.method === "POST") {
+        createCallCount += 1;
+        return jsonResponse({ data: { id: "prof_unique" } });
+      }
+      if (url.endsWith("/profile-subscription-bulk-create-jobs/")) return jsonResponse({}, true, 202);
+      if (url.endsWith("/lists/LIST123/relationships/profiles/")) return jsonResponse({}, true, 204);
+      if (url.endsWith("/events/")) return jsonResponse({}, true, 202);
+      throw new Error(`Unexpected fetch call: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const resultPromise = syncWaitlistSubscriber(baseInput);
+    await vi.advanceTimersByTimeAsync(10_000);
+    const result = await resultPromise;
+
+    expect(result).toMatchObject({ emailAction: "subscribed", smsAction: "subscribed" });
+    expect(createCallCount).toBe(1);
+  });
+
+  it("new email, phone already assigned to another profile, SMS unchecked: retries without the phone, email enrolls, SMS not_requested", async () => {
+    setConfigured();
+    let createCallCount = 0;
+    const createdAttributes: Record<string, unknown>[] = [];
+    const lookup = sequencedLookup([NOT_FOUND, profileLookupBody("prof_new_sms_off", "SUBSCRIBED")]);
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("/profiles/?filter=")) return lookup();
+      if (url.endsWith("/profiles/") && !url.includes("/relationships/") && init?.method === "POST") {
+        createCallCount += 1;
+        const attrs = JSON.parse(init!.body as string).data.attributes;
+        createdAttributes.push(attrs);
+        if (createCallCount === 1) {
+          return jsonResponse(
+            {
+              errors: [
+                {
+                  status: 409,
+                  code: "duplicate_profile",
+                  detail: "A profile already exists with one of these identifiers.",
+                  meta: { duplicate_profile_id: "prof_other_owner" },
+                },
+              ],
+            },
+            false,
+            409,
+          );
+        }
+        return jsonResponse({ data: { id: "prof_new_sms_off" } });
+      }
+      if (url.endsWith("/profile-subscription-bulk-create-jobs/")) return jsonResponse({}, true, 202);
+      if (url.endsWith("/lists/LIST123/relationships/profiles/")) return jsonResponse({}, true, 204);
+      if (url.endsWith("/events/")) return jsonResponse({}, true, 202);
+      throw new Error(`Unexpected fetch call: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const resultPromise = syncWaitlistSubscriber({ ...baseInput, smsConsent: false });
+    await vi.advanceTimersByTimeAsync(10_000);
+    const result = await resultPromise;
+
+    expect(result).toMatchObject({
+      status: "synced",
+      profileId: "prof_new_sms_off",
+      emailAction: "subscribed",
+      smsAction: "not_requested",
+    });
+    expect(createCallCount).toBe(2);
+    expect(createdAttributes[0]).toHaveProperty("phone_number");
+    expect(createdAttributes[1]).not.toHaveProperty("phone_number");
+    // The unrelated profile that actually owns the phone is never touched.
+    expect(fetchMock.mock.calls.some(([u]) => String(u).includes("prof_other_owner"))).toBe(false);
+  });
+
+  it("new email, conflicting phone, SMS checked: email still enrolls, SMS is reported as skipped_phone_conflict (never attempted)", async () => {
+    setConfigured();
+    let createCallCount = 0;
+    let smsSubscribeCalled = false;
+    const lookup = sequencedLookup([NOT_FOUND, profileLookupBody("prof_new_sms_on", "SUBSCRIBED")]);
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("/profiles/?filter=")) return lookup();
+      if (url.endsWith("/profiles/") && !url.includes("/relationships/") && init?.method === "POST") {
+        createCallCount += 1;
+        if (createCallCount === 1) {
+          return jsonResponse(
+            { errors: [{ status: 409, code: "duplicate_profile", meta: { duplicate_profile_id: "prof_other_owner" } }] },
+            false,
+            409,
+          );
+        }
+        return jsonResponse({ data: { id: "prof_new_sms_on" } });
+      }
+      if (url.endsWith("/profile-subscription-bulk-create-jobs/")) {
+        // Email's own consent subscribe hits this same endpoint — only an
+        // actual SMS subscription attempt should flip this flag.
+        if ("sms" in subscribeJobBody(init).subscriptions) smsSubscribeCalled = true;
+        return jsonResponse({}, true, 202);
+      }
+      if (url.endsWith("/lists/LIST123/relationships/profiles/")) return jsonResponse({}, true, 204);
+      if (url.endsWith("/events/")) return jsonResponse({}, true, 202);
+      throw new Error(`Unexpected fetch call: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const resultPromise = syncWaitlistSubscriber({ ...baseInput, smsConsent: true });
+    await vi.advanceTimersByTimeAsync(10_000);
+    const result = await resultPromise;
+
+    expect(result).toMatchObject({
+      status: "synced",
+      profileId: "prof_new_sms_on",
+      emailAction: "subscribed",
+      smsAction: "skipped_phone_conflict",
+    });
+    expect(createCallCount).toBe(2);
+    // SMS is never even attempted with a phone number this profile has no
+    // real claim to — not attempted-then-failed, simply never attempted.
+    expect(smsSubscribeCalled).toBe(false);
+  });
+
+  it("existing email profile with matching identifiers: no conflict, no retry — unaffected by this fix", async () => {
+    setConfigured();
+    let createOrUpdateCalls = 0;
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("/profiles/?filter=")) return jsonResponse(profileLookupBody("prof_existing", "SUBSCRIBED"));
+      if (url.includes("/profiles/prof_existing/") && init?.method === "PATCH") {
+        createOrUpdateCalls += 1;
+        return jsonResponse({ data: { id: "prof_existing" } });
+      }
+      if (url.endsWith("/lists/LIST123/relationships/profiles/")) return jsonResponse({}, true, 204);
+      if (url.endsWith("/events/")) return jsonResponse({}, true, 202);
+      throw new Error(`Unexpected fetch call: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await syncWaitlistSubscriber({ ...baseInput, smsConsent: false });
+
+    expect(result).toMatchObject({ status: "synced", profileId: "prof_existing", emailAction: "subscribed" });
+    expect(createOrUpdateCalls).toBe(1);
+  });
+
+  it("previously-unsubscribed email, conflicting phone, SMS checked: never resubscribes email, and SMS is still a reported conflict, not silently dropped", async () => {
+    setConfigured();
+    let createCallCount = 0;
+    let smsSubscribeCalled = false;
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("/profiles/?filter=")) return jsonResponse(profileLookupBody("prof_unsub_conflict", "UNSUBSCRIBED"));
+      if (url.includes("/profiles/prof_unsub_conflict/") && init?.method === "PATCH") {
+        return jsonResponse({ data: { id: "prof_unsub_conflict" } });
+      }
+      if (url.endsWith("/profile-subscription-bulk-create-jobs/")) {
+        smsSubscribeCalled = true;
+        return jsonResponse({}, true, 202);
+      }
+      if (url.endsWith("/events/")) return jsonResponse({}, true, 202);
+      throw new Error(`Unexpected fetch call: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await syncWaitlistSubscriber({ ...baseInput, smsConsent: true });
+
+    // Already has existingId — this submission never reaches the CREATE/
+    // conflict-retry path at all (that only runs for a brand-new profile).
+    expect(createCallCount).toBe(0);
+    expect(result).toMatchObject({ emailAction: "skipped_previously_unsubscribed" });
+    // SMS consent on an otherwise-valid, non-conflicting phone still
+    // proceeds independently of the email-side suppression.
+    expect(smsSubscribeCalled).toBe(true);
+    expect(result).toMatchObject({ smsAction: "subscribed" });
+  });
+
+  it("non-phone-related 409 conflict: never retries, reports a normal error (positive identification fails safe)", async () => {
+    setConfigured();
+    let createCallCount = 0;
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("/profiles/?filter=")) return jsonResponse(NOT_FOUND);
+      if (url.endsWith("/profiles/") && !url.includes("/relationships/") && init?.method === "POST") {
+        createCallCount += 1;
+        return jsonResponse(
+          { errors: [{ status: 409, code: "conflict", detail: "Some other, unrelated conflict." }] },
+          false,
+          409,
+        );
+      }
+      throw new Error(`Unexpected fetch call: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await syncWaitlistSubscriber(baseInput);
+
+    expect(result).toEqual({ status: "error", reason: "create_failed_409" });
+    // Never retried — the 409 wasn't positively identified as duplicate_profile.
+    expect(createCallCount).toBe(1);
+  });
+
+  it("duplicate_profile conflict with NO phone in the request at all: never retries (nothing to strip), reports a normal error", async () => {
+    setConfigured();
+    let createCallCount = 0;
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("/profiles/?filter=")) return jsonResponse(NOT_FOUND);
+      if (url.endsWith("/profiles/") && !url.includes("/relationships/") && init?.method === "POST") {
+        createCallCount += 1;
+        return jsonResponse(
+          { errors: [{ status: 409, code: "duplicate_profile", meta: { duplicate_profile_id: "prof_mystery" } }] },
+          false,
+          409,
+        );
+      }
+      throw new Error(`Unexpected fetch call: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { phone, smsConsent, ...noPhoneInput } = baseInput;
+    const result = await syncWaitlistSubscriber({ ...noPhoneInput, smsConsent: false });
+
+    expect(result).toEqual({ status: "error", reason: "create_failed_409" });
+    expect(createCallCount).toBe(1);
+  });
+
+  it("the retry itself also fails: surfaces the retry's own failure, not the original (now-superseded) conflict", async () => {
+    setConfigured();
+    let createCallCount = 0;
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("/profiles/?filter=")) return jsonResponse(NOT_FOUND);
+      if (url.endsWith("/profiles/") && !url.includes("/relationships/") && init?.method === "POST") {
+        createCallCount += 1;
+        if (createCallCount === 1) {
+          return jsonResponse(
+            { errors: [{ status: 409, code: "duplicate_profile", meta: { duplicate_profile_id: "prof_other_owner" } }] },
+            false,
+            409,
+          );
+        }
+        return jsonResponse({ error: "server_error" }, false, 500);
+      }
+      throw new Error(`Unexpected fetch call: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await syncWaitlistSubscriber(baseInput);
+
+    expect(result).toEqual({ status: "error", reason: "create_failed_500" });
+    expect(createCallCount).toBe(2);
+  });
+
+  it("safety review: a 409 actually caused by the EMAIL (not the phone) still 409s on the retry — never creates a duplicate profile, never resubscribes, never touches the colliding profile", async () => {
+    setConfigured();
+    let createCallCount = 0;
+    let anySubscribeOrListOrEventCall = false;
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("/profiles/?filter=")) return jsonResponse(NOT_FOUND); // stale/missed lookup
+      if (url.endsWith("/profiles/") && !url.includes("/relationships/") && init?.method === "POST") {
+        createCallCount += 1;
+        // Both the first attempt (with phone) AND the retry (without
+        // phone, but the SAME email) hit the same duplicate_profile
+        // conflict — because the true cause is the email, which is
+        // present in both payloads. The retry must not "succeed" here.
+        return jsonResponse(
+          { errors: [{ status: 409, code: "duplicate_profile", meta: { duplicate_profile_id: "prof_email_owner" } }] },
+          false,
+          409,
+        );
+      }
+      if (
+        url.endsWith("/profile-subscription-bulk-create-jobs/") ||
+        url.endsWith("/lists/LIST123/relationships/profiles/") ||
+        url.endsWith("/events/")
+      ) {
+        anySubscribeOrListOrEventCall = true;
+        return jsonResponse({}, true, 202);
+      }
+      throw new Error(`Unexpected fetch call: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await syncWaitlistSubscriber(baseInput);
+
+    // Reported as a plain, honest failure — never a false "ok", never a
+    // second profile silently created for an email that already has one.
+    expect(result).toEqual({ status: "error", reason: "create_failed_409" });
+    // Exactly first attempt + one retry — never more (no loop), and the
+    // retry's own failure is what's surfaced, not a stale success.
+    expect(createCallCount).toBe(2);
+    // Nothing downstream ever runs: no consent subscribe (email or SMS, so
+    // no accidental resubscription), no list-add, no event — the sync
+    // aborted before any of that, exactly as it does for any other CREATE
+    // failure with no existing profile to fall back on.
+    expect(anySubscribeOrListOrEventCall).toBe(false);
+    // The colliding profile is never referenced in any outgoing call.
+    expect(fetchMock.mock.calls.some(([u]) => String(u).includes("prof_email_owner"))).toBe(false);
+  });
+
+  it("never modifies or references the unrelated profile that owns the conflicting phone number", async () => {
+    setConfigured();
+    let createCallCount = 0;
+    const lookup = sequencedLookup([NOT_FOUND, profileLookupBody("prof_clean", "SUBSCRIBED")]);
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("/profiles/?filter=")) return lookup();
+      if (url.endsWith("/profiles/") && !url.includes("/relationships/") && init?.method === "POST") {
+        createCallCount += 1;
+        if (createCallCount === 1) {
+          return jsonResponse(
+            { errors: [{ status: 409, code: "duplicate_profile", meta: { duplicate_profile_id: "prof_the_owner" } }] },
+            false,
+            409,
+          );
+        }
+        return jsonResponse({ data: { id: "prof_clean" } });
+      }
+      if (url.endsWith("/lists/LIST123/relationships/profiles/")) return jsonResponse({}, true, 204);
+      if (url.endsWith("/events/")) return jsonResponse({}, true, 202);
+      throw new Error(`Unexpected fetch call: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const resultPromise = syncWaitlistSubscriber({ ...baseInput, smsConsent: false });
+    await vi.advanceTimersByTimeAsync(10_000);
+    await resultPromise;
+
+    // No PATCH, no GET-by-id, no relationship write — nothing — ever
+    // references prof_the_owner.
+    const touchedOwner = fetchMock.mock.calls.some(([u]) => String(u).includes("prof_the_owner"));
+    expect(touchedOwner).toBe(false);
+  });
+});

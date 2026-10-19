@@ -117,6 +117,37 @@
  * profile write, not an async bulk job, so a successful response from it
  * means the property has already committed, long before the slow
  * consent-commit step even begins.
+ *
+ * Duplicate-phone profile CREATE conflict (2026-10-19 incident): a brand-new
+ * email with no existing Klaviyo profile got a confirmed Airtable write but
+ * no Klaviyo profile, no consent event, and no welcome email. Root cause: the
+ * profile CREATE call (POST /profiles/, no existingId) bundles email, name,
+ * AND phone_number in one request. Klaviyo enforces phone-number uniqueness
+ * across profiles; when the submitted phone already belongs to a different,
+ * unrelated profile, Klaviyo rejects the ENTIRE create with a 409
+ * duplicate_profile — not just the phone field — so the new email's profile
+ * is never created at all, which aborts the whole sync (the pre-existing
+ * `!existingId` abort path). This is distinct from the 2026-10-17 incident
+ * above: that one was an UPDATE (PATCH) conflict on an *existing* profile,
+ * already fixed by proceeding with the existing profileId regardless. This
+ * one is a CREATE conflict where there is no existing profile to fall back
+ * on at all.
+ *
+ * The fix: upsertProfileAttributes() first attempts CREATE with phone_number
+ * included as before. Only when that fails with a 409 whose body's `code` is
+ * positively identified as `"duplicate_profile"` — and only when a phone
+ * number was actually part of this request (if it wasn't, the conflict can't
+ * be about the phone, and is reported as a normal error instead of guessed
+ * at) — it retries the CREATE once, identical in every other way, with
+ * phone_number simply omitted. This never touches the unrelated profile that
+ * already owns the phone number (no PATCH, no merge, no identifier change on
+ * it) and never attaches that phone number anywhere. If that retry succeeds,
+ * the new profile exists with email/name/properties but no phone, email
+ * consent proceeds completely normally, and SMS for this submission is
+ * reported as "skipped_phone_conflict" (never silently attempted with a
+ * phone number this profile doesn't actually have a claim to) — a distinct,
+ * clearly diagnosable ChannelAction rather than being lumped in with
+ * "error" or "skipped_invalid_phone".
  */
 
 import { parsePhoneNumberFromString } from "libphonenumber-js";
@@ -204,6 +235,18 @@ type ChannelAction =
    * channel — see this file's doc comment on why SMS stays unchanged).
    */
   | "pending_confirmation"
+  /**
+   * SMS was requested with a valid, well-formed phone number, but that exact
+   * phone number is already attached to a different, unrelated Klaviyo
+   * profile (surfaced via a positively-identified 409 duplicate_profile on
+   * profile CREATE — see this file's 2026-10-19 doc comment). Distinct from
+   * "skipped_invalid_phone" (malformed/unparseable number) and from "error"
+   * (an actual Subscribe Profiles failure) — this is a real, valid phone
+   * that simply belongs to someone else, so it is never attached to this
+   * profile and SMS subscription is never attempted with it this
+   * submission. Email enrollment is entirely unaffected.
+   */
+  | "skipped_phone_conflict"
   | "error";
 
 /**
@@ -278,18 +321,65 @@ async function findProfileByEmail(
   }
 }
 
+/**
+ * Classifies a non-ok profile CREATE/UPDATE response body as a positively-
+ * identified Klaviyo "duplicate_profile" conflict or not. Only Klaviyo's own
+ * `code` field is trusted for this — never inferred from the HTTP status
+ * alone, since a 409 can mean other things, and a false positive here would
+ * mean silently retrying (or worse, acting on) the wrong failure.
+ */
+function isDuplicateProfileConflict(status: number, rawBody: string): boolean {
+  if (status !== 409) return false;
+  try {
+    const parsed = JSON.parse(rawBody) as { errors?: Array<{ code?: string }> };
+    return Array.isArray(parsed.errors) && parsed.errors.some((e) => e.code === "duplicate_profile");
+  } catch {
+    return false;
+  }
+}
+
+type ProfileCreateOutcome =
+  | { status: "ok"; id: string }
+  | { status: "conflict_duplicate_profile"; reason: string }
+  | { status: "error"; reason: string };
+
+async function postProfileCreate(
+  attributes: Record<string, unknown>,
+  config: KlaviyoConfig,
+): Promise<ProfileCreateOutcome> {
+  try {
+    const res = await fetch(`${KLAVIYO_API_ROOT}/profiles/`, {
+      method: "POST",
+      headers: authHeaders(config),
+      body: JSON.stringify({ data: { type: "profile", attributes } }),
+    });
+    if (res.ok) {
+      const json = (await res.json()) as { data: { id: string } };
+      return { status: "ok", id: json.data.id };
+    }
+    const body = await safeReadText(res);
+    console.error(`[KlaviyoClient] Profile create failed: ${res.status} ${res.statusText}`, body);
+    if (isDuplicateProfileConflict(res.status, body)) {
+      return { status: "conflict_duplicate_profile", reason: `create_failed_${res.status}` };
+    }
+    return { status: "error", reason: `create_failed_${res.status}` };
+  } catch (err) {
+    console.error("[KlaviyoClient] Unexpected error during profile create:", err);
+    return { status: "error", reason: "unexpected_exception" };
+  }
+}
+
 async function upsertProfileAttributes(
   input: WaitlistSyncInput,
   klaviyoPhone: string | null,
   existingId: string | undefined,
   config: KlaviyoConfig,
-): Promise<{ status: "ok"; id: string } | { status: "error"; reason: string }> {
-  const attributes: Record<string, unknown> = {
+): Promise<
+  | { status: "ok"; id: string; phoneSkipped: boolean }
+  | { status: "error"; reason: string }
+> {
+  const baseAttributes: Record<string, unknown> = {
     email: input.email,
-    // Only ever the normalized E.164 value, never the raw input — an
-    // unparseable number is omitted entirely rather than sent as-is,
-    // since Klaviyo may itself reject a non-E.164 phone_number.
-    ...(klaviyoPhone ? { phone_number: klaviyoPhone } : {}),
     ...(input.firstName ? { first_name: input.firstName } : {}),
     ...(input.lastName ? { last_name: input.lastName } : {}),
     properties: {
@@ -300,34 +390,51 @@ async function upsertProfileAttributes(
       airtable_sync_status: input.airtableStatus,
     },
   };
+  // Only ever the normalized E.164 value, never the raw input — an
+  // unparseable number is omitted entirely rather than sent as-is, since
+  // Klaviyo may itself reject a non-E.164 phone_number.
+  const attributesWithPhone = klaviyoPhone ? { ...baseAttributes, phone_number: klaviyoPhone } : baseAttributes;
 
   try {
     if (existingId) {
       const res = await fetch(`${KLAVIYO_API_ROOT}/profiles/${existingId}/`, {
         method: "PATCH",
         headers: authHeaders(config),
-        body: JSON.stringify({ data: { type: "profile", id: existingId, attributes } }),
+        body: JSON.stringify({ data: { type: "profile", id: existingId, attributes: attributesWithPhone } }),
       });
       if (!res.ok) {
         const body = await safeReadText(res);
         console.error(`[KlaviyoClient] Profile update failed: ${res.status} ${res.statusText}`, body);
         return { status: "error", reason: `update_failed_${res.status}` };
       }
-      return { status: "ok", id: existingId };
+      return { status: "ok", id: existingId, phoneSkipped: false };
     }
 
-    const res = await fetch(`${KLAVIYO_API_ROOT}/profiles/`, {
-      method: "POST",
-      headers: authHeaders(config),
-      body: JSON.stringify({ data: { type: "profile", attributes } }),
-    });
-    if (!res.ok) {
-      const body = await safeReadText(res);
-      console.error(`[KlaviyoClient] Profile create failed: ${res.status} ${res.statusText}`, body);
-      return { status: "error", reason: `create_failed_${res.status}` };
+    const firstAttempt = await postProfileCreate(attributesWithPhone, config);
+    if (firstAttempt.status === "ok") {
+      return { status: "ok", id: firstAttempt.id, phoneSkipped: false };
     }
-    const json = (await res.json()) as { data: { id: string } };
-    return { status: "ok", id: json.data.id };
+
+    // Only retry without the phone number when the conflict is positively
+    // identified as duplicate_profile AND a phone was actually part of this
+    // request — if no phone was sent, the conflict cannot be about the
+    // phone (there's nothing to strip), so it is reported as a normal,
+    // unidentified error rather than guessed at (see this file's 2026-10-19
+    // doc comment and isDuplicateProfileConflict above).
+    if (klaviyoPhone && firstAttempt.status === "conflict_duplicate_profile") {
+      const retryAttempt = await postProfileCreate(baseAttributes, config);
+      if (retryAttempt.status === "ok") {
+        console.warn(
+          `[KlaviyoClient] Profile created without phone_number after a duplicate_profile conflict (the submitted phone already belongs to a different profile; that profile was not modified).`,
+        );
+        return { status: "ok", id: retryAttempt.id, phoneSkipped: true };
+      }
+      // The retry itself failed for a different reason — surface that
+      // failure, never the original (now-superseded) conflict.
+      return { status: "error", reason: retryAttempt.reason };
+    }
+
+    return { status: "error", reason: firstAttempt.reason };
   } catch (err) {
     console.error("[KlaviyoClient] Unexpected error during profile upsert:", err);
     return { status: "error", reason: "unexpected_exception" };
@@ -610,8 +717,11 @@ export async function syncWaitlistSubscriber(input: WaitlistSyncInput): Promise<
     // must not be SMS-subscribed off whatever Klaviyo would otherwise do
     // with a malformed phone_number. This check runs before the
     // previously-unsubscribed check so an invalid number is reported as
-    // exactly that, not misattributed to a prior unsubscribe.
-    const smsAction: ChannelAction = !input.smsConsent
+    // exactly that, not misattributed to a prior unsubscribe. This is only
+    // the PRELIMINARY action — it can still be downgraded to
+    // "skipped_phone_conflict" below once the attribute upsert's outcome is
+    // known (a valid phone can still turn out to belong to someone else).
+    const preliminarySmsAction: ChannelAction = !input.smsConsent
       ? "not_requested"
       : !klaviyoPhone
         ? "skipped_invalid_phone"
@@ -644,6 +754,19 @@ export async function syncWaitlistSubscriber(input: WaitlistSyncInput): Promise<
       return { status: "error", reason: attributesResult.reason };
     }
     const profileId = attributesResult.status === "ok" ? attributesResult.id : existingId!;
+
+    // A CREATE that only succeeded by dropping an unrelated profile's phone
+    // number (see upsertProfileAttributes above) means THIS profile was
+    // never actually given that phone — so SMS can never be attempted for
+    // it this submission, regardless of what the preliminary action above
+    // computed. Reported as its own distinct ChannelAction, never silently
+    // folded into "error" or "skipped_invalid_phone".
+    const phoneSkippedDueToConflict =
+      attributesResult.status === "ok" && attributesResult.phoneSkipped === true;
+    const smsAction: ChannelAction =
+      phoneSkippedDueToConflict && preliminarySmsAction === "subscribed"
+        ? "skipped_phone_conflict"
+        : preliminarySmsAction;
 
     // These three run concurrently — none needs another's result (every
     // call identifies the profile by email, not by the Klaviyo-internal id

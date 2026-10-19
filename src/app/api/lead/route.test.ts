@@ -226,6 +226,27 @@ describe("POST /api/lead — supplement waitlist submission", () => {
     expect(note).not.toMatch(/not in a supported region|phone_number|40[0-9]/);
   });
 
+  it("appends a reconciliation note when SMS was requested but skipped due to a phone-number conflict with another profile, even though email succeeded (2026-10-19 fix)", async () => {
+    upsertGenericLead.mockResolvedValue({ status: "created", recordId: "rec1" });
+    syncWaitlistSubscriber.mockResolvedValue({
+      status: "synced",
+      profileId: "prof_1",
+      emailAction: "subscribed",
+      smsAction: "skipped_phone_conflict",
+      eventTracked: true,
+    });
+
+    const res = await POST(postRequest(validWaitlist));
+    const json = await res.json();
+
+    expect(json).toMatchObject({ ok: true, enrolled: true });
+    expect(appendKlaviyoReconciliationNote).toHaveBeenCalledTimes(1);
+    const [recordId, note] = appendKlaviyoReconciliationNote.mock.calls[0];
+    expect(recordId).toBe("rec1");
+    expect(note).toContain("SMS");
+    expect(note).toContain("different Klaviyo profile");
+  });
+
   it("never appends a reconciliation note when both Klaviyo channels succeed", async () => {
     upsertGenericLead.mockResolvedValue({ status: "created", recordId: "rec1" });
     syncWaitlistSubscriber.mockResolvedValue({

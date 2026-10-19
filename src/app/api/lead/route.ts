@@ -96,7 +96,13 @@ function logKlaviyoOutcome(input: {
   const channelFailed =
     input.emailAction === "error" ||
     input.emailAction === "pending_confirmation" ||
-    input.smsAction === "error";
+    input.smsAction === "error" ||
+    // A valid, consented SMS opt-in that couldn't be honored because the
+    // phone number already belongs to a different profile (see
+    // klaviyoClient.ts's 2026-10-19 doc comment) — email enrollment is
+    // unaffected, but this still needs an operator's eyes since the
+    // visitor's SMS consent was never actually recorded anywhere.
+    input.smsAction === "skipped_phone_conflict";
   if (input.status === "synced" && !channelFailed) return;
   console.error(
     `[LeadSubmission] integration=klaviyo status=${input.status} reason=${input.reason ?? "n/a"} airtableStatus=${input.airtableStatus} emailAction=${input.emailAction ?? "n/a"} smsAction=${input.smsAction ?? "n/a"}`,
@@ -285,7 +291,8 @@ export async function POST(req: NextRequest) {
       annotatableRecordId &&
       (emailAction === "error" ||
         emailAction === "pending_confirmation" ||
-        smsAction === "error")
+        smsAction === "error" ||
+        smsAction === "skipped_phone_conflict")
     ) {
       const emailIssue =
         emailAction === "error"
@@ -293,9 +300,13 @@ export async function POST(req: NextRequest) {
           : emailAction === "pending_confirmation"
             ? "email (consent not yet confirmed as of this request — check Klaviyo before resolving)"
             : null;
-      const failedChannels = [emailIssue, smsAction === "error" ? "SMS" : null]
-        .filter(Boolean)
-        .join(" and ");
+      const smsIssue =
+        smsAction === "error"
+          ? "SMS"
+          : smsAction === "skipped_phone_conflict"
+            ? "SMS (requested, but the phone number is already on a different Klaviyo profile — not subscribed anywhere this submission)"
+            : null;
+      const failedChannels = [emailIssue, smsIssue].filter(Boolean).join(" and ");
       const noteResult = await appendKlaviyoReconciliationNote(
         annotatableRecordId,
         `[${submittedAt}] Klaviyo sync note: ${failedChannels} subscription needs reconciliation (see Klaviyo profile for the waitlist-signup event and current consent state).`,
