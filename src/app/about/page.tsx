@@ -127,12 +127,10 @@ export default function AboutPage() {
               around one-on-one and 1:2 coaching rather than open gym floor
               access. You&rsquo;re with your trainer 100% of the time.
             </p>
-            <p className="text-sm text-ink-400">
-              [CONFIRM before publishing, the previous site described an
-              8,000 sq. ft. flagship location with 150+ dedicated clients
-              and 18 certified trainers. Confirm current figures and
-              facility description with Theo/management.]
-            </p>
+            {/* Internal note, not rendered: the previous site described an
+                8,000 sq. ft. flagship location with 150+ dedicated clients
+                and 18 certified trainers. Confirm current figures with
+                Theo before publishing any of them. */}
           </div>
           <ResponsiveImage
             src="/images/trainers/paula-jones.webp"

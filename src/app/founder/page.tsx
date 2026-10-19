@@ -71,13 +71,10 @@ export default function FounderPage() {
                 73, he is focusing exclusively on helping our older clients
                 regain their strength, health, energy, and independence.
               </p>
-              <p className="text-sm text-plum-300">
-                [CONFIRM before publishing, sourced from the previous
-                getagefit.com site and not yet independently verified:
-                35,000+ personal training sessions delivered; competed in
-                drug-free bodybuilding, Masters 50 &amp; 60 divisions. See
-                docs/CONTENT-STATUS.md.]
-              </p>
+              {/* Internal note, not rendered: the previous site claimed
+                  35,000+ personal training sessions delivered and Masters
+                  50 & 60 bodybuilding divisions. Confirm with Theo before
+                  publishing. See docs/CONTENT-STATUS.md. */}
             </div>
           </div>
         </div>
