@@ -3,10 +3,9 @@
 /**
  * Thin event-tracking layer.
  *
- * Every call pushes to window.dataLayer (GA4 via gtag.js, if configured) and
- * — because Clarity auto-captures session behavior — no separate Clarity
- * call is needed for standard events. Custom Clarity tags (for segmenting
- * qualification results in session recordings) go through window.clarity.
+ * Every call sends a GA4 event via gtag("event", ...) (if GA4 is
+ * configured) and a matching Clarity custom event + session tag, so
+ * recordings can be filtered by funnel step and qualification result.
  *
  * KPIs this supports (see PROMPT §21): qualification starts/completion,
  * qualification result, lead capture, consultation booking, CTA clicks —
@@ -16,7 +15,8 @@
 
 declare global {
   interface Window {
-    dataLayer?: Record<string, unknown>[];
+    dataLayer?: unknown[];
+    gtag?: (...args: unknown[]) => void;
     clarity?: (...args: unknown[]) => void;
   }
 }
@@ -39,11 +39,27 @@ export type AnalyticsEvent =
 export function trackEvent(event: AnalyticsEvent) {
   if (typeof window === "undefined") return;
 
-  window.dataLayer = window.dataLayer || [];
-  window.dataLayer.push({ event: event.name, ...event });
+  const { name, ...params } = event;
 
-  // Tag the Clarity session so recordings can be filtered by funnel outcome.
+  // GA4 via gtag.js only reads commands queued as gtag(...) calls (pushed
+  // as `arguments` objects). A plain {event: ...} object on dataLayer is
+  // Google Tag Manager's format and gtag.js silently ignores it, which is
+  // why custom events previously never reached GA4. If gtag.js hasn't
+  // finished loading yet, this shim queues the call in the same format so
+  // it is replayed once the library arrives.
+  window.dataLayer = window.dataLayer || [];
+  const gtag =
+    window.gtag ??
+    function () {
+      // eslint-disable-next-line prefer-rest-params
+      window.dataLayer!.push(arguments);
+    };
+  gtag("event", name, params);
+
+  // Clarity: a custom event (for filtering recordings by funnel step) plus a
+  // session tag carrying the details (e.g. the qualification result).
   if (typeof window.clarity === "function") {
-    window.clarity("set", event.name, JSON.stringify(event));
+    window.clarity("event", name);
+    window.clarity("set", name, JSON.stringify(params));
   }
 }
