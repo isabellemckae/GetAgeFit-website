@@ -104,9 +104,11 @@ export function Footer() {
             <Link href="/privacy" className="hover:text-sand-50">
               Privacy Policy
             </Link>
-            <Link href="/terms" className="hover:text-sand-50">
-              Terms of Service
-            </Link>
+            {/* Terms of Service link removed for Phase 1 (2026-10-20): no
+                general website ToS exists yet, drafted or otherwise — see
+                src/app/terms/ in git history. Restore once real content
+                exists; do not relink to Mobile Messaging Terms, a
+                different document. */}
           </div>
         </div>
       </Container>
