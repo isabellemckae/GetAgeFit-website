@@ -292,14 +292,14 @@ export function SupplementTeaser() {
  * email as part of the core form (phone stays an optional add-on, not an
  * alternative to email).
  *
- * SMS consent is deliberately NOT read from FormData the way every other
- * field is: an unchecked checkbox is simply absent from FormData, which
- * would make "unchecked" indistinguishable from "this field doesn't
- * exist." Instead the checkbox's real `.checked` boolean is read
- * directly and always sent explicitly (true or false), so the backend
- * can tell "explicitly declined" apart from "never asked" (see the
- * emailConsent/smsConsent handling in /api/lead/route.ts), and so a
- * phone number being entered is never mistaken for SMS consent.
+ * Phase 1 launch (2026-10-20): the SMS opt-in checkbox and phone field are
+ * temporarily hidden from this form — SMS sender registration isn't
+ * finished yet (see src/app/mobile-terms/page.tsx's own reviewer notice),
+ * so this is an email-only signup for now. The backend SMS handling in
+ * klaviyoClient.ts/route.ts is untouched and still fully independent; this
+ * form simply never collects a phone number or sends `smsConsent` at all,
+ * so no SMS subscription request is ever initiated. Restoring the checkbox
+ * and phone field for Phase 2 only requires reverting this component.
  */
 function NotifyMeForm() {
   const [status, setStatus] = useState<
@@ -311,9 +311,6 @@ function NotifyMeForm() {
     setStatus("submitting");
     const form = e.currentTarget;
     const data = Object.fromEntries(new FormData(form).entries());
-    const smsConsentInput = form.elements.namedItem("smsConsent");
-    const smsConsent =
-      smsConsentInput instanceof HTMLInputElement ? smsConsentInput.checked : false;
 
     try {
       const res = await fetch("/api/lead", {
@@ -321,7 +318,6 @@ function NotifyMeForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...data,
-          smsConsent,
           source: "supplement_waitlist",
         }),
       });
@@ -419,51 +415,19 @@ function NotifyMeForm() {
           />
         </div>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <label htmlFor="supplement-email" className="sr-only">
-            Email
-          </label>
-          <input
-            id="supplement-email"
-            name="email"
-            type="email"
-            required
-            placeholder="Email"
-            className="w-full rounded-xl2 border border-ink-100 bg-white px-4 py-3 text-ink-800 shadow-sm focus:border-sage-400"
-          />
-        </div>
-        <div>
-          <label htmlFor="supplement-phone" className="sr-only">
-            Cell number (optional)
-          </label>
-          <input
-            id="supplement-phone"
-            name="phone"
-            type="tel"
-            placeholder="Cell number (optional)"
-            className="w-full rounded-xl2 border border-ink-100 bg-white px-4 py-3 text-ink-800 shadow-sm focus:border-sage-400"
-          />
-        </div>
-      </div>
-      {/* Separate, affirmative SMS consent — distinct from email consent
-          (implied by submitting this form at all, see the doc comment
-          above) and never inferred from entering a phone number. */}
-      <label
-        htmlFor="supplement-sms-consent"
-        className="flex items-start gap-3 text-sm text-ink-700"
-      >
+      <div>
+        <label htmlFor="supplement-email" className="sr-only">
+          Email
+        </label>
         <input
-          id="supplement-sms-consent"
-          name="smsConsent"
-          type="checkbox"
-          className="mt-1 h-4 w-4 shrink-0 rounded border-ink-200 text-sage-600 accent-sage-600"
+          id="supplement-email"
+          name="email"
+          type="email"
+          required
+          placeholder="Email"
+          className="w-full rounded-xl2 border border-ink-100 bg-white px-4 py-3 text-ink-800 shadow-sm focus:border-sage-400"
         />
-        <span>
-          Yes, I&rsquo;d also like to receive occasional text-message
-          updates from Get Age Fit.
-        </span>
-      </label>
+      </div>
       {status === "error" && (
         <p role="alert" className="text-sm font-medium text-red-700">
           Something went wrong. Please try again.
