@@ -228,38 +228,35 @@ export function SupplementTeaser() {
               </div>
 
               <div className="mt-8 rounded-xl2 border-t-4 border-plum-500 bg-sand-100 p-6">
+                {/* Signup disclosure copy — Theo's exact text, approved via
+                    email 2026-10-20 ("Supplement Waitlist — Signup
+                    Disclosure"). Do not reword without his sign-off. */}
                 <h3 className="mb-2 font-display text-xl text-ink-900">
-                  Be the First to Know.
+                  Get notified when ageLIFT&trade; and ageFUEL&trade; launch.
                 </h3>
                 <p className="mb-4 text-sm leading-relaxed text-ink-700 sm:text-base">
-                  ageLIFT&trade; and ageFUEL&trade; are coming in early 2027.
-                  Leave your information below and we&rsquo;ll let you know
-                  when they&rsquo;re ready to order, and occasionally share a
-                  brief update as we get closer to launch.
+                  Sign up to receive email updates about product launches,
+                  availability, and occasional product news. We expect to
+                  email approximately once a month.
                 </p>
                 <NotifyMeForm />
-                {/* Legal/privacy copy, approved verbatim by Theo — kept
-                    visually subordinate (smaller size, muted color) to the
-                    headline/copy/form above, per instruction. */}
                 <p className="mt-5 text-xs leading-relaxed text-ink-500">
-                  Your privacy matters to us. We will never sell your
-                  contact information to outside marketers. We will use it
-                  to communicate with you about ageLIFT&trade;,
-                  ageFUEL&trade;, their availability and occasional product
-                  updates. We expect these updates to be approximately once
-                  a month. You can unsubscribe from emails or opt out of
-                  text messages at any time.
+                  We will never sell your contact information to outside
+                  marketers. You can unsubscribe at any time.
                 </p>
                 <p className="mt-2 text-xs leading-relaxed text-ink-500">
-                  Message and data rates may apply. Consent is not a
-                  condition of purchase. See our{" "}
+                  By submitting this form, you agree to receive marketing
+                  emails from Get Age Fit.
+                </p>
+                <p className="mt-2 text-xs leading-relaxed text-ink-500">
+                  See our{" "}
                   <a
                     href="/privacy"
-                    className="underline hover:text-ink-700"
+                    className="underline hover:text-ink-700 font-semibold"
                   >
                     Privacy Policy
                   </a>{" "}
-                  for complete details.
+                  for details.
                 </p>
               </div>
 
