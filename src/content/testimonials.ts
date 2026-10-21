@@ -58,7 +58,7 @@ export const testimonials: Testimonial[] = [
   {
     slug: "brenda-brand",
     quote:
-      "We've been working at GetAgeFit for just 3 weeks and we're already seeing a huge difference in our joy, energy, and muscle. Training together as a couple has been such a great experience, and Get Age Fit has exceeded our expectations.\n\nWe don't only train 3x a week, but we also stay motivated through group messages with our trainer. Highly recommend Get Age Fit! Can't wait to see our 12-week results!",
+      "We've been working out at GetAgeFit for just 3 weeks and we're already seeing a huge difference in our joy, energy, and muscle. Training together as a couple has been such a great experience, and Get Age Fit has exceeded our expectations.\n\nWe don't only train 3x a week, but we also stay motivated through group messages with our trainer. Highly recommend Get Age Fit! Can't wait to see our 12-week results!",
     context: "Brenda Brand",
   },
 ];
