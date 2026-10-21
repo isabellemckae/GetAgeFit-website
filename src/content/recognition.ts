@@ -14,7 +14,7 @@
 export const recognitionLines: string[] = [
   "Maybe you’re not as strong as you used to be.",
   "Maybe your balance isn’t what it was.",
-  "Maybe you’re getting tired doing things that used to be easy.",
+  "Maybe you’re getting tired of doing things that used to be easy.",
   "Maybe you’ve gained some weight.",
   "Maybe an old injury keeps getting in the way.",
   "Maybe you’re thinking “I’m not getting any younger.”",
