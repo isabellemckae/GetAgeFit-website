@@ -18,6 +18,20 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      // Force HTTPS on both production domains. Vercel's edge was observed
+      // serving plain http:// directly (200, no redirect) instead of
+      // upgrading it, so this is enforced explicitly rather than assumed.
+      // :host is captured from the request so apex and www each redirect
+      // to themselves over https, not to one hardcoded domain.
+      {
+        source: "/:path*",
+        has: [
+          { type: "header", key: "x-forwarded-proto", value: "http" },
+          { type: "host", value: "(?<host>.*)" },
+        ],
+        destination: "https://:host/:path*",
+        permanent: true,
+      },
       // Transformations was removed from the site (Demo #6, client-directed).
       { source: "/transformations", destination: "/", permanent: true },
       // Privacy Policy lives in the standalone legal-standalone/ project
