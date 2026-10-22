@@ -50,15 +50,37 @@
 // produced for the resulting ambiguity against "all trainers completed
 // NASM certification."
 //
-// `specialties` is displayed together with `credentials` under one
-// "Certifications" label in both TrainersGrid.tsx and TrainerBioModal.tsx
-// (client-directed: specialties are certifications too). Wording/order
-// within each array is unchanged.
-//
 // Tish Strandboge removed from the roster entirely (client-directed).
 // Her photo files remain on disk (public/images/trainers/tish-strandboge.webp,
 // public/images/trainers/bio/tish-strandboge.webp) but are no longer
 // referenced anywhere in the app.
+//
+// Post-launch management batch 1: `credentials` and `specialties` are
+// split back into two separately-labeled display groups ("Certifications
+// & Degrees" vs. "Specialties" — see TrainersGrid.tsx / TrainerBioModal.tsx),
+// reversing the earlier "display together" decision above. Two data
+// corrections followed directly from the new rule (verified NASM certs
+// and verified degrees only in `credentials`): Maria Arellano's two
+// degrees ("BS Biology & Spanish", "M.Ed. Education Administration") moved
+// from `specialties` into `credentials`, and Will Roberts' "18+ years
+// coaching experience" (tenure, not a certification) moved from
+// `credentials` into `specialties`. Maria's "NASM Nutrition Coach" is
+// newly added per direct management request, not inferred.
+//
+// Flagged, not silently classified: several non-NASM-named items stayed in
+// `credentials` because they read as formal third-party certifications
+// (not skill/focus descriptions) but are NOT verified NASM certifications
+// or degrees, so their Category-A placement needs management confirmation:
+// Isa Lozano's "Certified Behavior Change Specialist" (her own bio text
+// calls this "NASM Behavior Change Specialist" — the credential string
+// itself may be missing an "NASM" prefix, left as-is since renaming
+// wasn't requested), Travis Strawser's "Certified Massage Therapist" and
+// "Certified Stretch Coach", Jeff Venditte's and Jim Zach's "CPR/AED"
+// entries, and all four of Ali Tabei's credentials ("Fitness Specialist",
+// "Senior Fitness Specialist", "TRX Trainer", "Strength & Conditioning
+// Coach") — this last set already carried a pre-existing, separately
+// documented ambiguity (see the CPT-rename note above) about whether
+// they're verified NASM credentials at all.
 
 export type Trainer = {
   slug: string;
@@ -79,8 +101,14 @@ export const trainers: Trainer[] = [
     slug: "maria-arellano",
     name: "Maria Arellano",
     role: "Certified Personal Trainer",
-    credentials: ["NASM CPT", "First Aid/CPR"],
-    specialties: ["BS Biology & Spanish", "M.Ed. Education Administration"],
+    credentials: [
+      "NASM CPT",
+      "NASM Nutrition Coach",
+      "First Aid/CPR",
+      "BS Biology & Spanish",
+      "M.Ed. Education Administration",
+    ],
+    specialties: [],
     philosophy: needsPhilosophy,
     story: `Maria uses her experience with her own 12-Week Transformation to coach clients to lasting results, including proper techniques for training and why that's important. But it's also important to Maria that her clients are instilled with a love of working out. Her workouts are the perfect balance of intense and fun.
 
@@ -156,8 +184,12 @@ Travis discovered his passion for physical training during his time in the milit
     slug: "will-roberts",
     name: "Will Roberts",
     role: "Fitness Coach",
-    credentials: ["18+ years coaching experience"],
-    specialties: ["Athletes through older adults", "Post-physical-therapy training"],
+    credentials: [],
+    specialties: [
+      "18+ years coaching experience",
+      "Athletes through older adults",
+      "Post-physical-therapy training",
+    ],
     philosophy: needsPhilosophy,
     story: `With over 18 years of coaching experience, Will has worked with everyone from high level athletes to weekend warriors, young people to the elderly (4-87 years), extreme weight loss, "post-physical therapy" training…and everything in between.
 

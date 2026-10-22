@@ -1,5 +1,6 @@
 import { Section, Eyebrow } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
+import { cta } from "@/lib/site-config";
 
 export default function NotFound() {
   return (
@@ -16,12 +17,12 @@ export default function NotFound() {
           Return Home
         </Button>
         <Button
-          href="/consultation"
+          href={cta.primary.href}
           variant="secondary"
-          trackCta="Schedule a Consultation"
+          trackCta={cta.primary.label}
           trackLocation="404"
         >
-          Schedule a Consultation
+          {cta.primary.label}
         </Button>
       </div>
     </Section>

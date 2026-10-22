@@ -34,7 +34,13 @@ export default function FounderPage() {
     <>
       {/* Founder moment: Theo's photo paired with his story. Stacks on
           mobile, side-by-side on desktop. */}
-      <section className="relative overflow-hidden bg-plum-900 py-16 md:py-24">
+      {/* Management-directed (post-launch batch 1, EDIT 14): the dark
+          plum-900 block clashed with Theo's purple "GETAGEFIT" polo shirt
+          in this photo, so the background moved to the existing dark-sage
+          treatment used elsewhere (e.g. homepage "This Isn't Your Typical
+          Gym."), with the accent text colors updated to match — only the
+          background/accent colors changed here, not the photo itself. */}
+      <section className="relative overflow-hidden bg-sage-950 py-16 md:py-24">
         <div className="mx-auto grid max-w-content items-center gap-10 px-6 md:px-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
           <ResponsiveImage
             src="/images/founder/theo-thurston.webp"
@@ -49,10 +55,10 @@ export default function FounderPage() {
             <p className="mb-8 font-display text-3xl italic leading-snug text-sand-50 md:text-4xl">
               &ldquo;Think stronger. Live stronger. Age stronger.&rdquo;
             </p>
-            <h1 className="mb-6 text-sm font-semibold uppercase tracking-wide text-plum-200">
+            <h1 className="mb-6 text-sm font-semibold uppercase tracking-wide text-sage-200">
               Theo Thurston, Founder
             </h1>
-            <div className="mx-auto max-w-2xl space-y-4 text-left leading-relaxed text-plum-100 lg:mx-0">
+            <div className="mx-auto max-w-2xl space-y-4 text-left leading-relaxed text-sage-100 lg:mx-0">
               <p>
                 Theo&rsquo;s own fitness journey began later in life,
                 starting a first structured transformation in his late 40s

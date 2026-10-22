@@ -22,9 +22,10 @@ import { Badge } from "@/components/ui/Badge";
  * source bios that may contain multiple paragraphs; `whitespace-pre-line`
  * below preserves those paragraph breaks as written.
  *
- * Approved edit (client-directed): `credentials` and `specialties` render
- * together under one "Certifications" label, matching TrainersGrid.tsx's
- * preview cards, rather than two separately-labeled sections.
+ * Post-launch management batch 1: `credentials` and `specialties` render
+ * as two separately-labeled, separately-colored sections ("Certifications
+ * & Degrees" in sage, "Specialties" in plum), matching TrainersGrid.tsx's
+ * preview cards, reversing the earlier "one Certifications label" decision.
  */
 function hasContent(value: string) {
   return !value.trim().startsWith("[");
@@ -89,14 +90,29 @@ export function TrainerBioModal({
             {trainer.role}
           </p>
 
-          {(trainer.credentials.length > 0 || trainer.specialties.length > 0) && (
+          {trainer.credentials.length > 0 && (
             <div className="mb-5">
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-400">
-                Certifications
+                Certifications &amp; Degrees
               </p>
               <div className="flex flex-wrap gap-1.5">
-                {[...trainer.credentials, ...trainer.specialties].map((c) => (
+                {trainer.credentials.map((c) => (
                   <Badge key={c} tone="sage">
+                    {c}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {trainer.specialties.length > 0 && (
+            <div className="mb-5">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-400">
+                Specialties
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {trainer.specialties.map((c) => (
+                  <Badge key={c} tone="plum">
                     {c}
                   </Badge>
                 ))}

@@ -52,7 +52,7 @@ export const testimonials: Testimonial[] = [
   {
     slug: "lisa-sanders",
     quote:
-      "Rian and I have been working at Get Age Fit on our strength and conditioning since the beginning of December. The results have been fantastic! We developed a great workout program that was specific to our needs and we were pushed with each workout to give it our all.\n\nI highly recommend Get Age Fit no matter what your fitness goals are.",
+      "Rian and I have been working at Get Age Fit on our strength and conditioning since the beginning of December. The results have been fantastic! We developed a great workout program that was specific to our needs.\n\nI highly recommend Get Age Fit no matter what your fitness goals are.",
     context: "Lisa Sanders",
   },
   {

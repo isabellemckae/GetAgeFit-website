@@ -12,15 +12,21 @@ import { ServicesSimpleList } from "@/components/home/ServicesSimpleList";
 import { FounderHomeSection } from "@/components/home/FounderHomeSection";
 import { outcomes } from "@/content/outcomes";
 import { objectionsClosing } from "@/content/objections";
-import { siteConfig } from "@/lib/site-config";
+import { siteConfig, cta } from "@/lib/site-config";
 import { pageOpenGraph } from "@/lib/seo";
 
 // Demo #2 homepage. Rebuilt per the approved New Website Master Reference
 // (§10, §11) and Prompt 3 — see docs/ARCHITECTURE.md for the full
-// decision trail. Primary CTA copy is inlined on this page deliberately
-// (not sourced from lib/site-config.ts's `cta` object), so this rebuild
-// doesn't cascade the new CTA wording onto secondary pages that haven't
-// been reviewed yet — that propagation is planned for Phase 4/5.
+// decision trail.
+//
+// Post-launch management batch 1 (EDIT 13): the primary CTA label used to
+// be inlined here on purpose, separate from lib/site-config.ts's `cta`
+// object, specifically so its wording wouldn't cascade to other pages
+// before they'd been reviewed. Management has now directed one exact
+// label sitewide ("Schedule your free consultation"), explicitly
+// superseding that earlier wording — so this page now sources the label
+// from `cta.primary.label` like every other consultation button, rather
+// than keeping a second, separately-maintained copy of the same string.
 
 const HOME_TITLE = "Personal Training for Adults 40+ in Georgetown, TX";
 const HOME_DESCRIPTION =
@@ -33,7 +39,7 @@ export const metadata: Metadata = {
   ...pageOpenGraph({ title: HOME_TITLE, description: HOME_DESCRIPTION, path: "/" }),
 };
 
-const PRIMARY_CTA_LABEL = "Schedule Your Free Evaluation & Consultation";
+const PRIMARY_CTA_LABEL = cta.primary.label;
 const PRIMARY_CTA_SUPPORT_FULL =
   "No cost. No obligation. Just a chance to see what’s possible for YOU.";
 const PRIMARY_CTA_SUPPORT_SHORT = "No cost. No obligation.";
@@ -46,34 +52,11 @@ export default function HomePage() {
           fill photo + dark gradient overlay + light text on top), per
           Demo #4 Part 2.1. Same hero copy/CTA as before; only the container
           treatment changed. */}
-      <section className="relative flex h-[720px] items-center overflow-hidden md:h-[600px]">
-        {/* Art-directed crop: the wide banner crop that works on desktop
-            crams both people into a narrow sliver on a tall, narrow mobile
-            viewport. A separate, purpose-cropped portrait photo (both
-            faces framed properly) is swapped in below `md` instead of
-            just reframing the same wide image. */}
-        <ResponsiveImage
-          src="/images/training/hero-strength-duo-mobile.jpg"
-          alt="Two GetAgeFit clients celebrating their strength gains"
-          placeholderLabel="Hero photo needed: warm trainer/client interaction"
-          aspect="aspect-auto"
-          imageClassName="object-center"
-          className="!absolute !inset-0 !block !h-full !w-full !rounded-none md:!hidden"
-          priority
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-ink-900/90 via-ink-900/70 to-plum-900/60" />
-        </ResponsiveImage>
-        <ResponsiveImage
-          src="/images/training/hero-strength-duo.webp"
-          alt="Two GetAgeFit clients celebrating their strength gains"
-          placeholderLabel="Hero photo needed: warm trainer/client interaction"
-          aspect="aspect-auto"
-          imageClassName="object-center"
-          className="!absolute !inset-0 !hidden !h-full !w-full !rounded-none md:!block"
-          priority
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-ink-900/90 via-ink-900/70 to-plum-900/60" />
-        </ResponsiveImage>
+      <section className="relative flex h-[720px] items-center overflow-hidden bg-plum-500 md:h-[600px]">
+        {/* Management-directed (post-launch batch 1, EDIT 1): the Laura &
+            James hero photo is removed in favor of a brighter solid brand
+            purple; the photo itself is preserved and reused in the "Maybe
+            You're Noticing…" section below instead (EDIT 2). */}
         <div className="relative z-10 mx-auto w-full max-w-content px-6 md:px-10">
           <Badge tone="plum">The 12-Week Transformation Experience</Badge>
           <h1 className="mb-6 mt-5 max-w-2xl text-sand-50">
@@ -94,19 +77,14 @@ export default function HomePage() {
               />
             </span>
           </h1>
-          <p className="mb-4 max-w-xl text-lg leading-relaxed text-sand-100 sm:text-xl">
+          <p className="mb-9 max-w-xl text-lg leading-relaxed text-sand-100 sm:text-xl">
             Custom, age-appropriate workouts to look better, feel stronger,
             live longer.
-          </p>
-          <p className="mb-9 max-w-xl text-lg leading-relaxed text-sand-200/90">
-            We specialize in guided 12-week transformations built especially
-            for brand-new clients, ages 40 to 80 and beyond: real strength,
-            healthy aging, and independence you can feel in daily life.
           </p>
           <Button
             href="/consultation"
             size="lg"
-            variant="light"
+            variant="primary"
             trackCta={PRIMARY_CTA_LABEL}
             trackLocation="homepage-hero"
           >
@@ -125,20 +103,28 @@ export default function HomePage() {
             Maybe You&rsquo;re Noticing&hellip;
           </h2>
         </div>
-        {/* This section previously reused the hero's own leg-press photo
-            here too — the same image appeared twice in one scroll of the
-            homepage (client-flagged repetition, see Task 3 photography
-            audit). Client-supplied replacement photo now fills the gap
-            left when that duplicate was removed. */}
+        {/* Management-directed (post-launch batch 1, EDIT 2): the photo
+            previously used here is replaced with the original Laura &
+            James photo freed up by EDIT 1, shown with natural colors (no
+            tint/overlay) and the same responsive mobile/desktop crop swap
+            that photo used in the hero, so both faces stay visible on a
+            narrow viewport. */}
         <ResponsiveImage
-          src="/images/training/trainer-assisted-barbell-session.jpg"
-          alt="A GetAgeFit client in a lunge pressing a weight plate overhead while her trainer spots her with a barbell at the Georgetown studio"
-          placeholderLabel="Recognition photo needed: real client working with trainer"
+          src="/images/training/hero-strength-duo-mobile.jpg"
+          alt="Laura and James, GetAgeFit clients celebrating their strength gains"
+          placeholderLabel="Recognition photo"
+          aspect="aspect-[4/3]"
+          imageClassName="object-center"
+          className="mx-auto mb-12 max-w-2xl shadow-soft md:hidden"
+        />
+        <ResponsiveImage
+          src="/images/training/hero-strength-duo.webp"
+          alt="Laura and James, GetAgeFit clients celebrating their strength gains"
+          placeholderLabel="Recognition photo"
           aspect="aspect-[16/9]"
-          className="mx-auto mb-12 max-w-2xl shadow-soft"
-        >
-          <div className="photo-tint-sage" />
-        </ResponsiveImage>
+          imageClassName="object-center"
+          className="mx-auto mb-12 hidden max-w-2xl shadow-soft md:block"
+        />
         <RecognitionList />
       </Section>
 

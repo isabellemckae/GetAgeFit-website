@@ -60,8 +60,8 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/consultation" className="text-sand-200/90 hover:text-sand-50">
-                  Schedule a Consultation
+                <Link href={cta.primary.href} className="text-sand-200/90 hover:text-sand-50">
+                  {cta.primary.label}
                 </Link>
               </li>
               <li>

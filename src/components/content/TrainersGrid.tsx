@@ -25,13 +25,21 @@ import { TrainerBioModal } from "@/components/content/TrainerBioModal";
  * is empty for now — kept in place (rather than removing the mechanism)
  * for the next trainer added without a photo yet.
  *
- * Approved edit (client-directed): credentials and specialties now render
- * together under one "Certifications" label (see CertificationsList
- * below), and every card is the same height regardless of how many
- * certifications a trainer has. The card is no longer one giant <button>
- * (a "Click to see more" toggle needed its own interactive element, and
- * nesting a <button> inside a <button> is invalid HTML) — the photo/name
- * area and an explicit "View full bio" link both open the same modal.
+ * Approved edit (client-directed): every card is the same height
+ * regardless of how many credentials/specialties a trainer has. The card
+ * is no longer one giant <button> (a "Click to see more" toggle needed
+ * its own interactive element, and nesting a <button> inside a <button>
+ * is invalid HTML) — the photo/name area and an explicit "View full bio"
+ * link both open the same modal.
+ *
+ * Post-launch management batch 1: credentials and specialties are shown
+ * as two separately-labeled, separately-colored groups ("Certifications &
+ * Degrees" in sage, "Specialties" in plum — see BadgeGroup below) rather
+ * than merged under one "Certifications" label, reversing the earlier
+ * "display together" decision. Each group keeps its own independent
+ * collapsed-height budget so a trainer with a long list in one category
+ * doesn't blow out the card height, matching the single combined list's
+ * previous behavior.
  */
 const SLUGS_WITHOUT_PHOTO_YET = new Set<string>([]);
 
@@ -53,21 +61,26 @@ const SLUGS_WITH_BIO_PHOTO = new Set<string>([
   "tracie-stolle",
 ]);
 
-// The collapsed certifications block caps at roughly two comfortable badge
-// rows. Whichever whole badges fit within that height show by default; a
-// trainer with more gets a "Click to see more" toggle for the rest.
-// Cutting at a whole-badge boundary (rather than clipping the block's CSS
-// height) is deliberate — a fixed-height overflow:hidden would slice
-// straight through whichever badge row straddled the limit, chopping its
-// text in half.
-const CERTS_COLLAPSED_MAX_HEIGHT_PX = 80;
+// Each badge group's collapsed block caps at roughly one comfortable badge
+// row (half the previous single-list budget, since a card can now show up
+// to two groups). Whichever whole badges fit within that height show by
+// default; a trainer with more gets a "Click to see more" toggle for the
+// rest. Cutting at a whole-badge boundary (rather than clipping the
+// block's CSS height) is deliberate — a fixed-height overflow:hidden would
+// slice straight through whichever badge row straddled the limit,
+// chopping its text in half.
+const BADGE_GROUP_COLLAPSED_MAX_HEIGHT_PX = 40;
 
-function CertificationsList({
+function BadgeGroup({
   regionId,
+  label,
   items,
+  tone,
 }: {
   regionId: string;
+  label: string;
   items: string[];
+  tone: "sage" | "plum";
 }) {
   const [expanded, setExpanded] = useState(false);
   const [visibleCount, setVisibleCount] = useState(items.length);
@@ -82,7 +95,7 @@ function CertificationsList({
       let count = 0;
       for (const child of children) {
         const bottom = child.getBoundingClientRect().bottom - containerTop;
-        if (bottom <= CERTS_COLLAPSED_MAX_HEIGHT_PX + 1) {
+        if (bottom <= BADGE_GROUP_COLLAPSED_MAX_HEIGHT_PX + 1) {
           count++;
         } else {
           break;
@@ -103,7 +116,7 @@ function CertificationsList({
   return (
     <div className="mt-3">
       <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-400">
-        Certifications
+        {label}
       </p>
       <div className="relative">
         {/* Off-screen full list, measured to find how many whole badges fit
@@ -116,14 +129,14 @@ function CertificationsList({
           className="pointer-events-none invisible absolute left-0 top-0 flex w-full flex-wrap gap-1.5"
         >
           {items.map((c) => (
-            <Badge key={c} tone="sage">
+            <Badge key={c} tone={tone}>
               {c}
             </Badge>
           ))}
         </div>
         <div id={regionId} className="flex flex-wrap gap-1.5">
           {shown.map((c) => (
-            <Badge key={c} tone="sage">
+            <Badge key={c} tone={tone}>
               {c}
             </Badge>
           ))}
@@ -153,8 +166,8 @@ function TrainerPreviewCard({
   accentIndex: number;
   onOpen: () => void;
 }) {
-  const certifications = [...trainer.credentials, ...trainer.specialties];
-  const regionId = useId();
+  const certsRegionId = useId();
+  const specialtiesRegionId = useId();
 
   return (
     <div
@@ -195,7 +208,20 @@ function TrainerPreviewCard({
       </button>
 
       <div className="flex flex-1 flex-col justify-between px-6 pb-6">
-        <CertificationsList regionId={regionId} items={certifications} />
+        <div>
+          <BadgeGroup
+            regionId={certsRegionId}
+            label="Certifications & Degrees"
+            items={trainer.credentials}
+            tone="sage"
+          />
+          <BadgeGroup
+            regionId={specialtiesRegionId}
+            label="Specialties"
+            items={trainer.specialties}
+            tone="plum"
+          />
+        </div>
         <button
           type="button"
           onClick={onOpen}

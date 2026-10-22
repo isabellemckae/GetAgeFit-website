@@ -61,7 +61,7 @@ export const footerNav: NavLink[] = [
 // Consistent CTA hierarchy — see PROMPT §33. Do not introduce competing
 // primary CTAs; every page should point back to one of these.
 export const cta = {
-  primary: { label: "Schedule a Consultation", href: "/consultation" },
+  primary: { label: "Schedule your free consultation", href: "/consultation" },
   secondary: { label: "See How It Works", href: "/how-it-works" },
   qualify: {
     label: "Find Out If GetAgeFit Is Right for You",

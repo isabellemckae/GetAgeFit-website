@@ -54,7 +54,7 @@ const steps = [
   {
     step: "05",
     title: "Track real progress",
-    body: "Optional ongoing measurement (from InBody scans to strength benchmarks) so your trainer always knows what's working, month over month.",
+    body: "Optional ongoing measurement (from InBody scans to strength benchmarks) so your trainer always knows what's working, month after month.",
     photo: "/images/trainers/jeff-venditte.webp",
     photoAlt: "Jeff Venditte, GetAgeFit personal trainer",
   },
@@ -101,7 +101,7 @@ export default function HowItWorksPage() {
           alt="Chip Collerain, GetAgeFit personal trainer"
           placeholderLabel="How it works hero photo"
           aspect="aspect-auto"
-          imageClassName="object-top"
+          imageClassName="object-[center_22%]"
           className="!absolute !inset-0 !h-full !w-full !rounded-none"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-ink-900/90 via-ink-900/70 to-plum-900/60" />
