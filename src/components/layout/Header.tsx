@@ -25,7 +25,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-ink-100/60 bg-sand-50/90 backdrop-blur">
       <div className="h-[3px] w-full bg-gradient-to-r from-sage-600 via-plum-500 to-sage-600" />
-      <div className="mx-auto flex h-20 w-full max-w-[1400px] items-center justify-between gap-6 px-6 md:px-10">
+      <div className="mx-auto flex h-20 w-full max-w-[1400px] items-center justify-between gap-4 px-6 md:px-10">
         <Link href="/" className="shrink-0">
           <Image
             src="/images/brand/getagefit-logo.png"
@@ -39,7 +39,7 @@ export function Header() {
 
         <nav
           aria-label="Primary"
-          className="hidden items-center gap-4 xl:flex"
+          className="hidden items-center gap-3 xl:flex"
         >
           {primaryNav.map((link) => {
             const active = pathname === link.href;
@@ -64,7 +64,7 @@ export function Header() {
           <Button
             href={cta.primary.href}
             size="md"
-            className="whitespace-nowrap"
+            className="whitespace-nowrap !px-5 text-[0.85rem]"
             trackCta={cta.primary.label}
             trackLocation="header"
           >
