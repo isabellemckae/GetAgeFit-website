@@ -123,16 +123,13 @@ export default function ProgramsPage() {
               </Button>
             </div>
             <div>
-              {/* Management-directed (post-launch batch 1, round 2, EDIT 1):
-                  Keith Stolle's photo is replaced with one of the five
-                  current staff headshots — he's no longer on the roster
-                  (see content/trainers.ts). The caption is generalized
-                  rather than kept as "Keith Stolle...": we don't have a
-                  verified name/story for whoever appears in the new photo,
-                  and attaching Keith's specific name and backstory to a
-                  different person's photo would misrepresent them. Flagged
-                  for management: supply the real name/story for this photo
-                  if you'd like a specific caption restored. */}
+              {/* Management-directed (post-launch batch 1, round 2, EDIT 1;
+                  caption removed in round 3): Keith Stolle's photo is
+                  replaced with one of the five current staff headshots —
+                  he's no longer on the roster (see content/trainers.ts).
+                  No caption at all now: the pictured person is a current
+                  trainer, not a verified transformation client, so any
+                  caption implying client results would misrepresent them. */}
               <ResponsiveImage
                 src="/images/trainers/staff-headshot-c.jpg"
                 alt="A GetAgeFit trainer"
@@ -142,9 +139,6 @@ export default function ProgramsPage() {
               >
                 <div className="photo-tint-plum-diagonal" />
               </ResponsiveImage>
-              <p className="mt-3 text-center text-xs text-sand-200/70">
-                Real GetAgeFit clients see real 12-week results
-              </p>
             </div>
           </div>
         </div>

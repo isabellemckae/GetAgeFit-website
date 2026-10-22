@@ -24,7 +24,7 @@ export type Objection = {
 
 export const objections: Objection[] = [
   {
-    question: "What if I’m out of shape?",
+    question: "What if I am out of shape?",
     answer: "You don’t need to be in shape, you just need to be willing.",
   },
   {
@@ -33,17 +33,17 @@ export const objections: Objection[] = [
       "Tell your trainer about it. Your plan gets built around any limitations you may have.",
   },
   {
-    question: "What if I’ve never lifted weights?",
+    question: "What if I have never lifted weights?",
     answer:
       "Most of our clients hadn’t either. You’ll be shown exactly what to do.",
   },
   {
-    question: "What if I’m nervous about walking into a gym?",
+    question: "What if I am nervous about walking into a gym?",
     answer:
       "That’s normal. You’ll love our supportive community, where we’re all working through similar challenges.",
   },
   {
-    question: "What if I’m not sure it’s right for me?",
+    question: "What if I am not sure it is right for me?",
     answer:
       "No pressure, no commitment, we’ll show you exactly how our program works, so you can make an informed decision.",
   },
