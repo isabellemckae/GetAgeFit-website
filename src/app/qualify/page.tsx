@@ -35,17 +35,24 @@ export default function QualifyPage() {
           </p>
           <div className="flex items-center justify-center gap-3">
             <div className="flex -space-x-3">
+              {/* Management-directed (post-launch batch 1, round 2, EDIT 1):
+                  the Robin Winkles photo is replaced with one of the five
+                  current staff headshots supplied for this revision round —
+                  she's no longer on the roster (see content/trainers.ts).
+                  Object-position is per-photo since each headshot's face
+                  sits at a different height in its own source frame. */}
               {[
-                "/images/trainers/ali-tabei.webp",
-                "/images/trainers/robin-winkles.webp",
-                "/images/trainers/robert-dolan.webp",
+                { src: "/images/trainers/ali-tabei.webp", position: "center" },
+                { src: "/images/trainers/staff-headshot-a.jpg", position: "center 22%" },
+                { src: "/images/trainers/robert-dolan.webp", position: "center" },
               ].map((photo) => (
                 <ResponsiveImage
-                  key={photo}
-                  src={photo}
+                  key={photo.src}
+                  src={photo.src}
                   alt="A GetAgeFit trainer"
                   placeholderLabel="Trainer photo"
                   aspect="aspect-square"
+                  imageClassName={`object-[${photo.position.replace(" ", "_")}]`}
                   className="w-10 !rounded-full ring-2 ring-sand-50"
                 />
               ))}

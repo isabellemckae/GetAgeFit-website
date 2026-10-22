@@ -123,18 +123,27 @@ export default function ProgramsPage() {
               </Button>
             </div>
             <div>
+              {/* Management-directed (post-launch batch 1, round 2, EDIT 1):
+                  Keith Stolle's photo is replaced with one of the five
+                  current staff headshots — he's no longer on the roster
+                  (see content/trainers.ts). The caption is generalized
+                  rather than kept as "Keith Stolle...": we don't have a
+                  verified name/story for whoever appears in the new photo,
+                  and attaching Keith's specific name and backstory to a
+                  different person's photo would misrepresent them. Flagged
+                  for management: supply the real name/story for this photo
+                  if you'd like a specific caption restored. */}
               <ResponsiveImage
-                src="/images/trainers/keith-stolle.webp"
-                alt="Keith Stolle, a GetAgeFit transformation graduate turned trainer"
+                src="/images/trainers/staff-headshot-c.jpg"
+                alt="A GetAgeFit trainer"
                 placeholderLabel="12-week transformation photo needed"
                 aspect="aspect-[4/5]"
-                imageClassName="object-top"
+                imageClassName="object-[center_18%]"
               >
                 <div className="photo-tint-plum-diagonal" />
               </ResponsiveImage>
               <p className="mt-3 text-center text-xs text-sand-200/70">
-                Keith Stolle — GetAgeFit transformation graduate, now a
-                trainer
+                Real GetAgeFit clients see real 12-week results
               </p>
             </div>
           </div>
@@ -215,11 +224,17 @@ export default function ProgramsPage() {
               ))}
             </ul>
           </div>
+          {/* Management-directed (post-launch batch 1, round 2, EDIT 1):
+              Robin Winkles' photo is replaced with one of the five current
+              staff headshots — she's no longer on the roster (see
+              content/trainers.ts). No visible caption here to begin with,
+              so just the alt text changes to a generic description. */}
           <ResponsiveImage
-            src="/images/trainers/robin-winkles.webp"
-            alt="Robin Winkles, GetAgeFit personal trainer"
+            src="/images/trainers/staff-headshot-b.jpg"
+            alt="A GetAgeFit personal trainer"
             placeholderLabel="Training session photo needed"
             aspect="aspect-[4/3]"
+            imageClassName="object-[center_20%]"
             className="shadow-soft"
           >
             <div className="photo-tint-plum" />

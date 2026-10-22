@@ -103,26 +103,33 @@ export default function HomePage() {
             Maybe You&rsquo;re Noticing&hellip;
           </h2>
         </div>
-        {/* Management-directed (post-launch batch 1, EDIT 2): the photo
-            previously used here is replaced with the original Laura &
-            James photo freed up by EDIT 1, shown with natural colors (no
-            tint/overlay) and the same responsive mobile/desktop crop swap
-            that photo used in the hero, so both faces stay visible on a
-            narrow viewport. */}
+        {/* Management-directed (post-launch batch 1, EDIT 2, recropped in
+            round 2 EDIT 3): the photo previously used here is replaced with
+            the original Laura & James photo freed up by EDIT 1, shown with
+            natural colors (no tint/overlay). The source photo itself puts
+            both people well to the right of a lot of empty purple
+            background, so a plain centered crop pushed Laura's face to (or
+            past) the frame edge on desktop and cut off both of their faces
+            at the top on mobile -- object-position is tuned per breakpoint
+            (mobile crops top-anchored since both faces sit in the top ~40%
+            of that tall source frame; desktop crops to a narrower band
+            shifted right, toward where the two of them actually stand) so
+            both faces land centered in the visible frame with real margin
+            around them, not the plain "center" default. */}
         <ResponsiveImage
           src="/images/training/hero-strength-duo-mobile.jpg"
           alt="Laura and James, GetAgeFit clients celebrating their strength gains"
           placeholderLabel="Recognition photo"
           aspect="aspect-[4/3]"
-          imageClassName="object-center"
+          imageClassName="object-[center_8%]"
           className="mx-auto mb-12 max-w-2xl shadow-soft md:hidden"
         />
         <ResponsiveImage
           src="/images/training/hero-strength-duo.webp"
           alt="Laura and James, GetAgeFit clients celebrating their strength gains"
           placeholderLabel="Recognition photo"
-          aspect="aspect-[16/9]"
-          imageClassName="object-center"
+          aspect="aspect-[3/2]"
+          imageClassName="object-[85%_center]"
           className="mx-auto mb-12 hidden max-w-2xl shadow-soft md:block"
         />
         <RecognitionList />
