@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -101,26 +102,43 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 2. MAYBE YOU'RE NOTICING A FEW THINGS… */}
+      {/* 2. WELCOME TO GETAGEFIT / MAYBE YOU'RE NOTICING A FEW THINGS…
+          Round 4 (Theo, direct request): a "Welcome to GetAgeFit" moment
+          (the wordmark logo, standing in for the heading) now opens this
+          section, directly below the purple hero and directly above the
+          Laura & James photo. The "Maybe You're Noticing…" heading, which
+          used to sit above that photo, moves below it instead, so it now
+          introduces the recognition/pain-point list (RecognitionList)
+          immediately following. */}
       <Section tone="white">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="mb-10 text-3xl md:text-4xl">
-            Maybe You&rsquo;re Noticing&hellip;
-          </h2>
+        <div className="mx-auto mb-12 max-w-2xl text-center">
+          <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-ink-500">
+            Welcome to
+          </p>
+          <Image
+            src="/images/brand/getagefit-logo.png"
+            alt="Get Age Fit"
+            width={630}
+            height={81}
+            className="mx-auto h-10 w-auto md:h-12"
+          />
         </div>
         {/* Management-directed (post-launch batch 1, EDIT 2, recropped in
-            round 2 EDIT 3): the photo previously used here is replaced with
-            the original Laura & James photo freed up by EDIT 1, shown with
-            natural colors (no tint/overlay). The source photo itself puts
-            both people well to the right of a lot of empty purple
-            background, so a plain centered crop pushed Laura's face to (or
-            past) the frame edge on desktop and cut off both of their faces
-            at the top on mobile -- object-position is tuned per breakpoint
-            (mobile crops top-anchored since both faces sit in the top ~40%
-            of that tall source frame; desktop crops to a narrower band
-            shifted right, toward where the two of them actually stand) so
-            both faces land centered in the visible frame with real margin
-            around them, not the plain "center" default. */}
+            round 2 EDIT 3; background recolored in round 4 from a flat
+            purple cutout to the same warm studio grey as the trainer
+            headshots, per Theo's direct request): the photo previously
+            used here is replaced with the original Laura & James photo
+            freed up by EDIT 1, shown with natural colors (no tint/overlay).
+            The source photo itself puts both people well to the right of a
+            lot of empty background, so a plain centered crop pushed
+            Laura's face to (or past) the frame edge on desktop and cut off
+            both of their faces at the top on mobile -- object-position is
+            tuned per breakpoint (mobile crops top-anchored since both faces
+            sit in the top ~40% of that tall source frame; desktop crops to
+            a narrower band shifted right, toward where the two of them
+            actually stand) so both faces land centered in the visible
+            frame with real margin around them, not the plain "center"
+            default. */}
         <ResponsiveImage
           src="/images/training/hero-strength-duo-mobile.jpg"
           alt="Laura and James, GetAgeFit clients celebrating their strength gains"
@@ -137,6 +155,11 @@ export default function HomePage() {
           imageClassName="object-[85%_center]"
           className="mx-auto mb-12 hidden max-w-2xl shadow-soft md:block"
         />
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="mb-10 text-3xl md:text-4xl">
+            Maybe You&rsquo;re Noticing&hellip;
+          </h2>
+        </div>
         <RecognitionList />
       </Section>
 
