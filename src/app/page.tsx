@@ -328,7 +328,26 @@ export default function HomePage() {
         <FounderHomeSection />
       </Section>
 
-      {/* 10. FOOTER — rendered globally by src/app/layout.tsx, not here. */}
+      {/* 10. SEO DESCRIPTION — Theo's direct request: the homepage's
+          business-identifying description (identity, personal training
+          service, 40+ audience, Georgetown location) moves from being
+          meta-only (invisible, <head> only, still intact in `metadata`
+          above) to a small, plainly visible, crawlable paragraph at the
+          very bottom of the page, directly above the footer, so it no
+          longer competes with the simplified welcome experience above the
+          fold. Reuses siteConfig.description verbatim (the same approved
+          sentence already used sitewide for metadata/JsonLd) rather than
+          inventing new copy, and doesn't duplicate the Footer's own
+          (shorter, differently-worded) tagline sentence above it. */}
+      <div className="bg-mesh-dark py-10">
+        <div className="mx-auto max-w-2xl px-6 text-center md:px-10">
+          <p className="text-sm leading-relaxed text-sand-200/70">
+            {siteConfig.description}
+          </p>
+        </div>
+      </div>
+
+      {/* 11. FOOTER — rendered globally by src/app/layout.tsx, not here. */}
     </>
   );
 }
