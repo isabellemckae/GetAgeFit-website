@@ -52,11 +52,16 @@ export default function HomePage() {
           fill photo + dark gradient overlay + light text on top), per
           Demo #4 Part 2.1. Same hero copy/CTA as before; only the container
           treatment changed. */}
-      <section className="relative flex h-[720px] items-center overflow-hidden bg-plum-500 md:h-[600px]">
-        {/* Management-directed (post-launch batch 1, EDIT 1): the Laura &
-            James hero photo is removed in favor of a brighter solid brand
-            purple; the photo itself is preserved and reused in the "Maybe
-            You're Noticing…" section below instead (EDIT 2). */}
+      <section className="relative flex h-[720px] items-center overflow-hidden bg-plum-900 md:h-[600px]">
+        {/* Management-directed (post-launch batch 1, EDIT 1; reverted to the
+            site's standard dark purple in round 4): the Laura & James hero
+            photo is removed in favor of a solid brand purple background;
+            the photo itself is preserved and reused in the "Maybe You're
+            Noticing…" section below instead (EDIT 2). The background was
+            briefly lightened to bg-plum-500 only to offset that photo's
+            darkness while it still lived here — now that the photo has
+            moved, the dark bg-plum-900 (matching every other solid-color
+            hero sitewide) returns so the hero text pops. */}
         <div className="relative z-10 mx-auto w-full max-w-content px-6 md:px-10">
           <Badge tone="plum">The 12-Week Transformation Experience</Badge>
           <h1 className="mb-6 mt-5 max-w-2xl text-sand-50">
