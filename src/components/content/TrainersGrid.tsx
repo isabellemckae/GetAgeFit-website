@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useState } from "react";
 import { Trainer } from "@/content/trainers";
-import { Badge } from "@/components/ui/Badge";
 import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
 import { TrainerBioModal } from "@/components/content/TrainerBioModal";
 
@@ -16,30 +15,25 @@ import { TrainerBioModal } from "@/components/content/TrainerBioModal";
  * no /images/trainers/<slug>.webp file on disk. Previously every trainer
  * had a real file, so this component always guessed the src from the
  * slug. Listing the slugs that don't have one yet lets ResponsiveImage
- * fall back to its existing PhotoPlaceholder (the same fallback
- * TrainerCard.tsx already relies on) instead of requesting a file that
- * 404s and rendering a broken image icon.
+ * fall back to its existing PhotoPlaceholder instead of requesting a file
+ * that 404s and rendering a broken image icon.
  *
  * Demo #5 follow-up 2: the two remaining photo-less placeholders (Jalen
  * Curtis, Thea Thurston) were removed from the roster entirely, so this
  * is empty for now — kept in place (rather than removing the mechanism)
  * for the next trainer added without a photo yet.
  *
- * Approved edit (client-directed): every card is the same height
- * regardless of how many credentials/specialties a trainer has. The card
- * is no longer one giant <button> (a "Click to see more" toggle needed
- * its own interactive element, and nesting a <button> inside a <button>
- * is invalid HTML) — the photo/name area and an explicit "View full bio"
- * link both open the same modal.
- *
- * Post-launch management batch 1: credentials and specialties are shown
- * as two separately-labeled, separately-colored groups ("Certifications &
- * Degrees" in sage, "Specialties" in plum — see BadgeGroup below) rather
- * than merged under one "Certifications" label, reversing the earlier
- * "display together" decision. Each group keeps its own independent
- * collapsed-height budget so a trainer with a long list in one category
- * doesn't blow out the card height, matching the single combined list's
- * previous behavior.
+ * Trainer Bio Simplification (Theo, direct request): the default card no
+ * longer shows certification/specialty badges at all — BadgeGroup (with
+ * its per-card "how many whole badges fit" measuring logic) is gone
+ * entirely, since there's nothing variable-height left on the card to
+ * measure. Every card now shows only photo, name, role, and a "More
+ * Info" button, so card height is naturally uniform regardless of how
+ * much a trainer's expanded profile contains — that was the open problem
+ * BadgeGroup existed to paper over; removing the badges removes the
+ * problem instead. Full credentials/specialties move into
+ * TrainerBioModal.tsx's expanded view, specialties before certifications
+ * per the new information hierarchy, as plain lists rather than badges.
  */
 const SLUGS_WITHOUT_PHOTO_YET = new Set<string>([]);
 
@@ -61,100 +55,11 @@ const SLUGS_WITH_BIO_PHOTO = new Set<string>([
   "tracie-stolle",
 ]);
 
-// Each badge group's collapsed block caps at roughly one comfortable badge
-// row (half the previous single-list budget, since a card can now show up
-// to two groups). Whichever whole badges fit within that height show by
-// default; a trainer with more gets a "Click to see more" toggle for the
-// rest. Cutting at a whole-badge boundary (rather than clipping the
-// block's CSS height) is deliberate — a fixed-height overflow:hidden would
-// slice straight through whichever badge row straddled the limit,
-// chopping its text in half.
-const BADGE_GROUP_COLLAPSED_MAX_HEIGHT_PX = 40;
-
-function BadgeGroup({
-  regionId,
-  label,
-  items,
-  tone,
-}: {
-  regionId: string;
-  label: string;
-  items: string[];
-  tone: "sage" | "plum";
-}) {
-  const [expanded, setExpanded] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(items.length);
-  const measureRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function measure() {
-      const container = measureRef.current;
-      if (!container) return;
-      const containerTop = container.getBoundingClientRect().top;
-      const children = Array.from(container.children) as HTMLElement[];
-      let count = 0;
-      for (const child of children) {
-        const bottom = child.getBoundingClientRect().bottom - containerTop;
-        if (bottom <= BADGE_GROUP_COLLAPSED_MAX_HEIGHT_PX + 1) {
-          count++;
-        } else {
-          break;
-        }
-      }
-      setVisibleCount(Math.max(count, Math.min(1, items.length)));
-    }
-    measure();
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
-  }, [items]);
-
-  if (items.length === 0) return null;
-
-  const overflowing = visibleCount < items.length;
-  const shown = expanded ? items : items.slice(0, visibleCount);
-
-  return (
-    <div className="mt-3">
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-400">
-        {label}
-      </p>
-      <div className="relative">
-        {/* Off-screen full list, measured to find how many whole badges fit
-            the collapsed height at the card's actual current width. Same
-            width as the visible list (absolute inside this relative
-            wrapper) but invisible and out of the layout flow. */}
-        <div
-          ref={measureRef}
-          aria-hidden="true"
-          className="pointer-events-none invisible absolute left-0 top-0 flex w-full flex-wrap gap-1.5"
-        >
-          {items.map((c) => (
-            <Badge key={c} tone={tone}>
-              {c}
-            </Badge>
-          ))}
-        </div>
-        <div id={regionId} className="flex flex-wrap gap-1.5">
-          {shown.map((c) => (
-            <Badge key={c} tone={tone}>
-              {c}
-            </Badge>
-          ))}
-        </div>
-      </div>
-      {overflowing && (
-        <button
-          type="button"
-          onClick={() => setExpanded((v) => !v)}
-          aria-expanded={expanded}
-          aria-controls={regionId}
-          className="mt-2 text-xs font-semibold text-sage-700 underline decoration-2 underline-offset-2 hover:text-sage-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sage-600"
-        >
-          {expanded ? "Click to see less" : "Click to see more"}
-        </button>
-      )}
-    </div>
-  );
+export function trainerPhotoSrc(slug: string): string | undefined {
+  if (SLUGS_WITHOUT_PHOTO_YET.has(slug)) return undefined;
+  return SLUGS_WITH_BIO_PHOTO.has(slug)
+    ? `/images/trainers/bio/${slug}.webp`
+    : `/images/trainers/${slug}.webp`;
 }
 
 function TrainerPreviewCard({
@@ -166,9 +71,6 @@ function TrainerPreviewCard({
   accentIndex: number;
   onOpen: () => void;
 }) {
-  const certsRegionId = useId();
-  const specialtiesRegionId = useId();
-
   return (
     <div
       id={trainer.slug}
@@ -182,13 +84,7 @@ function TrainerPreviewCard({
       >
         <div className="overflow-hidden">
           <ResponsiveImage
-            src={
-              SLUGS_WITHOUT_PHOTO_YET.has(trainer.slug)
-                ? undefined
-                : SLUGS_WITH_BIO_PHOTO.has(trainer.slug)
-                  ? `/images/trainers/bio/${trainer.slug}.webp`
-                  : `/images/trainers/${trainer.slug}.webp`
-            }
+            src={trainerPhotoSrc(trainer.slug)}
             alt={`${trainer.name}, ${trainer.role} at GetAgeFit`}
             placeholderLabel={trainer.photoLabel}
             aspect="aspect-square"
@@ -199,35 +95,26 @@ function TrainerPreviewCard({
         <div
           className={`h-1 ${accentIndex % 2 === 0 ? "bg-sage-600" : "bg-plum-600"}`}
         />
-        <div className="px-6 pt-6">
-          <h2 className="mb-1 text-lg font-display text-ink-900">
-            {trainer.name}
-          </h2>
-          <p className="text-sm font-medium text-plum-600">{trainer.role}</p>
-        </div>
       </button>
 
-      <div className="flex flex-1 flex-col justify-between px-6 pb-6">
-        <div>
-          <BadgeGroup
-            regionId={certsRegionId}
-            label="Certifications & Degrees"
-            items={trainer.credentials}
-            tone="sage"
-          />
-          <BadgeGroup
-            regionId={specialtiesRegionId}
-            label="Specialties"
-            items={trainer.specialties}
-            tone="plum"
-          />
-        </div>
+      <div className="flex flex-1 flex-col px-6 py-6">
+        <h2 className="mb-1 text-lg font-display text-ink-900">
+          {trainer.name}
+        </h2>
+        <p className="mb-5 text-sm font-medium text-plum-600">
+          {trainer.role}
+        </p>
         <button
           type="button"
           onClick={onOpen}
-          className="mt-4 self-start text-sm font-semibold text-ink-500 hover:text-sage-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sage-600"
+          aria-haspopup="dialog"
+          aria-label={`More info about ${trainer.name}`}
+          className="mt-auto inline-flex w-fit items-center gap-1.5 rounded-full border border-sage-600 px-4 py-2 text-sm font-semibold text-sage-700 transition-colors duration-200 hover:bg-sage-600 hover:text-sand-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage-600"
         >
-          View full bio →
+          More Info
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </button>
       </div>
     </div>
