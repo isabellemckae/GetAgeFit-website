@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/Badge";
 import { ResponsiveImage } from "@/components/ui/ResponsiveImage";
 import { FirstLetterEmphasis } from "@/components/ui/FirstLetterEmphasis";
 import { RecognitionList } from "@/components/home/RecognitionList";
@@ -41,87 +40,44 @@ export const metadata: Metadata = {
 };
 
 const PRIMARY_CTA_LABEL = cta.primary.label;
-const PRIMARY_CTA_SUPPORT_FULL =
-  "No cost. No obligation. Just a chance to see what’s possible for YOU.";
 const PRIMARY_CTA_SUPPORT_SHORT = "No cost. No obligation.";
 
 export default function HomePage() {
   return (
     <>
-      {/* 1. HERO — reusing the /how-it-works blurred/scrimmed full-bleed
-          photo banner treatment (same markup pattern: absolutely-positioned
-          fill photo + dark gradient overlay + light text on top), per
-          Demo #4 Part 2.1. Same hero copy/CTA as before; only the container
-          treatment changed. */}
-      <section className="relative flex h-[720px] items-center overflow-hidden bg-plum-900 md:h-[600px]">
-        {/* Management-directed (post-launch batch 1, EDIT 1; reverted to the
-            site's standard dark purple in round 4): the Laura & James hero
-            photo is removed in favor of a solid brand purple background;
-            the photo itself is preserved and reused in the "Maybe You're
-            Noticing…" section below instead (EDIT 2). The background was
-            briefly lightened to bg-plum-500 only to offset that photo's
-            darkness while it still lived here — now that the photo has
-            moved, the dark bg-plum-900 (matching every other solid-color
-            hero sitewide) returns so the hero text pops. */}
-        <div className="relative z-10 mx-auto w-full max-w-content px-6 md:px-10">
-          <Badge tone="plum">The 12-Week Transformation Experience</Badge>
-          <h1 className="mb-6 mt-5 max-w-2xl text-sand-50">
-            {/* Small supporting location label, not a headline — reduced
-                from the original headline-scale treatment per direct
-                follow-up correction. Kept inside the same <h1> as the
-                actual headline below (rather than its own heading level)
-                since it's a location identifier for local SEO, not a
-                second page heading. */}
-            <span className="mb-1 block text-[13px] leading-snug tracking-wide sm:text-[15px]">
-              <FirstLetterEmphasis text="Gym in Georgetown, TX" emphasizeFirstLetter={false} />
-            </span>
-            <span className="block text-4xl leading-[1.08] sm:text-5xl lg:text-[3.4rem]">
-              <FirstLetterEmphasis
-                text="Personal Training Personalized"
-                highlightWords={["Personalized"]}
-                highlightClassName="font-bold text-brand-lime-500"
-              />
-            </span>
-          </h1>
-          <p className="mb-9 max-w-xl text-lg leading-relaxed text-sand-100 sm:text-xl">
-            Custom, age-appropriate workouts to look better, feel stronger,
-            live longer.
-          </p>
-          <Button
-            href="/consultation"
-            size="lg"
-            variant="primary"
-            trackCta={PRIMARY_CTA_LABEL}
-            trackLocation="homepage-hero"
-          >
-            {PRIMARY_CTA_LABEL}
-          </Button>
-          <p className="mt-4 text-sm text-sand-200/80">
-            {PRIMARY_CTA_SUPPORT_FULL}
-          </p>
-        </div>
-      </section>
-
-      {/* 2. WELCOME TO GETAGEFIT / MAYBE YOU'RE NOTICING A FEW THINGS…
-          Round 4 (Theo, direct request): a "Welcome to GetAgeFit" moment
-          (the wordmark logo, standing in for the heading) now opens this
-          section, directly below the purple hero and directly above the
-          Laura & James photo. The "Maybe You're Noticing…" heading, which
-          used to sit above that photo, moves below it instead, so it now
-          introduces the recognition/pain-point list (RecognitionList)
-          immediately following. */}
+      {/* 1. WELCOME TO GETAGEFIT / MAYBE YOU'RE NOTICING A FEW THINGS…
+          Round 7 (Theo, direct request): the purple "Personal Training
+          Personalized" hero that used to open the homepage is removed
+          entirely — this section (first built in round 4, previously
+          second) is now the first thing visitors see beneath the global
+          nav. The page's one H1 moves here with it: "Gym in Georgetown,
+          TX" (the exact small supporting label the old hero used, reused
+          verbatim rather than inventing new copy) sits as its own visible
+          eyebrow line, and "Welcome to [GetAgeFit logo]" becomes the
+          actual <h1> — an <img> with real alt text inside an <h1> is
+          valid, visible, crawlable markup, not hidden text. This keeps
+          exactly one meaningful H1 on the page (the old hero's H1 is
+          gone with it) while keeping the Georgetown location identifier
+          as plain visible text, per the SEO requirements for this round.
+          The Laura & James photo and the "Maybe You're Noticing…"
+          heading/copy below are unchanged from round 4. */}
       <Section tone="white">
         <div className="mx-auto mb-12 max-w-2xl text-center">
           <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-ink-500">
-            Welcome to
+            <FirstLetterEmphasis text="Gym in Georgetown, TX" emphasizeFirstLetter={false} />
           </p>
-          <Image
-            src="/images/brand/getagefit-logo.png"
-            alt="Get Age Fit"
-            width={630}
-            height={81}
-            className="mx-auto h-10 w-auto md:h-12"
-          />
+          <h1 className="flex flex-col items-center gap-3">
+            <span className="text-sm font-semibold uppercase tracking-[0.18em] text-ink-500">
+              Welcome to
+            </span>
+            <Image
+              src="/images/brand/getagefit-logo.png"
+              alt="Get Age Fit"
+              width={630}
+              height={81}
+              className="mx-auto h-10 w-auto md:h-12"
+            />
+          </h1>
         </div>
         {/* Management-directed (post-launch batch 1, EDIT 2, recropped in
             round 2 EDIT 3; background recolored in round 4 from a flat
@@ -163,7 +119,7 @@ export default function HomePage() {
         <RecognitionList />
       </Section>
 
-      {/* 3. THIS ISN'T YOUR TYPICAL GYM. — solid color block, no mesh/blob,
+      {/* 2. THIS ISN'T YOUR TYPICAL GYM. — solid color block, no mesh/blob,
           for a bolder, flatter contrast moment. */}
       <section className="bg-sage-950 py-20 md:py-28">
         <div className="relative mx-auto max-w-2xl px-6 text-center md:px-10">
@@ -185,7 +141,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. GET STRONG / GET HEART HEALTHY / GET STEADY / GET YOUR LIFE BACK */}
+      {/* 3. GET STRONG / GET HEART HEALTHY / GET STEADY / GET YOUR LIFE BACK */}
       <Section tone="white">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           {outcomes.map((outcome, index) => (
@@ -194,7 +150,7 @@ export default function HomePage() {
         </div>
       </Section>
 
-      {/* 5. PEOPLE MAKE THE DIFFERENCE. */}
+      {/* 4. PEOPLE MAKE THE DIFFERENCE. */}
       <Section tone="sand">
         <div className="grid items-center gap-16 lg:grid-cols-2">
           <div className="relative mx-auto w-full max-w-md">
@@ -243,7 +199,7 @@ export default function HomePage() {
         </div>
       </Section>
 
-      {/* 6. REAL CLIENT STORIES (Demo #4 follow-up: heading reverted from
+      {/* 5. REAL CLIENT STORIES (Demo #4 follow-up: heading reverted from
           "Five-Star Reviews" — these are real client reviews, and "Real
           Client Stories" better fits the brand voice. Client-directed
           three-review redesign: the single-column five-up stack (see
@@ -282,7 +238,7 @@ export default function HomePage() {
         </div>
       </Section>
 
-      {/* 7. THINKING ABOUT GETTING STARTED? */}
+      {/* 6. THINKING ABOUT GETTING STARTED? */}
       <Section tone="sand">
         <div className="mx-auto mb-12 max-w-2xl text-center">
           <h2 className="text-3xl md:text-4xl">
@@ -308,7 +264,7 @@ export default function HomePage() {
         </div>
       </Section>
 
-      {/* 8. EVERYTHING YOU NEED TO GET AGE FIT. */}
+      {/* 7. EVERYTHING YOU NEED TO GET AGE FIT. */}
       <Section tone="white">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="mb-10 text-3xl md:text-4xl">
@@ -318,7 +274,7 @@ export default function HomePage() {
         </div>
       </Section>
 
-      {/* 9. WHY I CREATED GET AGE FIT — THEO */}
+      {/* 8. WHY I CREATED GET AGE FIT — THEO */}
       <Section tone="sand">
         <div className="mx-auto mb-12 max-w-2xl text-center">
           <h2 className="text-3xl md:text-4xl">
@@ -327,6 +283,44 @@ export default function HomePage() {
         </div>
         <FounderHomeSection />
       </Section>
+
+      {/* 9. FOOTER SEO COPY — Theo's exact approved wording (round 7),
+          reused verbatim, not rewritten. Rendered here, directly above
+          where the global Footer renders, rather than inside
+          Footer.tsx itself: Footer.tsx is a shared component rendered
+          on every page (src/app/layout.tsx), and this copy is
+          homepage-specific per Theo's instructions, so it's added as
+          homepage-only markup instead of sitewide. Styled to match the
+          Footer's own dark-mesh background exactly (`bg-mesh-dark`) so
+          there's no visible seam between this block and the footer
+          immediately below it — visually it reads as one continuous
+          footer area, structurally it's a sibling section. Heading
+          hierarchy: this follows the homepage's one <h1> (round 7,
+          above) and every other <h2> section heading on the page, so
+          "The 12-Week Transformation Experience" is an <h2>, same
+          level as the rest, not a second <h1>. "Gym in Georgetown, TX"
+          here is the same short location label already shown near the
+          top of the page (not a new, separate SEO paragraph) — per
+          Theo's exact copy, which repeats it intentionally, the same
+          way a business's name/location commonly appears near both the
+          top and bottom of a page. */}
+      <div className="bg-mesh-dark py-14">
+        <div className="mx-auto max-w-2xl px-6 text-center md:px-10">
+          <h2 className="mb-2 text-xl text-sand-50 md:text-2xl">
+            The 12-Week Transformation Experience
+          </h2>
+          <p className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-sand-200/70">
+            Gym in Georgetown, TX
+          </p>
+          <p className="text-sm leading-relaxed text-sand-200/80">
+            Custom, age-appropriate workouts with your certified trainer
+            designed to develop functional strength and muscle tone, reduce
+            body fat, increase energy and improve balance and
+            flexibility&hellip; resulting in independence you can feel in
+            daily life.
+          </p>
+        </div>
+      </div>
 
       {/* 10. FOOTER — rendered globally by src/app/layout.tsx, not here. */}
     </>
