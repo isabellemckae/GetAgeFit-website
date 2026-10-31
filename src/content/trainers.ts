@@ -81,6 +81,18 @@
 // Coach") — this last set already carried a pre-existing, separately
 // documented ambiguity (see the CPT-rename note above) about whether
 // they're verified NASM credentials at all.
+//
+// Round 9 (client-directed credential updates): Will Roberts' "ACE
+// Certified Personal Trainer (ACE-CPT)" added -- he had no credential on
+// file at all before this, so it's an addition, not the "replace an
+// incorrect NASM CPT" the request described (no NASM CPT was ever on file
+// for him). James Petersen's "Balance & core training" specialty renamed
+// "NASM Core and Balance Certification" and moved into `credentials` per
+// direct instruction, plus "BS Environmental Sciences" added as a new
+// degree. Both flagged, not independently verified: "NASM Core and
+// Balance Certification" doesn't match NASM's standard certification
+// catalog as otherwise documented in this file; implemented with the
+// exact wording given rather than guessed at.
 
 export type Trainer = {
   slug: string;
@@ -119,8 +131,24 @@ Fitness, in some form, has always been a part of Maria's life. She began dancing
     slug: "james-petersen",
     name: "James Petersen",
     role: "Certified Personal Trainer",
-    credentials: ["NASM CPT", "NASM Nutrition Coach", "NASM Senior Fitness Specialist"],
-    specialties: ["Balance & core training", "200-hr community yoga training"],
+    // Round 9 (client-directed): "Balance & core training" moved here from
+    // `specialties` below and renamed "NASM Core and Balance Certification"
+    // per direct instruction — flagged, not independently verified: this
+    // exact credential name doesn't match NASM's standard public
+    // certification catalog as currently documented elsewhere in this
+    // file (NASM CPT, Nutrition Coach, Senior Fitness Specialist,
+    // Corrective Exercise Specialist, Behavior Change Specialist). Kept
+    // verbatim as instructed rather than renamed to a guessed official
+    // title. "BS Environmental Sciences" is a new addition, also
+    // client-directed, not previously on file for James.
+    credentials: [
+      "NASM CPT",
+      "NASM Nutrition Coach",
+      "NASM Senior Fitness Specialist",
+      "NASM Core and Balance Certification",
+      "BS Environmental Sciences",
+    ],
+    specialties: ["200-hr community yoga training"],
     philosophy: needsPhilosophy,
     story: `James brings a unique approach to his coaching at Get Age Fit, which makes him a coveted trainer among elite clients. By using circuit training, high intensity interval training, and supersetting, along with time under tension training, his clients achieve results they can be proud of.
 
@@ -184,7 +212,12 @@ Travis discovered his passion for physical training during his time in the milit
     slug: "will-roberts",
     name: "Will Roberts",
     role: "Fitness Coach",
-    credentials: [],
+    // Round 9 (client-directed): "ACE Certified Personal Trainer (ACE-CPT)"
+    // added per direct instruction to correct his certification. Note: Will
+    // had no NASM CPT (or any credential) on file before this -- `credentials`
+    // was empty -- so this is an addition, not a replacement of an existing
+    // entry, despite how the request was phrased.
+    credentials: ["ACE Certified Personal Trainer (ACE-CPT)"],
     specialties: [
       "18+ years coaching experience",
       "Athletes through older adults",
