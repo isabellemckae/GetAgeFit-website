@@ -8,20 +8,22 @@ import { trainerPhotoSrc } from "@/components/content/TrainersGrid";
 /**
  * Detailed trainer bio — opened from a card in TrainersGrid.tsx.
  *
- * Trainer Bio Simplification (Theo, direct request): restructured to the
- * requested information hierarchy —
- *   A. Identification (headshot, name, title)
- *   B. Training Specialties (plain list)
- *   C. Certifications & Degrees (plain list)
+ * Trainer Bio Simplification (Theo, direct request): restructured to a
+ * requested information hierarchy, replacing the previous pill/badge
+ * rendering with plain bulleted lists and subtle dividers. The headshot
+ * wasn't previously shown here (the card the visitor just clicked
+ * already showed it) but that round's hierarchy explicitly called for it
+ * up top, so it's shown here too, reusing the same photo
+ * TrainersGrid.tsx shows (trainerPhotoSrc), kept intentionally small so
+ * it doesn't crowd a mobile screen.
+ *
+ * Current order (round 10, client-directed — reverses the prior Trainer
+ * Bio Simplification round's specialties-before-certifications order
+ * back to certifications-first):
+ *   A. Identification (headshot, leadershipTitle if set, name, role)
+ *   B. Certifications & Degrees (plain list)
+ *   C. Training Specialties (plain list)
  *   D. About [Name] (the full existing biography, always last)
- * — replacing the previous pill/badge rendering with plain bulleted
- * lists and subtle dividers, and replacing the previous
- * certifications-before-specialties order. The headshot was not
- * previously shown here (the card the visitor just clicked already
- * showed it) but the new hierarchy explicitly calls for it up top, so
- * it's added here too, reusing the same photo TrainersGrid.tsx shows
- * (trainerPhotoSrc), kept intentionally small so it doesn't crowd a
- * mobile screen.
  *
  * Only ever renders verified fields already in src/content/trainers.ts
  * (name, role, credentials, specialties, philosophy, story) — nothing
@@ -144,6 +146,13 @@ export function TrainerBioModal({
               className="w-20 shrink-0 sm:w-24"
             />
             <div>
+              {/* Round 10 (client-directed): leadershipTitle, when set,
+                  renders above `role` here too, matching the card. */}
+              {trainer.leadershipTitle && (
+                <p className="text-xs font-semibold uppercase tracking-wide text-sage-700">
+                  {trainer.leadershipTitle}
+                </p>
+              )}
               <h2 className="font-display text-2xl text-ink-900">
                 {trainer.name}
               </h2>
@@ -153,24 +162,9 @@ export function TrainerBioModal({
             </div>
           </div>
 
-          {/* B. TRAINING SPECIALTIES */}
-          {trainer.specialties.length > 0 && (
-            <div className="border-t border-ink-100 py-5">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-400">
-                Training Specialties
-              </p>
-              <ul className="space-y-2">
-                {trainer.specialties.map((s) => (
-                  <li key={s} className="flex items-start gap-2.5 text-sm leading-relaxed text-ink-700">
-                    <span aria-hidden="true" className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-plum-400" />
-                    <span>{s}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* C. CERTIFICATIONS & DEGREES */}
+          {/* B. CERTIFICATIONS & DEGREES — round 10 (client-directed):
+              reordered to appear BEFORE Training Specialties, reversing
+              the previous round's order. */}
           {trainer.credentials.length > 0 && (
             <div className="border-t border-ink-100 py-5">
               <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-400">
@@ -181,6 +175,23 @@ export function TrainerBioModal({
                   <li key={c} className="flex items-start gap-2.5 text-sm leading-relaxed text-ink-700">
                     <span aria-hidden="true" className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-sage-500" />
                     <span>{c}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* C. TRAINING SPECIALTIES */}
+          {trainer.specialties.length > 0 && (
+            <div className="border-t border-ink-100 py-5">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-400">
+                Training Specialties
+              </p>
+              <ul className="space-y-2">
+                {trainer.specialties.map((s) => (
+                  <li key={s} className="flex items-start gap-2.5 text-sm leading-relaxed text-ink-700">
+                    <span aria-hidden="true" className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-plum-400" />
+                    <span>{s}</span>
                   </li>
                 ))}
               </ul>

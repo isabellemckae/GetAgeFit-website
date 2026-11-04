@@ -101,6 +101,20 @@ function TrainerPreviewCard({
         <h2 className="mb-1 text-lg font-display text-ink-900">
           {trainer.name}
         </h2>
+        {/* Round 10 (client-directed): leadershipTitle (e.g. "General
+            Manager") renders above `role`, visible on the default card
+            without opening the bio. This line always renders -- using an
+            invisible placeholder when a trainer has no leadershipTitle --
+            so every card reserves the same height for it and none of the
+            11 trainers without one become shorter/misaligned relative to
+            Maria and James. `invisible` (not `hidden`) keeps the layout
+            space while removing it from the accessibility tree. */}
+        <p
+          aria-hidden={!trainer.leadershipTitle}
+          className={`text-xs font-semibold uppercase tracking-wide text-sage-700 ${trainer.leadershipTitle ? "" : "invisible"}`}
+        >
+          {trainer.leadershipTitle ?? "placeholder"}
+        </p>
         <p className="mb-5 text-sm font-medium text-plum-600">
           {trainer.role}
         </p>

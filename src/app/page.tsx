@@ -40,7 +40,14 @@ export const metadata: Metadata = {
 };
 
 const PRIMARY_CTA_LABEL = cta.primary.label;
-const PRIMARY_CTA_SUPPORT_SHORT = "No cost. No obligation.";
+// Round 10 (Theo, direct request): "No cost. No obligation." removed
+// from consultation CTA support text sitewide. This line had no
+// trailing clause of its own to fall back to (unlike the hero's old,
+// now-removed "No cost. No obligation. Just a chance to see what's
+// possible for YOU." — the worked example in the request), so rather
+// than leave an empty support line beneath the button, this reuses that
+// same example's own approved replacement wording.
+const PRIMARY_CTA_SUPPORT_SHORT = "Just a chance to see what's possible for you.";
 
 export default function HomePage() {
   return (

@@ -93,10 +93,22 @@
 // Balance Certification" doesn't match NASM's standard certification
 // catalog as otherwise documented in this file; implemented with the
 // exact wording given rather than guessed at.
+//
+// Round 10 (client-directed): added `leadershipTitle: "General Manager"`
+// to Maria Arellano and James Petersen -- both are General Managers in
+// addition to being personal trainers. Shown above `role` on their card
+// and expanded profile. No other field changed for either of them.
 
 export type Trainer = {
   slug: string;
   name: string;
+  // Round 10 (client-directed): optional leadership title, shown ABOVE
+  // `role` on both the card and the expanded profile, for the two
+  // trainers who are also General Managers. Every card reserves this
+  // line's height whether or not a given trainer has one set (see
+  // TrainersGrid.tsx), so adding it to exactly two of thirteen trainers
+  // doesn't make their cards taller or misaligned relative to the rest.
+  leadershipTitle?: string;
   role: string;
   credentials: string[];
   specialties: string[];
@@ -112,6 +124,7 @@ export const trainers: Trainer[] = [
   {
     slug: "maria-arellano",
     name: "Maria Arellano",
+    leadershipTitle: "General Manager",
     role: "Certified Personal Trainer",
     credentials: [
       "NASM CPT",
@@ -130,6 +143,7 @@ Fitness, in some form, has always been a part of Maria's life. She began dancing
   {
     slug: "james-petersen",
     name: "James Petersen",
+    leadershipTitle: "General Manager",
     role: "Certified Personal Trainer",
     // Round 9 (client-directed): "Balance & core training" moved here from
     // `specialties` below and renamed "NASM Core and Balance Certification"
