@@ -63,11 +63,10 @@ export const testimonials: Testimonial[] = [
   },
 ];
 
-// Client-directed: exactly these three display on the homepage, in this
-// order — see FeaturedTestimonials.tsx. The remaining four stay in the
-// array above, unused but not deleted.
-export const featuredTestimonialSlugs = [
-  "lisa-sanders",
-  "brenda-brand",
-  "j-bryant-boyd",
-];
+// Round 11 (client-directed, single-testimonial redesign): the homepage
+// now shows only Brenda Brand's review, replacing the prior three-review
+// (lisa-sanders, brenda-brand, j-bryant-boyd) display — see
+// FeaturedTestimonials.tsx. All six other testimonials, including the two
+// just removed from display, stay in the `testimonials` array above
+// untouched and undeleted, same as before.
+export const featuredTestimonialSlugs = ["brenda-brand"];
